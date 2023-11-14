@@ -12,12 +12,15 @@
 			</div>
 			<form action="" class="login_form" method="POST">
         <div>
-            <label for="username_email">Email address</label>
-            <input type="email" id="username_email" name="username_email" placeholder="Enter your email" required>
+            <label for="email">Email address</label>
+            <input type="email" id="email" name="email" placeholder="Enter your email" required>
         </div>
         <div class="pass">
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            <span id="passwordError" style="color: red;"></span>
+            <span id="successMessage" style="color: green;"></span>
+
             <span class="forg_pass">
             	 <a href="#" class="" data-toggle="modal" data-target="#basicModal">Forgot password?</a>
             	<!-- <a href="#">Forgot password?</a> -->
@@ -25,9 +28,8 @@
             </span>
         </div>
         <div>
-        	<button class="theme_btn">
-        		Login
-        	</button>
+          <a href="{{ route('dashobardz') }}"  style="display: none;" class="theme_btn login_btn">Login</a>
+        	<!-- <button style="display: none;" class="theme_btn login_btn">Login</button> -->
         </div>
     </form>
     <div class="regist">
@@ -67,6 +69,62 @@
     </div>
   </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<script>
+// $(document).ready(function () {
+    $('#password').on('keyup', function () {
+
+      
+        var email = $('#email').val();
+        var password = $(this).val();
+
+        if (password.trim() === '') {
+            $('#passwordError').html('Password is required.');
+            return;
+        } else {
+            $('#passwordError').text('');
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: '{{ route('checkCredentials') }}',
+            data: {
+                '_token': '{{ csrf_token() }}',
+                'email': email,
+                'password': password
+            },
+            success: function (response, textStatus, xhr) {
+                if (xhr.status === 200) {
+                    // Success response
+                    $('#passwordError').text('');
+                    $('#successMessage').html(response.message);
+                    $('.login_btn').show();
+                } else {
+                    // Error response with status code 200 (this might be an unexpected case)
+                    $('#passwordError').html(response.error);
+                    $('#successMessage').text('');
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // AJAX request failed
+                if (xhr.status === 401) {
+                    // Unauthorized (invalid password) response
+                    $('#passwordError').html("Invalid Email Or Password.");
+                } else {
+                    // Other errors
+                    console.error("Error:", xhr.responseText);
+                    $('#passwordError').text('An error occurred while processing the request.');
+                }
+                $('#successMessage').text('');
+            }
+        });
+    });
+// });
+
+
+
+</script>
 
 </body>
 

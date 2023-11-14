@@ -10,6 +10,13 @@ class DasboardController extends Controller
     $data =[
         'title'=>'Account Dashboard'
     ];
-    return view('dashboard-account',$data);
+
+    $user = auth()->user();
+
+    if ($user) {
+        return view('dashboard-account',$data);
+    } else {
+        return redirect('/');
+    }   
    }
 }

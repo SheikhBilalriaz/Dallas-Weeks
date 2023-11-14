@@ -28,9 +28,10 @@ use App\http\Controllers\CompaignController;
 // });
 
 Route::get('/',[LoginController::class,'login']);
+Route::post('logout', [LoginController::class,'logoutUser'])->name('logout-user');
 Route::get('/register',[RegisterController::class,'register']);
 Route::post('/register-user', [RegisterController::class, 'registerUser'])->name('register-user');
-Route::get('/dashboard',[DasboardController::class,'dashboard']);
+Route::get('/dashboard',[DasboardController::class,'dashboard'])->name('dashobardz');
 Route::get('/blacklist',[BlacklistController::class,'blacklist']);
 Route::get('/team',[TeamController::class,'team']);
 Route::get('/invoice',[InvoiceController::class,'invoice']);
@@ -40,3 +41,4 @@ Route::get('/accdashboard',[MaindashboardController::class,'maindasboard']);
 Route::get('/compaign',[CompaignController::class,'compaign']);
 Route::get('/createcompaign',[CompaignController::class,'compaigncreate']);
 Route::get('/compaigninfo',[CompaignController::class,'compaigninfo']);
+Route::post('/check-credentials', [LoginController::class, 'checkCredentials'])->name('checkCredentials');

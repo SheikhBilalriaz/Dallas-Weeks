@@ -26,6 +26,26 @@
       <li class="nav-item">
         <a class="nav-link " href="#">Settings</a>
       </li>
+      <?php $user = auth()->user();
+      // dd($user);
+      ?>
+
+      @if ($user) 
+      <a href="{{ route('logout-user') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+          LOGOUT
+      </a>
+
+      <form id="logout-form" action="{{ route('logout-user') }}" method="POST" style="display: none;">
+          @csrf
+      </form>
+
+      <!-- <li class="nav-item">
+        <form action="{{route('logout-user')}}" method="post">
+          <input type="text">
+          <button type="submit">Logout</button>
+        </form>
+      </li> -->
+      @endif
     </ul>
   </div>
   <div class="right_nav">
