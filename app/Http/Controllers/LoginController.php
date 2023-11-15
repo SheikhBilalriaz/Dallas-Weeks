@@ -26,7 +26,7 @@ class LoginController extends Controller
 
       if (auth()->attempt($request->only('email', 'password'))) {
         $user = auth()->user();
-        $user_id = $user->id;
+        // $user_id = $user->id;
 
         return response()->json(['success' => true, 'message' => 'User Authenticated Successfully.']);
       } else {
