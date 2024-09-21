@@ -22,7 +22,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 /* These are home pages url which does not require any authentication */
-
 Route::get('/', [HomeController::class, 'home'])->name('homePage'); //Done
 Route::get('/about', [HomeController::class, 'about'])->name('aboutPage'); //Done
 Route::get('/pricing', [HomeController::class, 'pricing'])->name('pricingPage'); //Done

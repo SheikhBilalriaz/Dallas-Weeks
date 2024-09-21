@@ -27,10 +27,17 @@
                         </a>
                         <div class="socialicons">
                             <ul>
-                                <li><a href="https://www.facebook.com/networkedsite.admin/" target="_blank"><i
-                                            class="fa-brands fa-facebook"></i></a></li>
-                                <li><a href="https://www.linkedin.com/company/networked-turning-connections-into-clients/"
-                                        target="_blank"><i class="fa-brands fa-linkedin"></i></a></li>
+                                <li>
+                                    <a href="https://www.facebook.com/networkedsite.admin/" target="_blank">
+                                        <i class="fa-brands fa-facebook"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://www.linkedin.com/company/networked-turning-connections-into-clients/"
+                                        target="_blank">
+                                        <i class="fa-brands fa-linkedin"></i>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                         <p>© 2023 <a href="javascript:;">Networked.</a> All Rights Reserved.</p>
@@ -39,31 +46,23 @@
                 <div class="col-md-3 revealleft">
                     <div class="col2 quick_links">
                         <h4>Quick links</h4>
+                        @php
+                            $menuItems = [
+                                ['name' => 'Home', 'route' => 'homePage'],
+                                ['name' => 'About Us', 'route' => 'aboutPage'],
+                                ['name' => 'Pricing', 'route' => 'pricingPage'],
+                                ['name' => "FAQ's", 'route' => 'faqPage'],
+                            ];
+                        @endphp
                         <ul>
-                            <li>
-                                <a href="{{ route('homePage') }}"
-                                    class="{{ request()->routeIs('homePage') ? 'active' : '' }}">
-                                    Home
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('aboutPage') }}"
-                                    class="{{ request()->routeIs('aboutPage') ? 'active' : '' }}">
-                                    About Us
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('pricingPage') }}"
-                                    class="{{ request()->routeIs('pricingPage') ? 'active' : '' }}">
-                                    Pricing
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('faqPage') }}"
-                                    class="{{ request()->routeIs('faqPage') ? 'active' : '' }}">
-                                    FAQ's
-                                </a>
-                            </li>
+                            @foreach ($menuItems as $item)
+                                <li>
+                                    <a href="{{ route($item['route']) }}"
+                                        class="{{ request()->routeIs($item['route']) ? 'active' : '' }}">
+                                        {{ $item['name'] }}
+                                    </a>
+                                </li>
+                            @endforeach
                         </ul>
                     </div>
                 </div>
@@ -98,34 +97,20 @@
 <script src="{{ asset('assets/js/owl.carousel.min.js') }}"></script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-<script>
-    document.getElementById('captureButton').addEventListener('click', function() {
-
-        html2canvas(document.getElementById('capture')).then(function(canvas) {
-            console.log('adsadsa');
-            var img = canvas.toDataURL();
-            console.log(img);
-            // Do something with the image like displaying it on the page or saving it
-            var screenshotImage = document.createElement('img');
-            screenshotImage.src = img;
-            // document.body.appendChild(screenshotImage);
-            document.querySelector('.canvas').appendChild(screenshotImage);
-        });
-    });
-</script>
 
 <script src="{{ asset('assets/js/custom.js') }}"></script>
 <script>
-    window.addEventListener("load", function() {
-        // When the page is fully loaded, hide the loader
-        var loader = document.getElementById("loader");
-        loader.style.display = "none";
-    });
-
     document.addEventListener("DOMContentLoaded", function() {
-        // When DOM content is loaded (before images and other resources), show the loader
         var loader = document.getElementById("loader");
-        loader.style.display = "block";
+        if (loader) {
+            loader.style.display = "block";
+        }
+    });
+    window.addEventListener("load", function() {
+        var loader = document.getElementById("loader");
+        if (loader) {
+            loader.style.display = "none";
+        }
     });
 </script>
 </body>

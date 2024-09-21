@@ -114,9 +114,11 @@
                             <h2>Welcome to Networked</h2>
                             <h6>Register your account</h6>
                         </div>
-                        @if ($errors->first())
+                        @if ($errors->any())
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <a class="close" data-dismiss="alert" aria-label="Close">&times;</a>
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    &times;
+                                </button>
                                 {{ $errors->first() }}
                             </div>
                         @endif
