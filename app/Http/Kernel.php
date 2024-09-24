@@ -66,5 +66,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'userAuth' => \App\Http\Middleware\UserAuthMiddleware::class,
         'teamChecker' => \App\Http\Middleware\teamCheckingMiddleware::class,
+        'blacklistAccessChecker' => \App\Http\Middleware\blacklistAccessCheckingMiddleware::class,
     ];
 }

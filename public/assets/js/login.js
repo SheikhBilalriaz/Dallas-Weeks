@@ -31,11 +31,11 @@ function credential_check() {
             if (response.success) {
                 $('#passwordError').html('');
                 $('#successMessage').html(response.message);
-                $('.login_btn').html(`<a href="` + dashboardPageRoute + `" class="theme_btn">Login</a>`);
+                $('.login_btn').html(`<a href="` + dashboardRoute + `" class="theme_btn">Login</a>`);
             } else {
                 $('#passwordError').html(response.error);
                 $('#successMessage').html('');
-                $('.login_btn').html();
+                $('.login_btn').html('');
             }
         },
         error: function (xhr) {

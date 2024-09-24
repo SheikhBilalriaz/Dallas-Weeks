@@ -8,6 +8,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\StripePaymentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 /* These are home pages url which does not require any authentication */
+
 Route::get('/', [HomeController::class, 'home'])->name('homePage'); //Done
 Route::get('/about', [HomeController::class, 'about'])->name('aboutPage'); //Done
 Route::get('/pricing', [HomeController::class, 'pricing'])->name('pricingPage'); //Done
@@ -44,18 +46,36 @@ Route::middleware(['userAuth'])->group(function () {
     /* Before logout it reuiqres authentication */
     Route::get('/logout', [LoginController::class, 'logoutUser'])->name('logoutUser'); //Done
 
-    /*  */
-    Route::get('/dashboard', [DashboardController::class, 'toDashboard'])->name('dashboardPage'); //There is some requirement to add
+    /* To dashboard requires authentication */
+    Route::get('/dashboard', [DashboardController::class, 'toDashboard'])->name('dashboard'); //Done
+
     Route::prefix('/team/{slug}')->middleware(['teamChecker'])->group(function () {
-        Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard'); //Done
-        Route::get('/blacklist', [BlacklistController::class, 'blacklist'])->name('globalBlacklist');
-        Route::post('/save-global-blacklist', [BlacklistController::class, 'saveGlobalBlacklist'])->name('saveGlobalBlacklist');
-        Route::post('/save-email-blacklist', [BlacklistController::class, 'saveEmailBlacklist'])->name('saveEmailBlacklist');
+        Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboardPage');
+
+        /* These are for blacklist requires access blacklist manage */
+        Route::prefix('/blacklist')->middleware(['blacklistAccessChecker'])->group(function () {
+            Route::get('/', [BlacklistController::class, 'blacklist'])->name('globalBlacklistPage'); //Done
+            Route::post('/save-global-blacklist', [BlacklistController::class, 'saveGlobalBlacklist'])->name('saveGlobalBlacklist'); //Done
+            Route::post('/save-email-blacklist', [BlacklistController::class, 'saveEmailBlacklist'])->name('saveEmailBlacklist'); //Done
+            Route::delete('/delete-global-blacklist/{id}', [BlacklistController::class, 'deleteGlobalBlacklist'])->name('deleteGlobalBlacklist'); //Done
+            Route::delete('/delete-email-blacklist/{id}', [BlacklistController::class, 'deleteEmailBlacklist'])->name('deleteEmailBlacklist'); //Done
+            Route::get('/search-global-blacklist/{search}', [BlacklistController::class, 'searchGlobalBlacklist'])->name('searchGlobalBlacklist'); //Done
+            Route::get('/search-email-blacklist/{search}', [BlacklistController::class, 'searchEmailBlacklist'])->name('searchEmailBlacklist'); //Done
+            Route::post('/filter-global-blacklist', [BlacklistController::class, 'filterGlobalBlacklist'])->name('filterGlobalBlacklist'); //Done
+            Route::post('/filter-email-blacklist', [BlacklistController::class, 'filterEmailBlacklist'])->name('filterEmailBlacklist'); //Done
+        });
+
+        Route::prefix('/stripe')->group(function () {
+            Route::post('/payment', [StripePaymentController::class, 'stripePayment'])->name('stripePayment');
+        });
+        Route::prefix('/settings')->group(function () {
+            Route::get('/', [SettingController::class, 'globalSetting'])->name('globalSetting'); //Done
+            Route::put('/change-password', [SettingController::class, 'changePassword'])->name('changePassword'); //Done
+        });
         Route::prefix('/team')->group(function () {
             Route::get('/', [TeamController::class, 'team'])->name('team');
             Route::get('/team-roles-and-permission')->name('rolesPermission');
         });
         Route::get('/invoice', [InvoiceController::class, 'invoice'])->name('globalInvoice');
-        Route::get('/roles-and-permission-setting', [SettingController::class, 'settingRolesPermission'])->name('settingRolesPermission');
     });
 });

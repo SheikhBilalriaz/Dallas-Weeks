@@ -5,6 +5,14 @@
             color: white !important;
         }
 
+        #payment-form input {
+            margin-bottom: 15px !important;
+        }
+
+        #payment-form span.text-danger {
+            margin-bottom: 25px !important;
+        }
+
         .alert.alert-success.text-center {
             background: #e3c935;
             color: #000;
@@ -86,15 +94,19 @@
     @endif
     <section class="dashboard">
         <div class="container-fluid">
-            @if ($errors->first())
+            @if ($errors->first('error'))
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <a class="close" data-dismiss="alert" aria-label="Close">&times;</a>
-                    {{ $errors->first() }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        &times;
+                    </button>
+                    {{ $errors->first('error') }}
                 </div>
             @endif
             @if (session('success'))
-                <div class="alert alert-success alert-dismissible text-center">
-                    <a class="close" data-dismiss="alert" aria-label="Close">&times;</a>
+                <div class="alert alert-success alert-dismissible text-center fade show">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        &times;
+                    </button>
                     {{ session('success') }}
                 </div>
             @endif
@@ -243,7 +255,7 @@
             </div>
         </div>
     </section>
-    {{-- @if (session('is_creator') && session('email_verified'))
+    @if (session('is_creator') && session('email_verified'))
         <div class="modal fade step_form_popup" id="addaccount" tabindex="-1" role="dialog" aria-labelledby="addaccount"
             aria-hidden="true">
             <div class="modal-dialog" style="border-radius: 45px;">
@@ -255,37 +267,83 @@
                         </button>
                     </div>
                     <div class="modal-body text-center">
-                        <form role="form" action="{{ route('stripe.post') }}" method="post" data-cc-on-file="false"
-                            data-stripe-publishable-key="pk_test_51PbR9cGIhEK4X1bD1csgji86ypCOKzUAWbqzIpVj8TYK1h8yakYAZQeKHkE6fS3qySFp9noqGNRpyps5B1BhAznS00TObcS9Ze"
-                            method="post" class="form step_form require-validation" id="payment-form">
+                        <form role="form" action="{{ route('stripePayment', ['slug' => $team->slug]) }}" method="post"
+                            data-cc-on-file="false" data-stripe-publishable-key="{{ env('STRIPE_PK') }}" id="payment-form"
+                            class="form step_form">
                             @csrf
+                            <input type="hidden" name="stripe_token" id="stripe_token">
                             <div class="progress-bar" id="progress-bar">
                                 <div class="progress" id="progress"></div>
-                                <div class="progress-step active" data-title="Add account"></div>
-                                <div class="progress-step" data-title="Company "></div>
+                                <div class="progress-step active" data-title="Company Info"></div>
+                                <div class="progress-step" data-title="Seat Info"></div>
                                 <div class="progress-step" data-title="Payment"></div>
                             </div>
                             <div class="form-step active">
-                                <h3>Personal Informations</h3>
                                 <div class="form_row row">
-                                    <div class="input-group col-12">
-                                        <label for="username">User Name</label>
-                                        <input type="text" name="username" id="username" placeholder="User Name">
+                                    <div class="col-lg-12">
+                                        <label for="street_address">Street Address</label>
+                                        <input type="text" name="street_address" id="street_address"
+                                            placeholder="Enter your street address" required
+                                            class="{{ $errors->has('street_address') ? 'error' : '' }}"
+                                            value="{{ old('street_address') }}">
+                                        @if ($errors->has('street_address'))
+                                            <span class="text-danger">{{ $errors->first('street_address') }}</span>
+                                        @endif
                                     </div>
-                                    <div class="input-group col-6">
-                                        <label for="City">City</label>
-                                        <input type="text" name="city" id="City"
-                                            placeholder="Enter your city">
+                                    <div class="col-lg-12">
+                                        <label for="city">City</label>
+                                        <input type="text" name="city" id="city"
+                                            placeholder="Enter your city" required
+                                            class="{{ $errors->has('city') ? 'error' : '' }}"
+                                            value="{{ old('city') }}">
+                                        @if ($errors->has('city'))
+                                            <span class="text-danger">{{ $errors->first('city') }}</span>
+                                        @endif
                                     </div>
-                                    <div class="input-group col-6">
-                                        <label for="State">State</label>
-                                        <input type="text" name="state" id="State"
-                                            placeholder="Enter your state">
+                                    <div class="col-lg-6">
+                                        <label for="state">State</label>
+                                        <input type="text" name="state" id="state"
+                                            placeholder="Enter your state" required
+                                            class="{{ $errors->has('state') ? 'error' : '' }}"
+                                            value="{{ old('state') }}">
+                                        @if ($errors->has('state'))
+                                            <span class="text-danger">{{ $errors->first('state') }}</span>
+                                        @endif
                                     </div>
-                                    <div class="input-group col-12">
-                                        <label for="Company">Company name</label>
-                                        <input type="text" name="company" id="Company"
-                                            placeholder="Enter your company name">
+                                    <div class="col-lg-6">
+                                        <label for="postal_code">Postal Code</label>
+                                        <input type="text" name="postal_code" id="postal_code"
+                                            placeholder="Enter your postal code" required
+                                            class="{{ $errors->has('postal_code') ? 'error' : '' }}"
+                                            value="{{ old('postal_code') }}">
+                                        @if ($errors->has('postal_code'))
+                                            <span class="text-danger">{{ $errors->first('postal_code') }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <label for="country">Country of incorporation</label>
+                                        <input type="text" name="country" id="country"
+                                            placeholder="Enter your country" required
+                                            class="{{ $errors->has('country') ? 'error' : '' }}"
+                                            value="{{ old('country') }}">
+                                        @if ($errors->has('country'))
+                                            <span class="text-danger">{{ $errors->first('country') }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <label for="company">Company name</label>
+                                        <input type="text" name="company" id="company"
+                                            placeholder="Enter your company name" required
+                                            class="{{ $errors->has('company') ? 'error' : '' }}"
+                                            value="{{ old('company') }}">
+                                        @if ($errors->has('company'))
+                                            <span class="text-danger">{{ $errors->first('company') }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <label for="tax_id">Tax ID number</label>
+                                        <input type="text" name="tax_id" id="tax_id"
+                                            placeholder="Enter your tax id" value="{{ old('tax_id') }}">
                                     </div>
                                 </div>
                                 <div class="btn-group">
@@ -294,18 +352,19 @@
                                 </div>
                             </div>
                             <div class="form-step ">
-                                <h3>Contact Informations</h3>
-                                <div class="input-group">
-                                    <label for="email">Email</label>
-                                    <input type="email" name="email" id="email">
-                                </div>
-                                <div class="input-group">
-                                    <label for="phone">Phone Number</label>
-                                    <input type="phone" name="phone" id="phone">
-                                </div>
-                                <div class="input-group">
-                                    <label for="summary">Profile Summary</label>
-                                    <textarea name="summary" id="summary" cols="42" rows="6"></textarea>
+                                <div class="form_row row">
+                                    <div class="col-lg-12">
+                                        <label for="email">Email</label>
+                                        <input type="email" name="email" id="email">
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <label for="phone_number">Phone Number</label>
+                                        <input type="phone_number" name="phone_number" id="phone_number">
+                                    </div>
+                                    <div class="">
+                                        <label for="summary">Profile Summary</label>
+                                        <textarea name="summary" id="summary" cols="42" rows="6"></textarea>
+                                    </div>
                                 </div>
                                 <div class="btn-group">
                                     <a class="btn btn-prev">Previous</a>
@@ -317,32 +376,37 @@
                                 <div class="experiences-group">
                                     <div class='form-row row'>
                                         <div class='col-xs-12 form-group required'>
-                                            <label class='control-label'>Name on Card</label>
-                                            <input class='form-control' size='4' type='text'>
+                                            <label for="card_name" class='control-label'>Name on Card</label>
+                                            <input class='form-control' name="card_name" id="card_name" type='text'>
                                         </div>
                                     </div>
                                     <div class='form-row row'>
-                                        <div class='col-xs-12 form-group  required'>
-                                            <label class='control-label'>Card Number</label>
-                                            <input autocomplete='off' class='form-control card-number' size='20'
-                                                type='text'>
+                                        <div class='col-xs-12 form-group required'>
+                                            <label class='control-label' for="card_number">Card Number</label>
+                                            <input autocomplete='off' class='form-control card-number' name="card_number"
+                                                id="card_number" type='text'
+                                                class="{{ $errors->has('card_number') ? 'error' : '' }}"
+                                                value="{{ old('card_number') }}">
+                                            <span
+                                                class="text-danger card_number_error">{{ $errors->first('card_number') }}</span>
                                         </div>
                                     </div>
                                     <div class='form-row row'>
                                         <div class='col-xs-12 col-md-4 form-group cvc required'>
-                                            <label class='control-label'>CVC</label>
-                                            <input autocomplete='off' class='form-control card-cvc' placeholder='ex. 311'
-                                                size='4' type='text'>
+                                            <label class='control-label' for="card_cvc">CVC</label>
+                                            <input autocomplete='off' class='form-control card-cvc' name="card_cvc"
+                                                id="card_cvc" placeholder='ex. 311' size='4' type='text'>
                                         </div>
                                         <div class='col-xs-12 col-md-4 form-group expiration required'>
-                                            <label class='control-label'>Expiration Month</label> <input
-                                                class='form-control card-expiry-month' placeholder='MM' size='2'
+                                            <label class='control-label' for="card_expiry_month">Expiration Month</label>
+                                            <input class='form-control card-expiry-month' placeholder='MM'
+                                                name="card_expiry_month" id="card_expiry_month" size='2'
                                                 type='text'>
                                         </div>
                                         <div class='col-xs-12 col-md-4 form-group expiration required'>
-                                            <label class='control-label'>Expiration Year</label>
-                                            <input class='form-control card-expiry-year' placeholder='YYYY'
-                                                size='4' type='text'>
+                                            <label class='control-label' for="card_expiry_year">Expiration Year</label>
+                                            <input class='form-control card-expiry-year' name="card_expiry_year"
+                                                id="card_expiry_year" placeholder='YYYY' size='4' type='text'>
                                         </div>
                                     </div>
                                 </div>
@@ -356,10 +420,47 @@
                 </div>
             </div>
         </div>
-    @endif --}}
+    @endif
+    <script>
+        $(document).ready(function() {
+            if ("{{ session()->has('payment_error') }}") {
+                $('#addaccount').modal('show');
+            }
+        });
+    </script>
+    <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+    <script type="text/javascript">
+        $('#payment-form').bind('submit', function(e) {
+            e.preventDefault();
+            var stripe = Stripe.setPublishableKey($(this).data('stripe-publishable-key'));
+            Stripe.createToken({
+                number: $('#card_number').val(),
+                cvc: $('#card_cvc').val(),
+                exp_month: $('#card_expiry_month').val(),
+                exp_year: $('#card_expiry_year').val()
+            }, stripeResponseHandler);
+        });
+
+        function stripeResponseHandler(status, response) {
+            if (response.error) {
+                switch (response.error.type) {
+                    case 'card_error':
+                        $('.card_number_error').html(response.error.message);
+                        break;
+                    default:
+                        console.log(response);
+                        break;
+                }
+            } else {
+                var token = response['id'];
+                $('#stripe_token').val(token);
+                $('#payment-form').submit();
+            }
+        }
+    </script>
     @if (session('email_verified'))
-        <div class="modal fade step_form_popup" id="update_seat" tabindex="-1" role="dialog" aria-labelledby="update_seat"
-            aria-hidden="true">
+        <div class="modal fade step_form_popup" id="update_seat" tabindex="-1" role="dialog"
+            aria-labelledby="update_seat" aria-hidden="true">
             <div class="modal-dialog" style="border-radius: 45px;width: 35%;">
                 <div class="modal-content"></div>
             </div>

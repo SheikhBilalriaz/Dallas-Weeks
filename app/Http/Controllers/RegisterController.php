@@ -151,7 +151,7 @@ class RegisterController extends Controller
      * @param String $teamName
      * @return String $slug
      */
-    public function createUniqueSlug($teamName)
+    private function createUniqueSlug($teamName)
     {
         /* Generate the initial slug from the team name */
         $slug = Str::slug($teamName);
@@ -184,11 +184,11 @@ class RegisterController extends Controller
 
             /* Check if the user was found */
             if (empty($user)) {
-                throw new Exception('User not found');
+                return redirect()->route('loginPage')->withErrors(['error' => 'User not found']);
             }
 
             /* Check if the email has already been verified */
-            if (!empty($user->email_verified_at)) {
+            if (!empty($user->verified_at)) {
                 /* If the email is already verified, redirect to the login page with a success message. */
                 return redirect()->route('loginPage')->with([
                     'success' => 'Email already verified',
@@ -197,10 +197,10 @@ class RegisterController extends Controller
             }
 
             if ($user->remember_token != $token) {
-                throw new Exception('Invalid token');
+                return redirect()->route('loginPage')->withErrors(['error' => 'Invalid token']);
             }
 
-            /* If the email is not verified, set the `email_verified_at` field to the current timestamp. */
+            /* If the email is not verified, set the `verified_at` field to the current timestamp. */
             $user->verified_at = now();
             $user->updated_at = now();
             $user->save();
@@ -215,7 +215,7 @@ class RegisterController extends Controller
             Log::error($e);
 
             /* Redirect to the login page with an error message indicating. */
-            return redirect()->route('loginPage')->withErrors(['error' => $e->getMessage()]);
+            return redirect()->route('loginPage')->withErrors(['error' => 'Something went wrong']);
         }
     }
 

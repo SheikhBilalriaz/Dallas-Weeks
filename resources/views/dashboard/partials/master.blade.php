@@ -30,7 +30,6 @@
     <script src="{{ asset('assets/js/custom_dashboard.js') }}"></script>
     <script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
     <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
-
     @if (request()->is('accdashboard', 'report', 'leads'))
         <script src="{{ asset('assets/js/chart_query.js') }}"></script>
     @endif
@@ -97,7 +96,7 @@
     @endif
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-dark justify-content-between">
-            <a class="navbar-brand" href="{{ route('dashboard', ['slug' => $team->slug]) }}">
+            <a class="navbar-brand" href="{{ route('dashboardPage', ['slug' => $team->slug]) }}">
                 <img style="width: 65px; background-color: #fff; margin-right: 7px; border-radius: 10px; padding: 6px;"
                     src="{{ asset('assets/images/logo.png') }}">Networked
             </a>
@@ -106,61 +105,69 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                @php
+                    $navItems = [
+                        [
+                            'permission' => session('is_manage_global_blacklist'),
+                            'route' => 'globalBlacklistPage',
+                            'label' => 'Blacklist',
+                        ],
+                        [
+                            'permission' => true,
+                            'route' => 'team',
+                            'label' => 'Team',
+                        ],
+                        [
+                            'permission' => session('is_manage_payment_system'),
+                            'route' => 'globalInvoice',
+                            'label' => 'Invoice',
+                        ],
+                        [
+                            'permission' => true,
+                            'route' => 'globalSetting',
+                            'label' => 'Settings',
+                        ],
+                    ];
+                @endphp
                 <ul class="navbar-nav">
-                    @if (session('is_manage_global_blacklist'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('globalBlacklist') ? 'active' : '' }}"
-                                href="{{ route('globalBlacklist', ['slug' => $team->slug]) }}">
-                                Blacklist
-                            </a>
-                        </li>
-                    @endif
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('team') ? 'active' : '' }}"
-                            href="{{ route('team', ['slug' => $team->slug]) }}">
-                            Team
-                        </a>
-                    </li>
-                    @if (session('is_manage_payment_system'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('globalInvoice') ? 'active' : '' }}"
-                                href="{{ route('globalInvoice', ['slug' => $team->slug]) }}">
-                                Invoice
-                            </a>
-                        </li>
-                    @endif
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('settingRolesPermission') ? 'active' : '' }}"
-                            href="{{ route('settingRolesPermission', ['slug' => $team->slug]) }}">
-                            Settings
-                        </a>
-                    </li>
+                    @foreach ($navItems as $item)
+                        @if ($item['permission'])
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs($item['route']) ? 'active' : '' }}"
+                                    href="{{ route($item['route'], ['slug' => $team->slug]) }}">
+                                    {{ $item['label'] }}
+                                </a>
+                            </li>
+                        @endif
+                    @endforeach
                 </ul>
             </div>
             <div class="right_nav">
                 <ul class="d-flex list-unstyled">
                     <li>
-                        <a href="">
+                        <a>
                             <i class="fa-solid fa-arrow-up-from-bracket"></i>
                         </a>
                     </li>
-                    <li class="acc d-flex align-item-center">
-                        <img src="{{ asset('/assets/img/acc.png') }}" alt="">
-                        @php
-                            $user = auth()->user();
-                        @endphp
-                        <span>{{ $user->name }}</span>
-                        <a type="button" class="user_toggle" id="">
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </a>
-                        <ul class="user_toggle_list" style="display: none">
-                            <li>
-                                <a href="{{ route('logoutUser') }}">
-                                    <i class="fa-solid fa-right-from-bracket"></i> Logout
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+                    @php
+                        $user = auth()->user();
+                    @endphp
+                    @if ($user)
+                        <li class="acc d-flex align-item-center">
+                            <img src="{{ asset('/assets/img/acc.png') }}" alt="">
+                            <span>{{ $user->name }}</span>
+                            <a type="button" class="user_toggle" id="">
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </a>
+                            <ul class="user_toggle_list" style="display: none">
+                                <li>
+                                    <a href="{{ route('logoutUser') }}">
+                                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    @endif
                     <li class="darkmode">
                         <a href="javascript:;" id="darkModeToggle">
                             <i class="fa-solid fa-sun"></i>

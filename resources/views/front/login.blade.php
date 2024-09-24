@@ -1,5 +1,6 @@
 @extends('front/partials/master')
 @section('content')
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="{{ asset('assets/js/login.js') }}"></script>
     <style>
         .alert.alert-danger.alert-dismissible {
@@ -114,19 +115,23 @@
                             <h2>Welcome back to Networked</h2>
                             <h6>Log In to your account</h6>
                         </div>
-                        @if ($errors->first())
+                        @if ($errors->first('error'))
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <a class="close" data-dismiss="alert" aria-label="Close">&times;</a>
-                                {{ $errors->first() }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    &times;
+                                </button>
+                                {{ $errors->first('error') }}
                             </div>
                         @endif
                         @if (session('success'))
-                            <div class="alert alert-success alert-dismissible text-center">
-                                <a class="close" data-dismiss="alert" aria-label="Close">&times;</a>
+                            <div class="alert alert-success alert-dismissible text-center fade show">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    &times;
+                                </button>
                                 {{ session('success') }}
                             </div>
                         @endif
-                        <form action="" class="login_form" method="POST">
+                        <form class="login_form" method="POST">
                             <div>
                                 <label for="email">Email address</label>
                                 <input value="{{ session('email') }}" type="email" id="email" name="email"
@@ -139,8 +144,11 @@
                                 <span id="passwordError" style="color: red;"></span>
                                 <span id="successMessage" style="color: green;"></span>
                                 <span class="forg_pass">
-                                    <a href="{{ URL('auth/linkedin/redirect') }}">Login Via LinkedIn</a>
-                                    <a>Forgot password?</a>
+                                    {{-- TODO: Login with linkedin --}}
+                                    <a>Login Via LinkedIn</a>
+                                    {{-- TODO: Forgot Password --}}
+                                    <a style="color: #16adcb;" data-bs-toggle="modal"
+                                        data-bs-target="#forgetPassword">Forgot password?</a>
                                 </span>
                             </div>
                             <div class="login_btn"></div>
@@ -157,7 +165,8 @@
                 </div>
             </div>
         </section>
-        <div class="modal fade fotget_password_popup" id="basicModal" tabindex="-1" role="dialog"
+        {{-- TODO: Forgot Password --}}
+        <div class="modal fade fotget_password_popup" id="forgetPassword" tabindex="-1" role="dialog"
             aria-labelledby="basicModal" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -168,8 +177,7 @@
                     </div>
                     <div class="modal-body text-center">
                         <h3>Forgot password</h3>
-
-                        <p>Enter the email address you sighed up with to receive a secure link.</p>
+                        <p>Enter the email address you signed up with to receive a secure link.</p>
                         <form action="" class="forget_pass">
                             <input type="email" class="email" placeholder="Enter your email">
                             <button class="theme_btn">Send link</button>
@@ -178,11 +186,10 @@
                 </div>
             </div>
         </div>
-        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     </body>
 
     <script>
         var checkCredientialRoute = "{{ route('checkCredentials') }}";
-        var dashboardPageRoute = "{{ route('dashboardPage') }}";
+        var dashboardRoute = "{{ route('dashboard') }}";
     </script>
 @endsection

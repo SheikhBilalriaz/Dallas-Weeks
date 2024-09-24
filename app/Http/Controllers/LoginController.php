@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
@@ -58,9 +59,12 @@ class LoginController extends Controller
                 return response()->json([
                     'success' => false,
                     'error' => 'Invalid Username or Password.'
-                ], 400);
+                ], 401);
             }
         } catch (Exception $e) {
+            /* If an exception occurs, log the exception message for debugging purposes. */
+            Log::error($e);
+
             /* Handle unexpected exceptions and return JSON response */
             return response()->json([
                 'success' => false,
@@ -68,6 +72,7 @@ class LoginController extends Controller
             ], 500);
         }
     }
+
     /**
      * Log out the currently authenticated user and redirect to the homepage.
      *
@@ -77,7 +82,7 @@ class LoginController extends Controller
     {
         /* If the user is not authenticated, flush (clear) the entire session. */
         session()->flush();
-        
+
         /* Log out the currently authenticated user */
         Auth::logout();
 

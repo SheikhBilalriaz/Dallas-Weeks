@@ -36,7 +36,7 @@ class TeamController extends Controller
             return view('dashboard.team', $data);
         } catch (Exception $e) {
             /* Log the exception for debugging purposes */
-            Log::info($e);
+            Log::error($e);
 
             /* Return a JSON response with the error message and a 404 status code */
             return redirect()->route('dashboardPage')->withErrors(['error' => $e->getMessage()]);

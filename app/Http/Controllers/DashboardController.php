@@ -28,15 +28,13 @@ class DashboardController extends Controller
         /* If the user is not a creator or the session team slug matches the team slug */
         if (!$team || ($team && session()->has('team_slug') && session('team_slug') == $team->slug)) {
 
-            /* Retrieve all team IDs where the user is a member */
-            $teamIds = Team_Member::where('user_id', $user->id)->pluck('team_id');
+            /* Retrieve all teams where the user is a member */
+            $teams = Team::whereIn('id', Team_Member::where('user_id', $user->id)->pluck('team_id'))->get();
 
-            /* Loop through team IDs to find the first matching team */
-            foreach ($teamIds as $id) {
-                $team = Team::find($id);
-
+            /* Find the first team where the session team slug doesn't match */
+            foreach ($teams as $team) {
                 /* Break the loop as soon as a team with a different slug is found */
-                if ($team && session('team_slug') != $team->slug) {
+                if (session('team_slug') != $team->slug) {
                     break;
                 }
             }
@@ -46,7 +44,7 @@ class DashboardController extends Controller
         // You could redirect the user to a "No Team" page, or show an error message if $team is still null.
 
         /* Redirect to the dashboard with the team slug */
-        $redirect = redirect()->route('dashboard', ['slug' => $team->slug]);
+        $redirect = redirect()->route('dashboardPage', ['slug' => $team->slug]);
 
         /* Include errors if present in the session */
         if (session()->has('errors')) {
@@ -59,6 +57,7 @@ class DashboardController extends Controller
     /**
      * Display the user's dashboard.
      *
+     * @param string $slug The slug of the team.
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function dashboard($slug)

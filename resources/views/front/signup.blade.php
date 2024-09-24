@@ -103,6 +103,27 @@
         #update_seat button#delete_seat_11 {
             margin-top: 30px;
         }
+
+        .login_form input {
+            margin-bottom: 0 !important;
+        }
+
+        .login_form div {
+            margin-bottom: 40px;
+        }
+
+        .login_form .error {
+            border: 1px solid red;
+            color: rgb(255, 138, 138);
+        }
+
+        .login_form .checkbox label.term-error:before {
+            border: 1px solid red;
+        }
+
+        .login_form .checkbox {
+            margin-bottom: 0px !important;
+        }
     </style>
 
     <body>
@@ -114,12 +135,12 @@
                             <h2>Welcome to Networked</h2>
                             <h6>Register your account</h6>
                         </div>
-                        @if ($errors->any())
+                        @if ($errors->first('error'))
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                     &times;
                                 </button>
-                                {{ $errors->first() }}
+                                {{ $errors->first('error') }}
                             </div>
                         @endif
                         <form action="{{ route('registerUser') }}" class="login_form" method="POST">
@@ -127,17 +148,28 @@
                             <div>
                                 <label for="username">Your name</label>
                                 <input type="text" id="username" name="name" placeholder="Enter your name"
-                                    value="{{ old('name') }}" required>
+                                    value="{{ old('name') }}" class="{{ $errors->has('name') ? 'error' : '' }}" required>
+                                @if ($errors->has('name'))
+                                    <span class="text-danger">{{ $errors->first('name') }}</span>
+                                @endif
                             </div>
                             <div>
                                 <label for="username_email">Email address</label>
                                 <input type="email" id="username_email" name="email"
-                                    placeholder="Enter your email address" value="{{ old('email') }}" required>
+                                    placeholder="Enter your email address" value="{{ old('email') }}"
+                                    class="{{ $errors->has('email') ? 'error' : '' }}" required>
+                                @if ($errors->has('email'))
+                                    <span class="text-danger">{{ $errors->first('email') }}</span>
+                                @endif
                             </div>
                             <div>
                                 <label for="company">Company/Team Name</label>
                                 <input type="text" id="company" name="company"
-                                    placeholder="Enter your company/team name" value="{{ old('company') }}" required>
+                                    placeholder="Enter your company/team name" value="{{ old('company') }}"
+                                    class="{{ $errors->has('company') ? 'error' : '' }}" required>
+                                @if ($errors->has('company'))
+                                    <span class="text-danger">{{ $errors->first('company') }}</span>
+                                @endif
                             </div>
                             <div>
                                 <label for="username_phone">Phone number (Optional)</label>
@@ -149,7 +181,11 @@
                                     <div class="col-6">
                                         <label for="password">Password</label>
                                         <input type="password" id="password" name="password"
-                                            placeholder="Enter your password" required>
+                                            placeholder="Enter your password"
+                                            class="{{ $errors->has('password') ? 'error' : '' }}" required>
+                                        @if ($errors->has('password'))
+                                            <span class="text-danger">{{ $errors->first('password') }}</span>
+                                        @endif
                                     </div>
                                     <div class="col-6">
                                         <label for="confirm_password">Confirm password</label>
@@ -160,17 +196,23 @@
                             </div>
                             <div class="checkbox">
                                 <input type="checkbox" id="termsCheckbox" name="termsCheckbox"
-                                    {{ old('termsCheckbox') ? 'checked' : '' }} required>
-                                <label for="termsCheckbox">I agree with the <a href="terms_and_conditions.html"
-                                        target="_blank">Terms and Conditions</a></label>
+                                    {{ old('termsCheckbox') ? 'checked' : '' }}>
+                                <label for="termsCheckbox" class="{{ $errors->has('termsCheckbox') ? 'term-error' : '' }}">
+                                    I agree with the
+                                    <a href="terms_and_conditions.html" target="_blank">
+                                        Terms and Conditions
+                                    </a>
+                                </label>
                             </div>
+                            @if ($errors->has('termsCheckbox'))
+                                <div class="text-danger">{{ $errors->first('termsCheckbox') }}</div>
+                            @endif
                             <div>
                                 <button type="submit" class="theme_btn">
                                     Register
                                 </button>
                             </div>
                         </form>
-
                         <div class="regist">
                             Already have an account? <a href="{{ route('loginPage') }}">Login</a>
                         </div>

@@ -2,6 +2,32 @@
 @section('content')
     <script src="{{ asset('assets/js/blacklist.js') }}"></script>
     <style>
+        .alert.alert-danger.alert-dismissible {
+            background: #870000;
+            border: none;
+            border-radius: 30px;
+            padding: 20px;
+            text-align: center;
+            color: #fff;
+            width: 60%;
+            margin: 20px auto;
+        }
+
+        .alert.alert-danger.alert-dismissible .close {
+            height: 50px;
+            width: 50px;
+            opacity: 1;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #fff;
+            border-radius: 100%;
+            position: absolute;
+            top: 5px;
+            right: 10px;
+        }
+
         .alert.alert-success.text-center {
             background: #e3c935;
             color: #000;
@@ -112,22 +138,26 @@
             outline: none;
         }
 
-        .add_items_manually_form .input_group #global_blacklist_div {
+        .add_items_manually_form .input_group #global_blacklist_div,
+        .add_items_manually_form .input_group #email_blacklist_div {
             display: flex;
             width: fit-content;
             justify-content: space-between;
         }
 
-        .add_items_manually_form .input_group #global_blacklist_div .item {
+        .add_items_manually_form .input_group #global_blacklist_div .item,
+        .add_items_manually_form .input_group #email_blacklist_div .item {
             background-color: #16adcb;
             width: fit-content;
             padding: 7px;
             border-radius: 6px;
             margin-right: 7px;
             margin-bottom: 7px;
+            cursor: pointer;
         }
 
-        .add_items_manually_form .input_group #global_blacklist_div .item span {
+        .add_items_manually_form .input_group #global_blacklist_div .item span,
+        .add_items_manually_form .input_group #email_blacklist_div .item span {
             margin-right: 10px;
         }
 
@@ -135,10 +165,29 @@
             color: #cccccc8c;
             margin: 17px 0;
         }
+
+        .invite_modal_row .disabled {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .blacklist .filter_head_row h3 {
+            margin-bottom: 15px !important;
+        }
+
+        .global-blacklist__back-arrow * {
+            color: #16adcb;
+        }
+
+        .global-blacklist__back-arrow:hover * {
+            color: #fff !important;
+        }
     </style>
     @if (session('success'))
-        <div class="alert alert-success alert-dismissible text-center">
-            <a class="close" data-dismiss="alert" aria-label="Close">&times;</a>
+        <div class="alert alert-success alert-dismissible text-center fade show">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                &times;
+            </button>
             {{ session('success') }}
         </div>
     @endif
@@ -147,15 +196,12 @@
             <div class="row">
                 <div class="col-lg-12">
                     <div class="filter_head_row d-flex">
-                        <h3>Blacklist</h3>
-                        <div class="filt_opt">
-                            <select name="num" id="num">
-                                <option value="01">10</option>
-                                <option value="02">20</option>
-                                <option value="03">30</option>
-                                <option value="04">40</option>
-                            </select>
-                        </div>
+                        <a class="d-block global-blacklist__back-arrow"
+                            href="{{ route('dashboardPage', ['slug' => $team->slug]) }}">
+                            <span><i class="fa-solid fa-chevron-left"></i></span>
+                            <span>Back</span>
+                        </a>
+                        <h3>Global Blacklist</h3>
                     </div>
                     <div class="blacklist_div">
                         <div class="filtr_desc">
@@ -165,24 +211,22 @@
                                     <strong>Blacklist</strong>
                                 </div>
                                 <div class="filter">
-                                    <a href="#"><i class="fa-solid fa-filter"></i></a>
-                                    @if (session('email_verified'))
-                                        <div>
-                                            <button class="add_to_blacklist" data-bs-toggle="modal"
-                                                data-bs-target="#addGlobalBlacklist">
-                                                Add to Blacklist
-                                            </button>
-                                        </div>
-                                    @else
-                                        <div>
-                                            <button style="opacity: 0.7; cursor: default;" class="add_to_blacklist"
-                                                title="To add new global blacklist, you need to verify your email address first.">
-                                                Add to Blacklist
-                                            </button>
-                                        </div>
-                                    @endif
+                                    <a href="javascript:void(0);" data-bs-toggle="modal"
+                                        data-bs-target="#filterGlobalBlacklist">
+                                        <i class="fa-solid fa-filter"></i>
+                                    </a>
+                                    <div>
+                                        <button class="add_to_blacklist"
+                                            data-bs-toggle="{{ session('email_verified') ? 'modal' : '' }}"
+                                            data-bs-target="{{ session('email_verified') ? '#addGlobalBlacklist' : '' }}"
+                                            style="{{ session('email_verified') ? '' : 'opacity: 0.7; cursor: default;' }}"
+                                            title="{{ session('email_verified') ? '' : 'To add new global blacklist, you need to verify your email address first.' }}">
+                                            Add to Blacklist
+                                        </button>
+                                    </div>
                                     <div class="search-form">
-                                        <input type="text" name="q" placeholder="Search...">
+                                        <input type="text" name="q" placeholder="Search..."
+                                            id="search-global-blacklist">
                                         <button type="submit">
                                             <i class="fa fa-search"></i>
                                         </button>
@@ -205,7 +249,7 @@
                                             <th class="text-center" width="10%">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="global_blacklist_row">
                                         @if ($global_blacklist->isNotEmpty())
                                             @foreach ($global_blacklist as $blacklist)
                                                 <tr id="{{ 'global_blacklist_' . $blacklist->id }}">
@@ -215,17 +259,14 @@
                                                         </div>
                                                     </td>
                                                     <td class="text-center">
-                                                        <a>
-                                                            {{ $blacklist->blacklist_type }}
-                                                        </a>
+                                                        {{ $blacklist->blacklist_type }}
                                                     </td>
                                                     <td class="text-center">
-                                                        <a>
-                                                            {{ $blacklist->comparison_type }}
-                                                        </a>
+                                                        {{ $blacklist->comparison_type }}
                                                     </td>
                                                     <td class="text-center">
-                                                        <a href="javascript:;" type="button">
+                                                        <a href="javascript:;" class="delete-global-blacklist"
+                                                            data-id="{{ $blacklist->id }}">
                                                             <i class="fa-solid fa-trash"></i>
                                                         </a>
                                                     </td>
@@ -234,38 +275,22 @@
                                         @else
                                             <tr>
                                                 <td colspan="4">
-                                                    @if (!session('email_verified'))
-                                                        <div style="width: 50%; margin: 0 auto; opacity: 0.7;"
-                                                            class="empty_blacklist text-center"
-                                                            title="To add new global blacklist, you need to verify your email address first.">
-                                                            <img src="{{ asset('assets/img/empty.png') }}" alt="">
-                                                            <p>
-                                                                You can't add global blacklist until you verify your email
-                                                                address.
-                                                            </p>
-                                                            <div class="add_btn">
-                                                                <a style="cursor: default;" href="javascript:;"
-                                                                    type="button">
-                                                                    <i class="fa-solid fa-plus"></i>
-                                                                </a>
-                                                            </div>
+                                                    <div style="width: 50%; margin: 0 auto; {{ !session('email_verified') ? ' opacity: 0.7;' : '' }}"
+                                                        class="empty_blacklist text-center"
+                                                        title="{{ !session('email_verified') ? 'To add new global blacklist, you need to verify your email address first.' : '' }}">
+                                                        <img src="{{ asset('assets/img/empty.png') }}" alt="">
+                                                        <p>
+                                                            {{ !session('email_verified') ? "You can't add global blacklist until you verify your email address." : "You don't have any global blacklist yet. Start by adding your first global blacklist." }}
+                                                        </p>
+                                                        <div class="add_btn">
+                                                            <a href="javascript:;" type="button"
+                                                                data-bs-toggle="{{ session('email_verified') ? 'modal' : '' }}"
+                                                                data-bs-target="{{ session('email_verified') ? '#addGlobalBlacklist' : '' }}"
+                                                                style="{{ !session('email_verified') ? 'cursor: default;' : '' }}">
+                                                                <i class="fa-solid fa-plus"></i>
+                                                            </a>
                                                         </div>
-                                                    @else
-                                                        <div style="width: 50%; margin: 0 auto;"
-                                                            class="empty_blacklist text-center">
-                                                            <img src="{{ asset('assets/img/empty.png') }}" alt="">
-                                                            <p>
-                                                                You don't have any global blacklist yet. Start by adding
-                                                                your first global blacklist.
-                                                            </p>
-                                                            <div class="add_btn">
-                                                                <a href="javascript:;" type="button" data-bs-toggle="modal"
-                                                                    data-bs-target="#addGlobalBlacklist">
-                                                                    <i class="fa-solid fa-plus"></i>
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                    @endif
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @endif
@@ -282,24 +307,22 @@
                                     <strong>Email & domain blacklist</strong>
                                 </div>
                                 <div class="filter">
-                                    <a href="#"><i class="fa-solid fa-filter"></i></a>
-                                    @if (session('email_verified'))
-                                        <div>
-                                            <button class="add_to_blacklist" data-bs-toggle="modal"
-                                                data-bs-target="#addEmailBlacklist">
-                                                Add to Blacklist
-                                            </button>
-                                        </div>
-                                    @else
-                                        <div>
-                                            <button style="opacity: 0.7; cursor: default;" class="add_to_blacklist"
-                                                title="To add new global blacklist, you need to verify your email address first.">
-                                                Add to Blacklist
-                                            </button>
-                                        </div>
-                                    @endif
+                                    <a href="javascript:void(0);" data-bs-toggle="modal"
+                                        data-bs-target="#filterEmailBlacklist">
+                                        <i class="fa-solid fa-filter"></i>
+                                    </a>
+                                    <div>
+                                        <button class="add_to_blacklist"
+                                            data-bs-toggle="{{ session('email_verified') ? 'modal' : '' }}"
+                                            data-bs-target="{{ session('email_verified') ? '#addEmailBlacklist' : '' }}"
+                                            style="{{ session('email_verified') ? '' : 'opacity: 0.7; cursor: default;' }}"
+                                            title="{{ session('email_verified') ? '' : 'To add new email blacklist, you need to verify your email address first.' }}">
+                                            Add to Blacklist
+                                        </button>
+                                    </div>
                                     <div class="search-form">
-                                        <input type="text" name="q" placeholder="Search...">
+                                        <input type="text" name="q" placeholder="Search..."
+                                            id="search-email-blacklist">
                                         <button type="submit">
                                             <i class="fa fa-search"></i>
                                         </button>
@@ -322,27 +345,24 @@
                                             <th class="text-center" width="10%">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        @if ($email_blaklist->isNotEmpty())
-                                            @foreach ($email_blaklist as $blacklist)
-                                                <tr id="{{ 'email_blaklist_' . $blacklist->id }}">
+                                    <tbody id="email_blacklist_row">
+                                        @if ($email_blacklist->isNotEmpty())
+                                            @foreach ($email_blacklist as $blacklist)
+                                                <tr id="{{ 'email_blacklist_' . $blacklist->id }}">
                                                     <td class="text-center">
                                                         <div class="d-flex align-items-center">
                                                             <strong>{{ $blacklist->keyword }}</strong>
                                                         </div>
                                                     </td>
                                                     <td class="text-center">
-                                                        <a>
-                                                            {{ $blacklist->blacklist_type }}
-                                                        </a>
+                                                        {{ $blacklist->blacklist_type }}
                                                     </td>
                                                     <td class="text-center">
-                                                        <a>
-                                                            {{ $blacklist->comparison_type }}
-                                                        </a>
+                                                        {{ $blacklist->comparison_type }}
                                                     </td>
                                                     <td class="text-center">
-                                                        <a href="javascript:;" type="button">
+                                                        <a href="javascript:;" class="delete-email-blacklist"
+                                                            data-id="{{ $blacklist->id }}">
                                                             <i class="fa-solid fa-trash"></i>
                                                         </a>
                                                     </td>
@@ -351,41 +371,22 @@
                                         @else
                                             <tr>
                                                 <td colspan="4">
-                                                    @if (!session('email_verified'))
-                                                        <div style="width: 50%; margin: 0 auto; opacity: 0.7;"
-                                                            class="empty_blacklist text-center"
-                                                            title="To add new global blacklist, you need to verify your email address first.">
-                                                            <img src="{{ asset('assets/img/empty.png') }}"
-                                                                alt="">
-                                                            <p>
-                                                                You can't add email blacklist until you verify your email
-                                                                address.
-                                                            </p>
-                                                            <div class="add_btn">
-                                                                <a style="cursor: default;" href="javascript:;"
-                                                                    type="button">
-                                                                    <i class="fa-solid fa-plus"></i>
-                                                                </a>
-                                                            </div>
+                                                    <div style="width: 50%; margin: 0 auto; {{ !session('email_verified') ? 'opacity: 0.7;' : '' }}"
+                                                        class="empty_blacklist text-center"
+                                                        title="{{ !session('email_verified') ? 'To add new email blacklist, you need to verify your email address first.' : '' }}">
+                                                        <img src="{{ asset('assets/img/empty.png') }}" alt="">
+                                                        <p>
+                                                            {{ !session('email_verified') ? "You can't add email blacklist until you verify your email address." : "You don't have any email blacklist yet. Start by adding your first email blacklist." }}
+                                                        </p>
+                                                        <div class="add_btn">
+                                                            <a href="javascript:;" type="button"
+                                                                style="{{ !session('email_verified') ? 'cursor: default;' : '' }}"
+                                                                data-bs-toggle="{{ session('email_verified') ? 'modal' : '' }}"
+                                                                data-bs-target="{{ session('email_verified') ? '#addEmailBlacklist' : '' }}">
+                                                                <i class="fa-solid fa-plus"></i>
+                                                            </a>
                                                         </div>
-                                                    @else
-                                                        <div style="width: 50%; margin: 0 auto;"
-                                                            class="empty_blacklist text-center">
-                                                            <img src="{{ asset('assets/img/empty.png') }}"
-                                                                alt="">
-                                                            <p>
-                                                                You don't have any email blacklist yet. Start by adding
-                                                                your first email blacklist.
-                                                            </p>
-                                                            <div class="add_btn">
-                                                                <a href="javascript:;" type="button"
-                                                                    data-bs-toggle="modal"
-                                                                    data-bs-target="#addEmailBlacklist">
-                                                                    <i class="fa-solid fa-plus"></i>
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                    @endif
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @endif
@@ -398,118 +399,347 @@
             </div>
         </div>
     </section>
-    <div class="modal fade step_form_popup" id="addGlobalBlacklist" tabindex="-1" role="dialog"
-        aria-labelledby="addGlobalBlacklist" aria-hidden="true">
+    @if (session('email_verified'))
+        <div class="modal fade step_form_popup" id="addGlobalBlacklist" tabindex="-1" role="dialog"
+            aria-labelledby="addGlobalBlacklist" aria-hidden="true">
+            <div class="modal-dialog" style="border-radius: 45px;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="text-center">Add Items Manually</h4>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true"><i class="fa-solid fa-xmark"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        @if ($errors->first())
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <a class="close" data-dismiss="alert" aria-label="Close">&times;</a>
+                                {{ $errors->first() }}
+                            </div>
+                        @endif
+                        <form action="{{ route('saveGlobalBlacklist', ['slug' => $team->slug]) }}" method="post"
+                            class="form step_form add_items_manually_form">
+                            @csrf
+                            <span style="width: 100%;">
+                                <div>
+                                    <div>
+                                        <div class="input_group">
+                                            <div id="global_blacklist_div">
+                                                @if (old('global_blacklist_item'))
+                                                    @foreach (old('global_blacklist_item') as $item)
+                                                        <div class="item">
+                                                            <span>{{ $item }}</span>
+                                                            <span class="remove_global_blacklist_item">
+                                                                <i class="fa-solid fa-xmark"></i>
+                                                            </span>
+                                                            <input type="hidden" name="global_blacklist_item[]"
+                                                                value="{{ $item }}">
+                                                        </div>
+                                                    @endforeach
+                                                @endif
+                                            </div>
+                                            <textarea class="tag_input_wrapper_input" data-div-id="global_blacklist_div" rows="1"
+                                                placeholder="Add an item to the blacklist..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="state">To separate each item you wish to blacklist, use the ; symbol</div>
+                                </div>
+                                <div class="row invite_modal_row">
+                                    <div class="col-lg-6">
+                                        <div>Choose blacklist type:</div>
+                                        <div class="mt-3">
+                                            <div class="checkboxes">
+                                                <div class="check">
+                                                    <input type="checkbox" name="global_blacklist_type"
+                                                        value="company_name"
+                                                        {{ old('global_blacklist_type') == 'company_name' ? 'checked' : '' }}>
+                                                    <label class="global_blacklist_type" for="company_name">Company
+                                                        name</label>
+                                                </div>
+                                            </div>
+                                            <div class="checkboxes">
+                                                <div class="check">
+                                                    <input type="checkbox" name="global_blacklist_type"
+                                                        value="lead_full_name"
+                                                        {{ old('global_blacklist_type') == 'lead_full_name' ? 'checked' : '' }}>
+                                                    <label class="global_blacklist_type" for="lead_full_name">Lead's full
+                                                        name</label>
+                                                </div>
+                                            </div>
+                                            <div class="checkboxes">
+                                                <div class="check">
+                                                    <input type="checkbox" name="global_blacklist_type"
+                                                        value="profile_url"
+                                                        {{ old('global_blacklist_type') == 'profile_url' ? 'checked' : '' }}>
+                                                    <label class="global_blacklist_type" for="profile_url">Profile
+                                                        URL</label>
+                                                </div>
+                                            </div>
+                                            <div class="checkboxes">
+                                                <div class="check">
+                                                    <input type="checkbox" name="global_blacklist_type" value="job_title"
+                                                        {{ old('global_blacklist_type') == 'job_title' ? 'checked' : '' }}>
+                                                    <label class="global_blacklist_type" for="job_title">Job Title</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-6">
+                                        <div>Choose comparison type:</div>
+                                        <div class="mt-3">
+                                            <div class="checkboxes">
+                                                <div class="check">
+                                                    <input type="checkbox" name="global_comparison_type" value="exact"
+                                                        {{ old('global_comparison_type') == 'exact' ? 'checked' : '' }}>
+                                                    <label class="global_comparison_type" for="exact">Exact</label>
+                                                </div>
+                                            </div>
+                                            <div
+                                                class="checkboxes {{ old('global_blacklist_type') == 'profile_url' ? 'disabled' : '' }}">
+                                                <div class="check">
+                                                    <input type="checkbox" name="global_comparison_type" value="contains"
+                                                        {{ old('global_comparison_type') == 'contains' ? 'checked' : '' }}>
+                                                    <label class="global_comparison_type" for="contains">Contains</label>
+                                                </div>
+                                            </div>
+                                            <div
+                                                class="checkboxes {{ old('global_blacklist_type') == 'profile_url' ? 'disabled' : '' }}">
+                                                <div class="check">
+                                                    <input type="checkbox" name="global_comparison_type"
+                                                        value="starts_with"
+                                                        {{ old('global_comparison_type') == 'starts_with' ? 'checked' : '' }}>
+                                                    <label class="global_comparison_type" for="starts_with">Starts
+                                                        with</label>
+                                                </div>
+                                            </div>
+                                            <div
+                                                class="checkboxes {{ old('global_blacklist_type') == 'profile_url' ? 'disabled' : '' }}">
+                                                <div class="check">
+                                                    <input type="checkbox" name="global_comparison_type"
+                                                        value="ends_with"
+                                                        {{ old('global_comparison_type') == 'ends_with' ? 'checked' : '' }}>
+                                                    <label class="global_comparison_type" for="ends_with">Ends
+                                                        with</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button type="submit" class="crt_btn edit_able theme_btn manage_member mt-5">
+                                        Add to blacklist
+                                    </button>
+                                </div>
+                            </span>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+    @if (session('email_verified'))
+        <div class="modal fade step_form_popup" id="addEmailBlacklist" tabindex="-1" role="dialog"
+            aria-labelledby="addEmailBlacklist" aria-hidden="true">
+            <div class="modal-dialog" style="border-radius: 45px;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="text-center">Add Items Manually</h4>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true"><i class="fa-solid fa-xmark"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        @if ($errors->first())
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <a class="close" data-dismiss="alert" aria-label="Close">&times;</a>
+                                {{ $errors->first() }}
+                            </div>
+                        @endif
+                        <form action="{{ route('saveEmailBlacklist', ['slug' => $team->slug]) }}" method="post"
+                            class="form step_form add_items_manually_form">
+                            @csrf
+                            <span style="width: 100%;">
+                                <div>
+                                    <div>
+                                        <div class="input_group">
+                                            <div id="email_blacklist_div">
+                                                @if (old('email_blacklist_item'))
+                                                    @foreach (old('email_blacklist_item') as $item)
+                                                        <div class="item">
+                                                            <span>{{ $item }}</span>
+                                                            <span class="remove_email_blacklist_item">
+                                                                <i class="fa-solid fa-xmark"></i>
+                                                            </span>
+                                                            <input type="hidden" name="email_blacklist_item[]"
+                                                                value="{{ $item }}">
+                                                        </div>
+                                                    @endforeach
+                                                @endif
+                                            </div>
+                                            <textarea class="tag_input_wrapper_input" data-div-id="email_blacklist_div" rows="1"
+                                                placeholder="Add an item to the blacklist..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="state">To separate each item you wish to blacklist, use the ; symbol</div>
+                                </div>
+                                <div class="row invite_modal_row">
+                                    <div class="col-lg-6">
+                                        <div>Choose blacklist type:</div>
+                                        <div class="mt-3">
+                                            <div class="checkboxes">
+                                                <div class="check">
+                                                    <input type="checkbox" name="email_blacklist_type" value="lead_email"
+                                                        {{ old('email_blacklist_type') == 'lead_email' ? 'checked' : '' }}>
+                                                    <label class="email_blacklist_type" for="lead_email">Lead's
+                                                        email</label>
+                                                </div>
+                                            </div>
+                                            <div class="checkboxes">
+                                                <div class="check">
+                                                    <input type="checkbox" name="email_blacklist_type"
+                                                        value="company_domain"
+                                                        {{ old('email_blacklist_type') == 'company_domain' ? 'checked' : '' }}>
+                                                    <label class="email_blacklist_type" for="company_domain">Company
+                                                        domain</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div>Choose comparison type:</div>
+                                        <div class="mt-3">
+                                            <div class="checkboxes">
+                                                <div class="check">
+                                                    <input type="checkbox" name="email_comparison_type" value="exact"
+                                                        {{ old('email_comparison_type') == 'exact' ? 'checked' : '' }}>
+                                                    <label class="email_comparison_type" for="exact">Exact</label>
+                                                </div>
+                                            </div>
+                                            <div class="checkboxes">
+                                                <div class="check">
+                                                    <input type="checkbox" name="email_comparison_type" value="contains"
+                                                        {{ old('email_comparison_type') == 'contains' ? 'checked' : '' }}>
+                                                    <label class="email_comparison_type" for="contains">Contains</label>
+                                                </div>
+                                            </div>
+                                            <div class="checkboxes">
+                                                <div class="check">
+                                                    <input type="checkbox" name="email_comparison_type"
+                                                        value="starts_with"
+                                                        {{ old('email_comparison_type') == 'starts_with' ? 'checked' : '' }}>
+                                                    <label class="email_comparison_type" for="starts_with">Starts
+                                                        with</label>
+                                                </div>
+                                            </div>
+                                            <div class="checkboxes">
+                                                <div class="check">
+                                                    <input type="checkbox" name="email_comparison_type" value="ends_with"
+                                                        {{ old('email_comparison_type') == 'ends_with' ? 'checked' : '' }}>
+                                                    <label class="email_comparison_type" for="ends_with">Ends with</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button type="submit" class="crt_btn edit_able theme_btn manage_member mt-5">
+                                        Add to blacklist
+                                    </button>
+                                </div>
+                            </span>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+    <div class="modal fade step_form_popup" id="filterGlobalBlacklist" tabindex="-1" role="dialog"
+        aria-labelledby="filterGlobalBlacklist" aria-hidden="true">
         <div class="modal-dialog" style="border-radius: 45px;">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="text-center">Add Items Manually</h4>
+                    <h4 class="text-center">Filter Blacklist</h4>
                     <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true"><i class="fa-solid fa-xmark"></i></span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    @if ($errors->first())
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <a class="close" data-dismiss="alert" aria-label="Close">&times;</a>
-                            {{ $errors->first() }}
-                        </div>
-                    @endif
-                    <form action="{{ route('saveGlobalBlacklist', ['slug' => $team->slug]) }}" method="post"
-                        class="form step_form add_items_manually_form">
+                    <form action="{{ route('filterGlobalBlacklist', ['slug' => $team->slug]) }}" method="post"
+                        class="form step_form add_items_manually_form" id="filter-global-blacklist">
                         @csrf
                         <span style="width: 100%;">
-                            <div>
-                                <div>
-                                    <div class="input_group">
-                                        <div id="global_blacklist_div">
-                                            @if (old('global_blacklist_item'))
-                                                @foreach (old('global_blacklist_item') as $item)
-                                                    <div class="item">
-                                                        <span>{{ $item }}</span>
-                                                        <span class="remove_global_blacklist_item">
-                                                            <i class="fa-solid fa-xmark"></i>
-                                                        </span>
-                                                        <input type="hidden" name="global_blacklist_item[]"
-                                                            value="{{ $item }}">
-                                                    </div>
-                                                @endforeach
-                                            @endif
-                                        </div>
-                                        <textarea class="tag_input_wrapper_input" data-div-id="global_blacklist_div" rows="1"
-                                            placeholder="Add an item to the blacklist..."></textarea>
-                                    </div>
-                                </div>
-                                <div class="state">To separate each item you wish to blacklist, use the ; symbol</div>
-                            </div>
                             <div class="row invite_modal_row">
                                 <div class="col-lg-6">
-                                    <div>Choose blacklist type:</div>
+                                    <div>Filter by blacklist type:</div>
                                     <div class="mt-3">
                                         <div class="checkboxes">
                                             <div class="check">
-                                                <input type="checkbox" name="global_blacklist_type" value="company_name"
-                                                    {{ old('global_blacklist_type') == 'company_name' ? 'checked' : '' }}>
-                                                <label class="global_blacklist_type" for="company_name">Company
+                                                <input type="checkbox" name="filter_global_blacklist_type[]"
+                                                    value="company_name">
+                                                <label class="filter_global_blacklist_type" for="company_name">Company
                                                     name</label>
                                             </div>
                                         </div>
                                         <div class="checkboxes">
                                             <div class="check">
-                                                <input type="checkbox" name="global_blacklist_type"
-                                                    value="lead_full_name"
-                                                    {{ old('global_blacklist_type') == 'lead_full_name' ? 'checked' : '' }}>
-                                                <label class="global_blacklist_type" for="lead_full_name">Lead's full
+                                                <input type="checkbox" name="filter_global_blacklist_type[]"
+                                                    value="lead_full_name">
+                                                <label class="filter_global_blacklist_type" for="lead_full_name">Lead's
+                                                    full
                                                     name</label>
                                             </div>
                                         </div>
                                         <div class="checkboxes">
                                             <div class="check">
-                                                <input type="checkbox" name="global_blacklist_type" value="profile_url"
-                                                    {{ old('global_blacklist_type') == 'profile_url' ? 'checked' : '' }}>
-                                                <label class="global_blacklist_type" for="profile_url">Profile URL</label>
+                                                <input type="checkbox" name="filter_global_blacklist_type[]"
+                                                    value="profile_url">
+                                                <label class="filter_global_blacklist_type" for="profile_url">Profile
+                                                    URL</label>
                                             </div>
                                         </div>
                                         <div class="checkboxes">
                                             <div class="check">
-                                                <input type="checkbox" name="global_blacklist_type" value="job_title"
-                                                    {{ old('global_blacklist_type') == 'job_title' ? 'checked' : '' }}>
-                                                <label class="global_blacklist_type" for="job_title">Job Title</label>
+                                                <input type="checkbox" name="filter_global_blacklist_type[]"
+                                                    value="job_title">
+                                                <label class="filter_global_blacklist_type" for="job_title">Job
+                                                    Title</label>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
                                 <div class="col-lg-6">
-                                    <div>Choose comparison type:</div>
+                                    <div>Filter by comparison type:</div>
                                     <div class="mt-3">
                                         <div class="checkboxes">
                                             <div class="check">
-                                                <input type="checkbox" name="global_comparison_type" value="exact"
-                                                    {{ old('global_comparison_type') == 'exact' ? 'checked' : '' }}>
-                                                <label class="global_comparison_type" for="exact">Exact</label>
+                                                <input type="checkbox" name="filter_global_comparison_type[]"
+                                                    value="exact">
+                                                <label class="filter_global_comparison_type" for="exact">Exact</label>
                                             </div>
                                         </div>
                                         <div class="checkboxes">
                                             <div class="check">
-                                                <input type="checkbox" name="global_comparison_type" value="contains"
-                                                    {{ old('global_comparison_type') == 'contains' ? 'checked' : '' }}>
-                                                <label class="global_comparison_type" for="contains">Contains</label>
+                                                <input type="checkbox" name="filter_global_comparison_type[]"
+                                                    value="contains">
+                                                <label class="filter_global_comparison_type"
+                                                    for="contains">Contains</label>
                                             </div>
                                         </div>
                                         <div class="checkboxes">
                                             <div class="check">
-                                                <input type="checkbox" name="global_comparison_type" value="starts_with"
-                                                    {{ old('global_comparison_type') == 'starts_with' ? 'checked' : '' }}>
-                                                <label class="global_comparison_type" for="starts_with">Starts
+                                                <input type="checkbox" name="filter_global_comparison_type[]"
+                                                    value="starts_with">
+                                                <label class="filter_global_comparison_type" for="starts_with">Starts
                                                     with</label>
                                             </div>
                                         </div>
                                         <div class="checkboxes">
                                             <div class="check">
-                                                <input type="checkbox" name="global_comparison_type" value="ends_with"
-                                                    {{ old('global_comparison_type') == 'ends_with' ? 'checked' : '' }}>
-                                                <label class="comparison_type" for="ends_with">Ends with</label>
+                                                <input type="checkbox" name="filter_global_comparison_type[]"
+                                                    value="ends_with">
+                                                <label class="filter_global_comparison_type" for="ends_with">Ends
+                                                    with</label>
                                             </div>
                                         </div>
                                     </div>
@@ -517,7 +747,92 @@
                             </div>
                             <div>
                                 <button type="submit" class="crt_btn edit_able theme_btn manage_member mt-5">
-                                    Add to blacklist
+                                    Filter blacklist
+                                </button>
+                            </div>
+                        </span>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade step_form_popup" id="filterEmailBlacklist" tabindex="-1" role="dialog"
+        aria-labelledby="filterEmailBlacklist" aria-hidden="true">
+        <div class="modal-dialog" style="border-radius: 45px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="text-center">Filter Blacklist</h4>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true"><i class="fa-solid fa-xmark"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('filterEmailBlacklist', ['slug' => $team->slug]) }}" method="post"
+                        class="form step_form add_items_manually_form" id="filter-email-blacklist">
+                        @csrf
+                        <span style="width: 100%;">
+                            <div class="row invite_modal_row">
+                                <div class="col-lg-6">
+                                    <div>Filter by blacklist type:</div>
+                                    <div class="mt-3">
+                                        <div class="checkboxes">
+                                            <div class="check">
+                                                <input type="checkbox" name="filter_email_blacklist_type[]"
+                                                    value="lead_email">
+                                                <label class="filter_email_blacklist_type" for="lead_email">Lead's
+                                                    email</label>
+                                            </div>
+                                        </div>
+                                        <div class="checkboxes">
+                                            <div class="check">
+                                                <input type="checkbox" name="filter_email_blacklist_type[]"
+                                                    value="company_domain">
+                                                <label class="filter_email_blacklist_type" for="company_domain">Company
+                                                    domain</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div>Filter by comparison type:</div>
+                                    <div class="mt-3">
+                                        <div class="checkboxes">
+                                            <div class="check">
+                                                <input type="checkbox" name="filter_email_comparison_type[]"
+                                                    value="exact">
+                                                <label class="filter_email_comparison_type" for="exact">Exact</label>
+                                            </div>
+                                        </div>
+                                        <div class="checkboxes">
+                                            <div class="check">
+                                                <input type="checkbox" name="filter_email_comparison_type[]"
+                                                    value="contains">
+                                                <label class="filter_email_comparison_type"
+                                                    for="contains">Contains</label>
+                                            </div>
+                                        </div>
+                                        <div class="checkboxes">
+                                            <div class="check">
+                                                <input type="checkbox" name="filter_email_comparison_type[]"
+                                                    value="starts_with">
+                                                <label class="filter_email_comparison_type" for="starts_with">Starts
+                                                    with</label>
+                                            </div>
+                                        </div>
+                                        <div class="checkboxes">
+                                            <div class="check">
+                                                <input type="checkbox" name="filter_email_comparison_type[]"
+                                                    value="ends_with">
+                                                <label class="filter_email_comparison_type" for="ends_with">Ends
+                                                    with</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <button type="submit" class="crt_btn edit_able theme_btn manage_member mt-5">
+                                    Filter blacklist
                                 </button>
                             </div>
                         </span>
@@ -527,9 +842,24 @@
         </div>
     </div>
     <script>
+        var deleteGlobalBlacklistRoute =
+            "{{ route('deleteGlobalBlacklist', ['slug' => $team->slug, 'id' => ':blacklist-id']) }}";
+        var deleteEmailBlacklistRoute =
+            "{{ route('deleteEmailBlacklist', ['slug' => $team->slug, 'id' => ':blacklist-id']) }}";
+        var searchGlobalBlacklistRoute =
+            "{{ route('searchGlobalBlacklist', ['slug' => $team->slug, 'search' => ':search']) }}";
+        var searchEmailBlacklistRoute =
+            "{{ route('searchEmailBlacklist', ['slug' => $team->slug, 'search' => ':search']) }}";
+        var emailVerified = "{{ session('email_verified') }}";
+        var emptyImage = "{{ asset('assets/img/empty.png') }}";
+    </script>
+    <script>
         $(document).ready(function() {
             if ("{{ session()->has('global_blacklist_error') }}") {
                 $('#addGlobalBlacklist').modal('show');
+            }
+            if ("{{ session()->has('email_blacklist_error') }}") {
+                $('#addEmailBlacklist').modal('show');
             }
             $(".setting_list").hide();
             $(".setting_btn").on("click", function(e) {
