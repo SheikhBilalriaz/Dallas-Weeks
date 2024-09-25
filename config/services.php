@@ -31,4 +31,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'stripe' => [
+        'secret_key' => env('STRIPE_SK'),
+        'publishable_key' => env('STRIPE_PK'),
+        'seat_price_id' => env('SEAT_SUBS_PRICE_ID'),
+        'webhook_key' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+
 ];

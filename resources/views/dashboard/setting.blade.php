@@ -63,7 +63,6 @@
 
         .password_form .error {
             border: 1px solid red;
-            color: rgb(255, 138, 138);
         }
     </style>
     @if (session('success'))

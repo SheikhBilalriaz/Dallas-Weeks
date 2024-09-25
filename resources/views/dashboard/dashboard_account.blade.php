@@ -1,6 +1,23 @@
 @extends('dashboard/partials/master')
 @section('content')
     <style>
+        .step_form {
+            padding: 40px;
+        }
+
+        .step_form .form_row>div {
+            text-align: start;
+        }
+
+        .step_form_popup .modal-dialog {
+            border-radius: 45px;
+            width: 45%
+        }
+
+        .step_form input.error {
+            border: 1px solid red;
+        }
+
         #payment-form input.form-control {
             color: white !important;
         }
@@ -85,6 +102,18 @@
 
         #update_seat button#delete_seat_11 {
             margin-top: 30px;
+        }
+
+        body textarea {
+            height: 174px;
+            width: 100%;
+            border-radius: 30px;
+            background-color: #0000 !important;
+            border: 1px solid oklch(0.73 0.02 250.52 / 0.6);
+            margin-bottom: 40px !important;
+            padding: 24px;
+            font-size: 18px;
+            color: #8e99a8;
         }
     </style>
     @if (session('email_verified'))
@@ -258,7 +287,7 @@
     @if (session('is_creator') && session('email_verified'))
         <div class="modal fade step_form_popup" id="addaccount" tabindex="-1" role="dialog" aria-labelledby="addaccount"
             aria-hidden="true">
-            <div class="modal-dialog" style="border-radius: 45px;">
+            <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4 class="text-center">Add Account</h4>
@@ -268,7 +297,8 @@
                     </div>
                     <div class="modal-body text-center">
                         <form role="form" action="{{ route('stripePayment', ['slug' => $team->slug]) }}" method="post"
-                            data-cc-on-file="false" data-stripe-publishable-key="{{ env('STRIPE_PK') }}" id="payment-form"
+                            data-cc-on-file="false" id="payment-form"
+                            data-stripe-publishable-key="{{ config('services.stripe.publishable_key') }}"
                             class="form step_form">
                             @csrf
                             <input type="hidden" name="stripe_token" id="stripe_token">
@@ -280,65 +310,53 @@
                             </div>
                             <div class="form-step active">
                                 <div class="form_row row">
-                                    <div class="col-lg-12">
+                                    <div class="col-lg-12 required">
                                         <label for="street_address">Street Address</label>
                                         <input type="text" name="street_address" id="street_address"
                                             placeholder="Enter your street address" required
                                             class="{{ $errors->has('street_address') ? 'error' : '' }}"
                                             value="{{ old('street_address') }}">
-                                        @if ($errors->has('street_address'))
-                                            <span class="text-danger">{{ $errors->first('street_address') }}</span>
-                                        @endif
+                                        <span class="text-danger">{{ $errors->first('street_address') }}</span>
                                     </div>
-                                    <div class="col-lg-12">
+                                    <div class="col-lg-12 required">
                                         <label for="city">City</label>
                                         <input type="text" name="city" id="city"
                                             placeholder="Enter your city" required
                                             class="{{ $errors->has('city') ? 'error' : '' }}"
                                             value="{{ old('city') }}">
-                                        @if ($errors->has('city'))
-                                            <span class="text-danger">{{ $errors->first('city') }}</span>
-                                        @endif
+                                        <span class="text-danger">{{ $errors->first('city') }}</span>
                                     </div>
-                                    <div class="col-lg-6">
+                                    <div class="col-md-12 col-lg-6 required">
                                         <label for="state">State</label>
                                         <input type="text" name="state" id="state"
                                             placeholder="Enter your state" required
                                             class="{{ $errors->has('state') ? 'error' : '' }}"
                                             value="{{ old('state') }}">
-                                        @if ($errors->has('state'))
-                                            <span class="text-danger">{{ $errors->first('state') }}</span>
-                                        @endif
+                                        <span class="text-danger">{{ $errors->first('state') }}</span>
                                     </div>
-                                    <div class="col-lg-6">
+                                    <div class="col-md-12 col-lg-6 required">
                                         <label for="postal_code">Postal Code</label>
                                         <input type="text" name="postal_code" id="postal_code"
                                             placeholder="Enter your postal code" required
                                             class="{{ $errors->has('postal_code') ? 'error' : '' }}"
                                             value="{{ old('postal_code') }}">
-                                        @if ($errors->has('postal_code'))
-                                            <span class="text-danger">{{ $errors->first('postal_code') }}</span>
-                                        @endif
+                                        <span class="text-danger">{{ $errors->first('postal_code') }}</span>
                                     </div>
-                                    <div class="col-lg-12">
+                                    <div class="col-lg-12 required">
                                         <label for="country">Country of incorporation</label>
                                         <input type="text" name="country" id="country"
                                             placeholder="Enter your country" required
                                             class="{{ $errors->has('country') ? 'error' : '' }}"
                                             value="{{ old('country') }}">
-                                        @if ($errors->has('country'))
-                                            <span class="text-danger">{{ $errors->first('country') }}</span>
-                                        @endif
+                                        <span class="text-danger">{{ $errors->first('country') }}</span>
                                     </div>
-                                    <div class="col-lg-12">
+                                    <div class="col-lg-12 required">
                                         <label for="company">Company name</label>
                                         <input type="text" name="company" id="company"
                                             placeholder="Enter your company name" required
                                             class="{{ $errors->has('company') ? 'error' : '' }}"
                                             value="{{ old('company') }}">
-                                        @if ($errors->has('company'))
-                                            <span class="text-danger">{{ $errors->first('company') }}</span>
-                                        @endif
+                                        <span class="text-danger">{{ $errors->first('company') }}</span>
                                     </div>
                                     <div class="col-lg-12">
                                         <label for="tax_id">Tax ID number</label>
@@ -353,17 +371,26 @@
                             </div>
                             <div class="form-step ">
                                 <div class="form_row row">
-                                    <div class="col-lg-12">
+                                    <div class="col-lg-12 required">
                                         <label for="email">Email</label>
-                                        <input type="email" name="email" id="email">
+                                        <input type="email" name="email" id="email"
+                                            placeholder="Enter your email" required
+                                            class="{{ $errors->has('email') ? 'error' : '' }}"
+                                            value="{{ old('email') }}">
+                                        <span class="text-danger">{{ $errors->first('email') }}</span>
+                                    </div>
+                                    <div class="col-lg-12 required">
+                                        <label for="phone_number">Phone Number</label>
+                                        <input type="phone_number" name="phone_number" id="phone_number"
+                                            placeholder="Enter your phone number" required
+                                            class="{{ $errors->has('phone_number') ? 'error' : '' }}"
+                                            value="{{ old('phone_number') }}">
+                                        <span class="text-danger">{{ $errors->first('phone_number') }}</span>
                                     </div>
                                     <div class="col-lg-12">
-                                        <label for="phone_number">Phone Number</label>
-                                        <input type="phone_number" name="phone_number" id="phone_number">
-                                    </div>
-                                    <div class="">
                                         <label for="summary">Profile Summary</label>
-                                        <textarea name="summary" id="summary" cols="42" rows="6"></textarea>
+                                        <textarea name="summary" id="summary" cols="42" rows="6" placeholder="Enter profile summary"
+                                            value="{{ old('summary') }}"></textarea>
                                     </div>
                                 </div>
                                 <div class="btn-group">
@@ -372,41 +399,48 @@
                                 </div>
                             </div>
                             <div class="form-step ">
-                                <h3>Payment</h3>
                                 <div class="experiences-group">
-                                    <div class='form-row row'>
-                                        <div class='col-xs-12 form-group required'>
+                                    <div class='form_row row'>
+                                        <div class='col-lg-12 form-group required'>
                                             <label for="card_name" class='control-label'>Name on Card</label>
-                                            <input class='form-control' name="card_name" id="card_name" type='text'>
+                                            <input class='form-control' name="card_name" id="card_name" type='text'
+                                                required class="{{ $errors->has('card_name') ? 'error' : '' }}"
+                                                value="{{ old('card_name') }}">
+                                            <span class="text-danger">{{ $errors->first('card_name') }}</span>
                                         </div>
-                                    </div>
-                                    <div class='form-row row'>
-                                        <div class='col-xs-12 form-group required'>
+                                        <div class='col-lg-12 form-group required'>
                                             <label class='control-label' for="card_number">Card Number</label>
                                             <input autocomplete='off' class='form-control card-number' name="card_number"
                                                 id="card_number" type='text'
                                                 class="{{ $errors->has('card_number') ? 'error' : '' }}"
-                                                value="{{ old('card_number') }}">
+                                                value="{{ old('card_number') }}" required>
                                             <span
                                                 class="text-danger card_number_error">{{ $errors->first('card_number') }}</span>
                                         </div>
-                                    </div>
-                                    <div class='form-row row'>
-                                        <div class='col-xs-12 col-md-4 form-group cvc required'>
+                                        <div class='col-lg-4 col-md-6 col-xs-12 form-group cvc required'>
                                             <label class='control-label' for="card_cvc">CVC</label>
                                             <input autocomplete='off' class='form-control card-cvc' name="card_cvc"
-                                                id="card_cvc" placeholder='ex. 311' size='4' type='text'>
+                                                id="card_cvc" placeholder='311' size='4' type='text'
+                                                class="{{ $errors->has('card_cvc') ? 'error' : '' }}"
+                                                value="{{ old('card_cvc') }}" required>
+                                            <span class="text-danger">{{ $errors->first('card_cvc') }}</span>
                                         </div>
-                                        <div class='col-xs-12 col-md-4 form-group expiration required'>
+                                        <div class='col-lg-4 col-md-6 col-xs-12 form-group expiration required'>
                                             <label class='control-label' for="card_expiry_month">Expiration Month</label>
                                             <input class='form-control card-expiry-month' placeholder='MM'
                                                 name="card_expiry_month" id="card_expiry_month" size='2'
-                                                type='text'>
+                                                type='text'
+                                                class="{{ $errors->has('card_expiry_month') ? 'error' : '' }}"
+                                                value="{{ old('card_expiry_month') }}" required>
+                                            <span class="text-danger">{{ $errors->first('card_expiry_month') }}</span>
                                         </div>
-                                        <div class='col-xs-12 col-md-4 form-group expiration required'>
+                                        <div class='col-lg-4 col-md-6 col-xs-12 form-group expiration required'>
                                             <label class='control-label' for="card_expiry_year">Expiration Year</label>
                                             <input class='form-control card-expiry-year' name="card_expiry_year"
-                                                id="card_expiry_year" placeholder='YYYY' size='4' type='text'>
+                                                id="card_expiry_year" placeholder='YYYY' size='4' type='text'
+                                                class="{{ $errors->has('card_expiry_year') ? 'error' : '' }}"
+                                                value="{{ old('card_expiry_year') }}" required>
+                                            <span class="text-danger">{{ $errors->first('card_expiry_year') }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -429,35 +463,6 @@
         });
     </script>
     <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
-    <script type="text/javascript">
-        $('#payment-form').bind('submit', function(e) {
-            e.preventDefault();
-            var stripe = Stripe.setPublishableKey($(this).data('stripe-publishable-key'));
-            Stripe.createToken({
-                number: $('#card_number').val(),
-                cvc: $('#card_cvc').val(),
-                exp_month: $('#card_expiry_month').val(),
-                exp_year: $('#card_expiry_year').val()
-            }, stripeResponseHandler);
-        });
-
-        function stripeResponseHandler(status, response) {
-            if (response.error) {
-                switch (response.error.type) {
-                    case 'card_error':
-                        $('.card_number_error').html(response.error.message);
-                        break;
-                    default:
-                        console.log(response);
-                        break;
-                }
-            } else {
-                var token = response['id'];
-                $('#stripe_token').val(token);
-                $('#payment-form').submit();
-            }
-        }
-    </script>
     @if (session('email_verified'))
         <div class="modal fade step_form_popup" id="update_seat" tabindex="-1" role="dialog"
             aria-labelledby="update_seat" aria-hidden="true">

@@ -7,10 +7,67 @@ $(document).ready(function () {
     // $(document).on('click', '.update_seat_name', update_seat_name);
     $('.btn-prev').on('click', btn_prev);
     $('.btn-next').on('click', btn_next);
-    // $('#payment-form').on('submit', paymentForm);
+    $(document).on('input', '.error', function () {
+        const $requiredFields = $(this).parent();
+        $requiredFields.find('.text-danger').html('');
+        $requiredFields.find('.error').removeClass('error');
+    });
+    $('#payment-form').bind('submit', paymentForm);
     // $(document).on('click', '.delete_seat', deleteSeat);
     // $(document).on('click', '.seat_table_data', toSeat);
 });
+
+function paymentForm(e) {
+    e.preventDefault();
+    const $form = $(this);
+    const $form_steps = $form.find('.form-step');
+    let isValid = true;
+    $form_steps.each(function (index, form_item) {
+        const $requiredFields = $(form_item).find('.required');
+        if ($requiredFields.length > 0) {
+            $requiredFields.each(function (index, item) {
+                const $inputField = $(item).find('input');
+                if ($inputField.val().trim() === "") {
+                    $form_steps.removeClass('active');
+                    $(form_item).addClass('active');
+                    $('.progress-step').removeClass('active');
+                    $progressStep = $('.progress-step');
+                    $progressStep.eq(index).addClass('active');
+                    $('#progress').css('width', 25 * index + '%');
+                    isValid = false;
+                    $inputField.addClass('error');
+                    let name = $inputField.attr('name');
+                    const $errorSpan = $(item).find('.text-danger');
+                    $errorSpan.html(toTitleCase(name) + ' is required');
+                } else {
+                    $inputField.removeClass('error');
+                    const $errorSpan = $(item).find('.text-danger');
+                    $errorSpan.html('');
+                }
+            });
+        }
+    });
+    if (isValid) {
+        Stripe.setPublishableKey($(this).data('stripe-publishable-key'));
+        Stripe.createToken({
+            number: $('#card_number').val(),
+            cvc: $('#card_cvc').val(),
+            exp_month: $('#card_expiry_month').val(),
+            exp_year: $('#card_expiry_year').val()
+        }, stripeResponseHandler);
+    }
+}
+
+function stripeResponseHandler(status, response) {
+    if (response.error) {
+        $('.card_number_error').parent().find('input').addClass('error');
+        $('.card_number_error').html(response.error.message);
+    } else {
+        var token = response['id'];
+        $('#stripe_token').val(token);
+        $('#payment-form').get(0).submit();
+    }
+}
 
 function toSeat(e) {
     var id = $(this).parent().attr("id").replace("table_row_", "");
@@ -90,34 +147,45 @@ function deleteSeat(e) {
     }
 }
 
-function paymentForm(event) {
-    event.preventDefault();
-    var formData = $(this).serialize();
-    $.ajax({
-        type: 'POST',
-        url: "{{ route('stripe.post') }}",
-        data: formData,
-        success: function (response) {
-            console.log(response);
-        },
-        error: function (error) {
-            console.log(error);
-        },
-    });
+function toTitleCase(str) {
+    return str
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 }
 
 function changeStep(isNext) {
     const $progressStep = $('.progress-step.active');
     const $formStep = $('.form-step.active');
-    const $targetProgressStep = isNext ? $progressStep.next('.progress-step') : $progressStep.prev('.progress-step');
-    const $targetFormStep = isNext ? $formStep.next('.form-step') : $formStep.prev('.form-step');
-    if ($targetProgressStep.length && $targetFormStep.length) {
-        $progressStep.removeClass('active');
-        $formStep.removeClass('active');
-        $targetProgressStep.addClass('active');
-        $targetFormStep.addClass('active');
-        const activeIndex = $('.progress-step').index($targetProgressStep) + 1;
-        $('#progress').css('width', 25 * activeIndex + '%');
+    const $requiredFields = $formStep.find('.required');
+    let isValid = true;
+    if (isNext && $requiredFields.length > 0) {
+        $requiredFields.each(function (index, item) {
+            const $inputField = $(item).find('input');
+            if ($inputField.val().trim() === "") {
+                isValid = false;
+                $inputField.addClass('error');
+                let name = $inputField.attr('name');
+                const $errorSpan = $(item).find('.text-danger');
+                $errorSpan.html(toTitleCase(name) + ' is required');
+            } else {
+                $inputField.removeClass('error');
+                const $errorSpan = $(item).find('.text-danger');
+                $errorSpan.html('');
+            }
+        });
+    }
+    if (isValid) {
+        const $targetProgressStep = isNext ? $progressStep.next('.progress-step') : $progressStep.prev('.progress-step');
+        const $targetFormStep = isNext ? $formStep.next('.form-step') : $formStep.prev('.form-step');
+        if ($targetProgressStep.length && $targetFormStep.length) {
+            $progressStep.removeClass('active');
+            $formStep.removeClass('active');
+            $targetProgressStep.addClass('active');
+            $targetFormStep.addClass('active');
+            const activeIndex = $('.progress-step').index($targetProgressStep) + 1;
+            $('#progress').css('width', 25 * activeIndex + '%');
+        }
     }
 }
 

@@ -9,6 +9,7 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StripePaymentController;
+use App\Http\Controllers\StripeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,8 +23,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-/* These are home pages url which does not require any authentication */
+Route::post('/webhook', [StripeController::class, 'handleWebhook']);
+Route::get('/customer-subscription-created', [StripePaymentController::class, 'customerSubscriptionCreated'])->name('customerSubscriptionCreated');
 
+/* These are home pages url which does not require any authentication */
 Route::get('/', [HomeController::class, 'home'])->name('homePage'); //Done
 Route::get('/about', [HomeController::class, 'about'])->name('aboutPage'); //Done
 Route::get('/pricing', [HomeController::class, 'pricing'])->name('pricingPage'); //Done
