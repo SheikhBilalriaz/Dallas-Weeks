@@ -8,21 +8,55 @@
             opacity: 0.7;
             pointer-events: none;
         }
+
+        .team_management .filt_opt.d-flex {
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .filter_head_row .d-flex {
+            justify-content: space-between;
+        }
+
+        .filt_opt .add_btn {
+            margin-right: 0px;
+        }
+
+        .global-blacklist__back-arrow * {
+            color: #16adcb;
+        }
+
+        .global-blacklist__back-arrow:hover * {
+            color: #fff !important;
+        }
     </style>
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible text-center fade show">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                &times;
+            </button>
+            {{ session('success') }}
+        </div>
+    @endif
     <section class="blacklist team_management">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-lg-12">
-                    <div class="filter_head_row d-flex">
-                        <div class="cont">
+                    <div class="filter_head_row">
+                        <div class="cont d-flex">
+                            <a class="d-block global-blacklist__back-arrow"
+                                href="{{ route('dashboardPage', ['slug' => $team->slug]) }}">
+                                <span><i class="fa-solid fa-chevron-left"></i></span>
+                                <span>Back</span>
+                            </a>
                             <h3>Team Management</h3>
+                        </div>
+                        <div class="filt_opt d-flex">
                             @if (!session('is_creator'))
                                 <p>Invite team members and manage team permissions.</p>
                             @else
                                 <p>You can not invite team members and manage team permissions.</p>
                             @endif
-                        </div>
-                        <div class="filt_opt d-flex">
                             @if (session('is_creator'))
                                 @if (!session('email_verified'))
                                     <div style="cursor: default; opacity: 0.7;" class="add_btn "
@@ -40,12 +74,6 @@
                                     </div>
                                 @endif
                             @endif
-                            <select name="num" id="num">
-                                <option value="01">10</option>
-                                <option value="02">20</option>
-                                <option value="03">30</option>
-                                <option value="04">40</option>
-                            </select>
                         </div>
                     </div>
                     <div class="filtr_desc">
@@ -53,12 +81,12 @@
                             <strong>Team members</strong>
                             <div class="filter">
                                 <div class="search-form">
-                                    <input type="text" name="q" placeholder="Search...">
+                                    <input type="text" name="q" placeholder="Search..." id="search-team-member">
                                     <button type="submit">
                                         <i class="fa fa-search"></i>
                                     </button>
                                 </div>
-                                <a href="{{ route('rolesPermission', ['slug' => $team->slug]) }}" class="roles_btn">
+                                <a href="{{ route('rolesPermissionPage', ['slug' => $team->slug]) }}" class="roles_btn">
                                     Roles & permissions
                                 </a>
                             </div>
@@ -170,19 +198,19 @@
                                             <div class="col-lg-6" style="display: flex; width: 390px;">
                                                 <input class="permission"
                                                     style="width: 25px; height: 25px; margin-right: 25px;" type="checkbox"
-                                                    id="permission_{{ $permission['permission_slug'] }}"
-                                                    name="{{ $permission['permission_slug'] }}">
+                                                    id="permission_{{ $permission['slug'] }}"
+                                                    name="{{ $permission['slug'] }}">
                                                 <label
-                                                    for="permission_{{ $permission['permission_slug'] }}">{{ $permission['permission_name'] }}</label>
+                                                    for="permission_{{ $permission['slug'] }}">{{ $permission['name'] }}</label>
                                             </div>
                                             <div class="col-lg-6" style="display: none; width: 390px;">
                                                 @if ($permission->allow_view_only == 1)
                                                     <input type="radio"
                                                         style="width: 25px; height: 25px; margin-right: 25px;"
-                                                        id="view_only_{{ $permission['permission_slug'] }}"
+                                                        id="view_only_{{ $permission['slug'] }}"
                                                         class="view_only"
-                                                        name="view_only_{{ $permission['permission_slug'] }}">
-                                                    <label for="view_only_{{ $permission['permission_slug'] }}">View
+                                                        name="view_only_{{ $permission['slug'] }}">
+                                                    <label for="view_only_{{ $permission['slug'] }}">View
                                                         Only</label>
                                                 @endif
                                             </div>
@@ -279,10 +307,9 @@
             </div>
         </div>
     @endif --}}
-    {{-- @if (session('is_creator'))
+    @if (session('is_creator'))
         <script>
-            var customRoleRoute = "{{ route('customRole') }}";
-            var teamMemeberRoute = "{{ route('add_team_member') }}";
+            var searchTeamMemberRoute = "{{ route('searchTeamMember', ['slug' => $team->slug, 'search' => ':search']) }}";
         </script>
-    @endif --}}
+    @endif
 @endsection

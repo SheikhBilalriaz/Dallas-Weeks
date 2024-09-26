@@ -1,18 +1,47 @@
 var customRoleAjax = null;
 var inviteMemberAjax = null;
+var searchMemberAjax = null;
 $(document).ready(function () {
-    $('.permission').on('click', function () {
-        if ($(this).prop('checked')) {
-            $(this).parent().siblings('div').css('display', 'flex');
-        } else {
-            $(this).parent().siblings('div').css('display', 'none');
+    // $('.permission').on('click', function () {
+    //     if ($(this).prop('checked')) {
+    //         $(this).parent().siblings('div').css('display', 'flex');
+    //     } else {
+    //         $(this).parent().siblings('div').css('display', 'none');
+    //     }
+    // });
+    // $('#invite_email').on('input', inviteEmail);
+    // $('.roles').on('click', getRole);
+    // $('.step_form').on('submit', custom_role);
+    // $('.invite_form').on('submit', invite_member);
+    $(document).on('input', '#search-team-member', searchMember);
+});
+
+function searchMember(e) {
+    var search = $(this).val();
+    if (search === "") {
+        search = "null";
+    }
+    if (searchMemberAjax) {
+        searchMemberAjax.abort();
+        searchMemberAjax = null;
+    }
+    searchMemberAjax = $.ajax({
+        url: searchTeamMemberRoute.replace(':search', search),
+        type: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function (response) {
+            console.log(response);
+        },
+        error: function (xhr, status, error) {
+            console.log(error);
+        },
+        complete: function () {
+            searchMemberAjax = null;
         }
     });
-    $('#invite_email').on('input', inviteEmail);
-    $('.roles').on('click', getRole);
-    $('.step_form').on('submit', custom_role);
-    $('.invite_form').on('submit', invite_member);
-});
+}
 
 $(document).on('click', '.seats', function (e) {
     var checkbox = $(this).siblings('input');

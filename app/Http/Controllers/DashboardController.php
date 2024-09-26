@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Global_Permission;
+use App\Models\Seat;
 use App\Models\Team;
 use App\Models\Team_Member;
 use Exception;
@@ -63,8 +64,15 @@ class DashboardController extends Controller
     public function dashboard($slug)
     {
         try {
+            $user = Auth::user();
+
             /* Retrieve the team associated with the slug */
             $team = Team::where('slug', $slug)->first();
+
+            if($user->id == $team->creator_id) {
+                $seats = Seat::where('team_id', $team->id)->get();
+            }
+            dd($seats);
 
             /* Prepare data for the view */
             $data = [

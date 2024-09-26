@@ -6,6 +6,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\RolesPermissionController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StripePaymentController;
@@ -23,8 +24,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('/webhook', [StripeController::class, 'handleWebhook']);
-Route::get('/customer-subscription-created', [StripePaymentController::class, 'customerSubscriptionCreated'])->name('customerSubscriptionCreated');
+Route::post('/stripe/webhook', [StripeController::class, 'handleWebhook']);
 
 /* These are home pages url which does not require any authentication */
 Route::get('/', [HomeController::class, 'home'])->name('homePage'); //Done
@@ -75,9 +75,18 @@ Route::middleware(['userAuth'])->group(function () {
             Route::get('/', [SettingController::class, 'globalSetting'])->name('globalSetting'); //Done
             Route::put('/change-password', [SettingController::class, 'changePassword'])->name('changePassword'); //Done
         });
-        Route::prefix('/team')->group(function () {
-            Route::get('/', [TeamController::class, 'team'])->name('team');
-            Route::get('/team-roles-and-permission')->name('rolesPermission');
+
+        /* These are for team member */
+        Route::prefix('/member')->group(function () {
+            Route::get('/', [TeamController::class, 'team'])->name('teamPage');
+            Route::prefix('role')->group(function () {
+                Route::get('/role-and-permission', [RolesPermissionController::class, 'rolesPermission'])->name('rolesPermissionPage'); //Done
+                Route::post('/custom-role', [RolesPermissionController::class, 'customRole'])->name('customRole'); //Done
+                Route::delete('/delete-role/{id}', [RolesPermissionController::class, 'deleteRole'])->name('deleteRole'); //Done
+                Route::get('/get-role/{id}', [RolesPermissionController::class, 'getRole'])->name('getRole'); //Done
+                Route::put('/edit-role/{id}', [RolesPermissionController::class, 'editRole'])->name('editRole'); //Done
+            });
+            Route::get('/search-team-member/{search}', [TeamController::class, 'searchTeamMember'])->name('searchTeamMember');
         });
         Route::get('/invoice', [InvoiceController::class, 'invoice'])->name('globalInvoice');
     });

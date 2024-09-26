@@ -157,21 +157,14 @@
                                 </div>
                                 @if (session('is_creator'))
                                     <div class="add_btn" style="opacity: {{ !session('email_verified') ? 0.7 : 1 }}">
-                                        @if (!session('email_verified'))
-                                            <span style="cursor: default;"
-                                                title="To add new seats, you need to verify your email address first.">
-                                                <a style="cursor: default;" href="javascript:;" type="button">
-                                                    <i class="fa-solid fa-plus"></i>
-                                                </a>Add account
-                                            </span>
-                                        @else
-                                            <span style="cursor: pointer;" data-bs-toggle="modal"
-                                                data-bs-target="#addaccount">
-                                                <a href="javascript:;" type="button">
-                                                    <i class="fa-solid fa-plus"></i>
-                                                </a>Add account
-                                            </span>
-                                        @endif
+                                        <span style="cursor: {{ !session('email_verified') ? 'default' : 'pointer' }};"
+                                            title="{{ !session('email_verified') ? 'To add new seats, you need to verify your email address first.' : '' }}"
+                                            {{ session('email_verified') ? 'data-bs-toggle=modal data-bs-target=#addaccount' : '' }}>
+                                            <a style="cursor: {{ !session('email_verified') ? 'default' : 'pointer' }};"
+                                                href="javascript:;" type="button">
+                                                <i class="fa-solid fa-plus"></i>
+                                            </a>Add account
+                                        </span>
                                     </div>
                                 @endif
                             </div>
@@ -233,33 +226,23 @@
                                 </div>
                             @endif --}}
                             @if (session('is_creator'))
-                                @if (!session('email_verified'))
-                                    <div class="add_account_div" style="opacity: 0.7;"
-                                        title="To add new seats, you need to verify your email address first.">
-                                        <img src="{{ asset('assets/img/empty.png') }}" alt="">
-                                        <p class="text-center">
-                                            You can't add account until you verify your email address.
-                                        </p>
-                                        <div class="add_btn">
-                                            <a style="cursor: default;" href="javascript:;" type="button">
-                                                <i class="fa-solid fa-plus"></i>
-                                            </a>
-                                        </div>
+                                <div class="add_account_div"
+                                    style="opacity: {{ !session('email_verified') ? '0.7' : '1' }};"
+                                    title="{{ !session('email_verified') ? 'To add new seats, you need to verify your email address first.' : '' }}">
+                                    <img src="{{ asset('assets/img/empty.png') }}" alt="">
+                                    <p class="text-center">
+                                        {{ !session('email_verified')
+                                            ? "You can't add account until you verify your email address."
+                                            : "You don't have any account yet. Start by adding your first account." }}
+                                    </p>
+                                    <div class="add_btn">
+                                        <a style="cursor: {{ !session('email_verified') ? 'default' : 'pointer' }};"
+                                            href="javascript:;" type="button"
+                                            {{ session('email_verified') ? 'data-bs-toggle=modal data-bs-target=#addaccount' : '' }}>
+                                            <i class="fa-solid fa-plus"></i>
+                                        </a>
                                     </div>
-                                @else
-                                    <div class="add_account_div">
-                                        <img src="{{ asset('assets/img/empty.png') }}" alt="">
-                                        <p class="text-center">
-                                            You don't have any account yet. Start by adding your first account.
-                                        </p>
-                                        <div class="add_btn">
-                                            <a href="javascript:;" type="button" data-bs-toggle="modal"
-                                                data-bs-target="#addaccount">
-                                                <i class="fa-solid fa-plus"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                @endif
+                                </div>
                             @else
                                 <div class="add_account_div" style="width: 100%">
                                     <div class="campaign_list">
@@ -298,7 +281,7 @@
                     <div class="modal-body text-center">
                         <form role="form" action="{{ route('stripePayment', ['slug' => $team->slug]) }}" method="post"
                             data-cc-on-file="false" id="payment-form"
-                            data-stripe-publishable-key="{{ config('services.stripe.publishable_key') }}"
+                            data-stripe-publishable-key="{{ config('services.stripe.key') }}"
                             class="form step_form">
                             @csrf
                             <input type="hidden" name="stripe_token" id="stripe_token">

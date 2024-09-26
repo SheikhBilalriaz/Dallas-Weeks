@@ -40,7 +40,7 @@ class StripePaymentController extends Controller
                     ->withInput();
             }
 
-            $stripe = new \Stripe\StripeClient(config('services.stripe.secret_key'));
+            $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
 
             $customer = $stripe->customers->create([
                 'address' => [
@@ -54,17 +54,28 @@ class StripePaymentController extends Controller
                 'source' => $request->input('stripe_token'),
                 'email' => $request->input('email'),
                 'metadata' => [
-                    'creator_id' => $user->id,
-                    'team_slug' => $slug,
-                    'name' => $request->input('company'),
-                    'street_address' => $request->input('street_address'),
-                    'city' => $request->input('city'),
-                    'state' => $request->input('state'),
-                    'postal_code' => $request->input('postal_code'),
-                    'country' => $request->input('country'),
-                    'tax_id' => $request->input('tax_id') ?? null,
+                    'seat' => json_encode([
+                        'creator_id' => $user->id,
+                        'team_slug' => $slug,
+                        'company_info' => [
+                            'name' => $request->input('company'),
+                            'street_address' => $request->input('street_address'),
+                            'city' => $request->input('city'),
+                            'state' => $request->input('state'),
+                            'postal_code' => $request->input('postal_code'),
+                            'country' => $request->input('country'),
+                            'tax_id' => $request->input('tax_id') ?? null,
+                        ],
+                        'seat_info' => [
+                            'email' => $request->input('email'),
+                            'phone_number' => $request->input('phone_number'),
+                            'summary' => $request->input('summary') ?? null,
+                        ],
+                    ]),
                 ],
             ]);
+
+            Log::info('Stripe Customer Created:', ['customer' => $customer]);
 
             $subscription = $stripe->subscriptions->create([
                 'customer' => $customer->id,
@@ -72,8 +83,10 @@ class StripePaymentController extends Controller
                     ['price' => config('services.stripe.seat_price_id')],
                 ],
             ]);
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            Log::error('Stripe API Error: ' . $e);
         } catch (Exception $e) {
-            Log::error($e);
+            Log::error('General Error: ' . $e);
         }
     }
 }

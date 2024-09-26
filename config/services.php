@@ -32,8 +32,8 @@ return [
     ],
 
     'stripe' => [
-        'secret_key' => env('STRIPE_SK'),
-        'publishable_key' => env('STRIPE_PK'),
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
         'seat_price_id' => env('SEAT_SUBS_PRICE_ID'),
         'webhook_key' => env('STRIPE_WEBHOOK_SECRET'),
     ],

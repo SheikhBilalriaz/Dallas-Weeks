@@ -114,7 +114,7 @@
                         ],
                         [
                             'permission' => true,
-                            'route' => 'team',
+                            'route' => 'teamPage',
                             'label' => 'Team',
                         ],
                         [

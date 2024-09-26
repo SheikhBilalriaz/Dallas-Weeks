@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Log;
 use Stripe\Stripe;
 use Stripe\Webhook;
 use App\Models\Company_Info;
+use App\Models\Seat;
+use App\Models\Seat_Info;
+use App\Models\Team;
 
 class StripeController extends Controller
 {
@@ -14,9 +17,6 @@ class StripeController extends Controller
     {
         $payload = $request->getContent();
         $signature = $request->header('Stripe-Signature');
-        Log::info('Received webhook payload: ' . $payload);
-        Log::info('Received Stripe signature: ' . $signature);
-        Log::info('Stripe webhook secret: ' . config('services.stripe.webhook_key'));
         try {
             $event = Webhook::constructEvent(
                 $payload,
@@ -26,9 +26,7 @@ class StripeController extends Controller
             switch ($event->type) {
                 case 'customer.subscription.created':
                     $subscription = $event->data->object;
-                    $customerId = $subscription->customer;
-                    $stripeCustomer = \Stripe\Customer::retrieve($customerId);
-                    $this->customerSubscriptionCreated($stripeCustomer);
+                    $this->customerSubscriptionCreated($subscription);
                     break;
                 case 'customer.subscription.deleted':
                     Log::info('*******Seat deleted successfully*********');
@@ -67,17 +65,38 @@ class StripeController extends Controller
         }
     }
 
-    public function customerSubscriptionCreated($stripeCustomer)
+    public function customerSubscriptionCreated($subscription)
     {
-        Log::info($stripeCustomer);
-        // $company_info = Company_Info::create([
-        //     'name' => $stripeCustomer->metadata->company ?? '',
-        //     'street_address' => $stripeCustomer->metadata->street_address ?? '',
-        //     'city' => $stripeCustomer->metadata->city ?? '',
-        //     'state' => $stripeCustomer->metadata->state ?? '',
-        //     'postal_code' => $stripeCustomer->metadata->postal_code ?? '',
-        //     'country' => $stripeCustomer->metadata->country ?? '',
-        //     'tax_id' => $stripeCustomer->metadata->tax_id ?? null,
-        // ]);
+        Stripe::setApiKey(config('services.stripe.secret'));
+        $customerId = $subscription->customer;
+        $stripeCustomer = \Stripe\Customer::retrieve($customerId);
+        $seat = json_decode($stripeCustomer->metadata->seat);
+        $team = Team::where('slug', $seat->team_slug)->first();
+        $company_info = $seat->company_info;
+        $seat_info = $seat->seat_info;
+        $company_info = Company_Info::create([
+            'name' => $company_info->name ?? '',
+            'street_address' => $company_info->street_address ?? '',
+            'city' => $company_info->city ?? '',
+            'state' => $company_info->state ?? '',
+            'postal_code' => $company_info->postal_code ?? '',
+            'country' => $company_info->country ?? '',
+            'tax_id' => $company_info->tax_id ?? null,
+        ]);
+        $seat_info = Seat_Info::create([
+            'email' => $seat_info->email ?? '',
+            'phone_number' => $seat_info->phone_number ?? '',
+            'summary' => $seat_info->summary ?? null,
+        ]);
+        $seat = Seat::create([
+            'creator_id' => $seat->creator_id ?? '',
+            'team_id' => $team->id ?? '',
+            'company_info_id' => $company_info->id ?? '',
+            'seat_info_id' => $seat_info->id ?? '',
+            'subscription_id' => $subscription->id,
+            'customer_id' => $stripeCustomer->id,
+            'is_active' => 0,
+            'is_connected' => 0,
+        ]);
     }
 }

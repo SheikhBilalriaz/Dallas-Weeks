@@ -3,27 +3,47 @@ var deleteRoleAjax = null;
 var editRoleAjax = null;
 var submitEditRoleAjax = null;
 
-$(document).on('submit', '.invite_form', custom_role);
-$(document).on('click', '.delete_role', delete_role);
-$(document).on('click', '.edit_role', edit_role);
-$(document).on('click', '.permission', change_permit);
-$(document).on('submit', '.edit_form', submit_edit_role);
+$(document).ready(function () {
+    toastr.options = {
+        "closeButton": true,
+        "debug": false,
+        "newestOnTop": false,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
+    
+    $(document).on('submit', '.invite_form', custom_role);
+    $(document).on('click', '.delete_role', delete_role);
+    $(document).on('click', '.edit_role', edit_role);
+    $(document).on('click', '.permission', change_permit);
+    $(document).on('submit', '.edit_form', submit_edit_role);
+});
 
-function change_permit(e) {
-    let displayStyle = $(this).prop('checked') ? 'flex' : 'none';
-    $(this).parent().siblings('.switch_box').css('display', displayStyle);
-}
-
-function submit_edit_role(e) {
+function custom_role(e) {
     e.preventDefault();
-    var id = $(this).attr('id').replace('edit_role_', '');
-
-    if (!submitEditRoleAjax) {
+    const roleNameInput = $(this).find('#role_name_input');
+    const roleName = roleNameInput.val().trim();
+    if (!roleName) {
+        $(this).find('#name_error').html('Role name is required');
+        roleNameInput.addClass('error');
+        return;
+    }
+    if (!customRoleAjax) {
         let formData = new FormData(e.target);
         let $submitBtn = $(e.target).find(':submit');
         $submitBtn.prop('disabled', true);
-        submitEditRoleAjax = $.ajax({
-            url: editRoleRoute.replace(':id', id),
+        customRoleAjax = $.ajax({
+            url: customRoleRoute,
             data: formData,
             processData: false,
             contentType: false,
@@ -33,18 +53,26 @@ function submit_edit_role(e) {
             method: 'POST',
             success: function (response) {
                 if (response.success) {
-                    window.location.reload();
+                    toastr.success('Role saved successfully.');
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 2000);
                 }
             },
             error: function (xhr, error, status) {
-                console.error(error);
+                toastr.error('Something went wrong');
             },
             complete: function () {
-                submitEditRoleAjax = null;
+                customRoleAjax = null;
                 $submitBtn.prop('disabled', false);
             }
         });
     }
+}
+
+function change_permit(e) {
+    let displayStyle = $(this).prop('checked') ? 'flex' : 'none';
+    $(this).parent().siblings('.switch_box').css('display', displayStyle);
 }
 
 function edit_role(e) {
@@ -63,10 +91,10 @@ function edit_role(e) {
                         accessMap[permit.permission_id] = permit.access;
                         viewOnlyMap[permit.permission_id] = permit.view_only;
                     });
-                    $('#edit_role').find('#role_name').val(response.role.role_name);
+                    $('#edit_role').find('#role_name_input').val(response.role.name);
                     $('#edit_role').find('.edit_form').prop('id', 'edit_role_' + response.role.id);
                     response.permissions.forEach(permission => {
-                        let permissionSlug = permission.permission_slug;
+                        let permissionSlug = permission.slug;
                         let target = $('#edit_role').find('#edit_permission_' + permissionSlug);
                         let access = accessMap[permission.id] || 0;
                         let viewOnly = viewOnlyMap[permission.id] || 0;
@@ -96,14 +124,22 @@ function edit_role(e) {
     }
 }
 
-function custom_role(e) {
+function submit_edit_role(e) {
     e.preventDefault();
-    if (!customRoleAjax) {
+    var id = $(this).attr('id').replace('edit_role_', '');
+    const roleNameInput = $(this).find('#role_name_input');
+    const roleName = roleNameInput.val().trim();
+    if (!roleName) {
+        $(this).find('#name_error').html('Role name is required');
+        roleNameInput.addClass('error');
+        return;
+    }
+    if (!submitEditRoleAjax) {
         let formData = new FormData(e.target);
         let $submitBtn = $(e.target).find(':submit');
         $submitBtn.prop('disabled', true);
-        customRoleAjax = $.ajax({
-            url: customRoleRoute,
+        submitEditRoleAjax = $.ajax({
+            url: editRoleRoute.replace(':id', id),
             data: formData,
             processData: false,
             contentType: false,
@@ -113,49 +149,37 @@ function custom_role(e) {
             method: 'POST',
             success: function (response) {
                 if (response.success) {
-                    window.location.reload();
+                    toastr.success('Role edited successfully.');
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 2000);
                 }
             },
             error: function (xhr, error, status) {
-                console.error(error);
+                toastr.error(xhr.responseJSON.error);
             },
             complete: function () {
-                customRoleAjax = null;
+                submitEditRoleAjax = null;
                 $submitBtn.prop('disabled', false);
             }
         });
     }
+    formData.append('_method', 'PUT');
 }
 
 function delete_role(e) {
     e.preventDefault();
     var id = $(this).parent().attr('id').replace('table_row_', '');
-    var toastrOptions = {
-        closeButton: true,
-        debug: false,
-        newestOnTop: false,
-        progressBar: true,
-        positionClass: "toast-top-right",
-        preventDuplicates: false,
-        onclick: null,
-        showDuration: "300",
-        hideDuration: "1000",
-        timeOut: "5000",
-        extendedTimeOut: "1000",
-        showEasing: "swing",
-        hideEasing: "linear",
-        showMethod: "fadeIn",
-        hideMethod: "fadeOut",
-    };
-
     if (!deleteRoleAjax) {
         if (confirm('Are you sure you want to delete this role?')) {
             deleteRoleAjax = $.ajax({
                 url: deleteRoleRoute.replace(':id', id),
-                method: 'GET',
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
                 success: function (response) {
                     if (response.success) {
-                        toastr.options = toastrOptions;
                         toastr.success('Role deleted successfully.');
                         setTimeout(function () {
                             window.location.reload();
@@ -163,7 +187,6 @@ function delete_role(e) {
                     }
                 },
                 error: function (xhr, status, error) {
-                    toastr.options = toastrOptions;
                     console.error(xhr.responseJSON);
                     if (xhr.responseJSON && xhr.responseJSON.error) {
                         toastr.error(xhr.responseJSON.error);
