@@ -80,11 +80,12 @@ class LoginController extends Controller
      */
     public function logoutUser()
     {
-        /* If the user is not authenticated, flush (clear) the entire session. */
-        session()->flush();
-
         /* Log out the currently authenticated user */
         Auth::logout();
+
+        /* Invalidate the session and regenerate CSRF token */
+        session()->invalidate();
+        session()->regenerateToken();
 
         /* Redirect the user to the homepage after logging out */
         return redirect()->route('homePage');

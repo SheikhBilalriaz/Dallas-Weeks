@@ -10,8 +10,8 @@ class WelcomeMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $user;
-    public $password = null;
+    private $user;
+    private $password = null;
 
     /**
      * Create a new message instance.

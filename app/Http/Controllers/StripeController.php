@@ -10,70 +10,107 @@ use App\Models\Company_Info;
 use App\Models\Seat;
 use App\Models\Seat_Info;
 use App\Models\Team;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SubscriptionSuccessMail;
+use App\Models\User;
 
 class StripeController extends Controller
 {
+    /**
+     * Handle the Stripe webhook.
+     *
+     * @param Illuminate\Http\Request $request
+     * @return Response
+     */
     public function handleWebhook(Request $request)
     {
         $payload = $request->getContent();
         $signature = $request->header('Stripe-Signature');
         try {
-            $event = Webhook::constructEvent(
-                $payload,
-                $signature,
-                config('services.stripe.webhook_key')
-            );
-            switch ($event->type) {
-                case 'customer.subscription.created':
-                    $subscription = $event->data->object;
-                    $this->customerSubscriptionCreated($subscription);
-                    break;
-                case 'customer.subscription.deleted':
-                    Log::info('*******Seat deleted successfully*********');
-                    $subscription = $event->data->object;
-                    Log::info('Subscription ID: ' . $subscription->id);
-                    Log::info('Customer ID: ' . $subscription->customer);
-                    break;
-                case 'customer.subscription.updated':
-                    Log::info('*******Seat updated successfully*********');
-                    $subscription = $event->data->object;
-                    Log::info('Subscription ID: ' . $subscription->id);
-                    Log::info('Customer ID: ' . $subscription->customer);
-                    break;
-                case 'invoice.payment_failed':
-                    Log::info('*******Invoice payment failed*********');
-                    $invoice = $event->data->object;
-                    Log::info('Payment failed for subscription: ' . $invoice->subscription);
-                    break;
-                case 'invoice.payment_succeeded':
-                    Log::info('*******Invoice payment succeeded*********');
-                    $invoice = $event->data->object;
-                    Log::info('Payment succeeded for subscription: ' . $invoice->subscription);
-                    break;
-                default:
-                    Log::info('*******Default*********');
-                    Log::info($event->type);
-                    break;
-            }
+            $event = Webhook::constructEvent($payload, $signature, config('services.stripe.webhook_key'));
+
+            /* Handle the event based on its type */
+            $this->handleEvent($event);
+
             return response('Webhook handled', 200);
         } catch (\UnexpectedValueException $e) {
-            Log::error('Invalid payload: ' . $e->getMessage());
+            Log::error($e);
             return response('Invalid payload', 400);
         } catch (\Stripe\Exception\SignatureVerificationException $e) {
-            Log::error('Invalid signature: ' . $e->getMessage());
+            Log::error($e);
             return response('Invalid signature', 400);
+        } catch (\Exception $e) {
+            Log::error($e);
+            return response('Server Error', 500);
         }
+    }
+
+    /**
+     * Handle the Stripe webhook event based on its type.
+     *
+     * @param \Stripe\Event $event
+     * @return void
+     */
+    private function handleEvent($event)
+    {
+        $subscription = $event->data->object;
+
+        switch ($event->type) {
+            case 'customer.subscription.created':
+                $this->customerSubscriptionCreated($subscription);
+                break;
+            case 'customer.subscription.deleted':
+            case 'customer.subscription.updated':
+                $this->logSubscriptionInfo($event->type, $subscription);
+                break;
+            case 'invoice.payment_failed':
+                Log::info('*******Invoice payment failed*********');
+                Log::info('Payment failed for subscription: ' . $subscription->id);
+                break;
+            case 'invoice.payment_succeeded':
+                $this->paymentSucceded($subscription);
+                break;
+            default:
+                Log::info('*******Unknown event type: ' . $event->type . '*********');
+                break;
+        }
+    }
+
+    /**
+     * Log subscription information for created, updated, or deleted events.
+     *
+     * @param string $eventType
+     * @param object $subscription
+     * @return void
+     */
+    private function logSubscriptionInfo(string $eventType, $subscription)
+    {
+        Log::info("*******Subscription {$eventType} successfully*********");
+        Log::info('Subscription ID: ' . $subscription->id);
+        Log::info('Customer ID: ' . $subscription->customer);
     }
 
     public function customerSubscriptionCreated($subscription)
     {
         Stripe::setApiKey(config('services.stripe.secret'));
+
+        /* Rertreive customer id from subscription */
         $customerId = $subscription->customer;
+
+        /* Get Customer from stripe using customer id */
         $stripeCustomer = \Stripe\Customer::retrieve($customerId);
+
+        /* Convert meta data into array */
         $seat = json_decode($stripeCustomer->metadata->seat);
+        $seat_data = $seat;
+
+        /* Retreive team using team id from meta data */
         $team = Team::where('slug', $seat->team_slug)->first();
+
         $company_info = $seat->company_info;
         $seat_info = $seat->seat_info;
+
+        /* Create company info, seat info, and seat records */
         $company_info = Company_Info::create([
             'name' => $company_info->name ?? '',
             'street_address' => $company_info->street_address ?? '',
@@ -98,5 +135,41 @@ class StripeController extends Controller
             'is_active' => 0,
             'is_connected' => 0,
         ]);
+        $seat_data->id = $seat->id;
+        \Stripe\Customer::update(
+            $customerId,
+            [
+                'metadata' => [
+                    'seat' => json_encode($seat_data),
+                ],
+            ]
+        );
+        $team_creator = User::find($team->creator_id);
+        $user = User::find($seat->creator_id);
+        $emails = array($team_creator->email, $user->email, $seat_info->email);
+        $unique_emails = array_unique($emails);
+        foreach ($unique_emails as $email) {
+            Mail::to($email)->send(new SubscriptionSuccessMail($seat, $email));
+        }
+    }
+
+    public function paymentSucceded($subscription)
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        /* Rertreive customer id from subscription */
+        $customerId = $subscription->customer;
+
+        /* Get Customer from stripe using customer id */
+        $stripeCustomer = \Stripe\Customer::retrieve($customerId);
+
+        /* Convert meta data into array */
+        $seat = json_decode($stripeCustomer->metadata->seat);
+        if (Seat::find($seat->id)->exists()) {
+            $seat = Seat::find($seat->id);
+            $seat->is_active = 1;
+            $seat->updated_at = now();
+            $seat->save();
+        }
     }
 }

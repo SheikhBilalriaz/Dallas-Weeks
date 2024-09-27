@@ -14,10 +14,10 @@ use Illuminate\Support\Facades\Validator;
 class BlacklistController extends Controller
 {
     /**
-     * Display the blacklist for the authenticated user.
+     * Display the blacklist for the authenticated user's team.
      *
-     * @param String $slug
-     * @return \Illuminate\View\View
+     * @param string $slug  The slug of the team.
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function blacklist($slug)
     {
@@ -25,7 +25,7 @@ class BlacklistController extends Controller
             /* Retrieve the team associated with the slug */
             $team = Team::where('slug', $slug)->first();
 
-            /* Retrieve blacklists */
+            /* Retrieve both blacklists in a single block */
             $global_blacklist = Global_Blacklist::where('team_id', $team->id)->get();
             $email_blacklist = Email_Blacklist::where('team_id', $team->id)->get();
 
@@ -45,7 +45,7 @@ class BlacklistController extends Controller
 
             /* Redirect to dashboard with an error message */
             return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong']);
+                ->withErrors(['error' => 'Something went wrong while retrieving the blacklist.']);
         }
     }
 
@@ -54,7 +54,7 @@ class BlacklistController extends Controller
      *
      * @param  String  $slug
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\View\View
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function saveGlobalBlacklist($slug, Request $request)
     {
@@ -81,21 +81,23 @@ class BlacklistController extends Controller
             }
 
             /* Additional validation for 'profile_url' type */
-            if ($request->input('global_blacklist_type') == 'profile_url') {
-                if ($request->input('global_comparison_type') !== 'exact') {
+            $globalBlacklistType = $request->input('global_blacklist_type');
+            $globalComparisonType = $request->input('global_comparison_type');
+            $blacklistItems = $request->input('global_blacklist_item');
+
+            if ($globalBlacklistType === 'profile_url') {
+                if ($globalComparisonType !== 'exact') {
                     return back()->withErrors([
-                        'global_comparison_type' => 'If Profile Urls is selected so comparison type must be exact',
-                    ])
-                        ->with('global_blacklist_error', true)
+                        'global_comparison_type' => 'If Profile Urls is selected, the comparison type must be exact',
+                    ])->with('global_blacklist_error', true)
                         ->withInput();
                 }
 
-                foreach ($request->input('global_blacklist_item') as $item) {
+                foreach ($blacklistItems as $item) {
                     if (strpos($item, 'https://www.linkedin.com/in/') === false) {
                         return back()->withErrors([
                             'global_blacklist_item' => 'Profile URLs must contain "https://www.linkedin.com/in/"'
-                        ])
-                            ->with('global_blacklist_error', true)
+                        ])->with('global_blacklist_error', true)
                             ->withInput();
                     }
                 }
@@ -120,8 +122,8 @@ class BlacklistController extends Controller
             Log::error($e);
 
             /* Redirect to dashboard with an error message */
-            return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong']);
+            return redirect()->route('globalBlacklistPage', ['slug' => $slug])
+                ->withErrors(['error' => 'Something went wrong while saving the blacklist.']);
         }
     }
 
@@ -175,8 +177,8 @@ class BlacklistController extends Controller
             Log::error($e);
 
             /* Redirect to dashboard with an error message */
-            return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong']);
+            return redirect()->route('globalBlacklistPage', ['slug' => $slug])
+                ->withErrors(['error' => 'Something went wrong while saving the email blacklist.']);
         }
     }
 
@@ -194,10 +196,10 @@ class BlacklistController extends Controller
             $team = Team::where('slug', $slug)->first();
 
             /* Find the blacklist item by ID */
-            $blacklistItem = Global_Blacklist::find($id);
+            $blacklistItem = Global_Blacklist::where('id', $id)->where('team_id', $team->id)->first();
 
             /* Check if the blacklist item exists and belongs to the team */
-            if (!empty($blacklistItem) && $blacklistItem->team_id == $team->id) {
+            if ($blacklistItem) {
                 /* Delete the blacklist item */
                 $blacklistItem->delete();
 
@@ -211,9 +213,8 @@ class BlacklistController extends Controller
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
-            /* Redirect to dashboard with an error message */
-            return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong']);
+            /* Return a generic error response */
+            return response()->json(['success' => false, 'message' => 'Something went wrong while deleting the blacklist item.'], 500);
         }
     }
 
@@ -231,10 +232,10 @@ class BlacklistController extends Controller
             $team = Team::where('slug', $slug)->first();
 
             /* Find the blacklist item by ID */
-            $blacklistItem = Email_Blacklist::find($id);
+            $blacklistItem = Email_Blacklist::where('id', $id)->where('team_id', $team->id)->first();
 
-            /* Check if the blacklist item exists and belongs to the team */
-            if (!empty($blacklistItem) && $blacklistItem->team_id == $team->id) {
+            /* Check if the blacklist item exists */
+            if ($blacklistItem) {
                 /* Delete the blacklist item */
                 $blacklistItem->delete();
 
@@ -248,9 +249,8 @@ class BlacklistController extends Controller
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
-            /* Redirect to dashboard with an error message */
-            return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong']);
+            /* Return a generic error response */
+            return response()->json(['success' => false, 'message' => 'Something went wrong while deleting the blacklist item.'], 500);
         }
     }
 
@@ -267,12 +267,14 @@ class BlacklistController extends Controller
             /* Retrieve the team associated with the slug */
             $team = Team::where('slug', $slug)->first();
 
-            /* Retrieve global blacklists */
-            if ($search == 'null') {
-                $global_blacklist = Global_Blacklist::where('team_id', $team->id)->get();
-            } else {
-                $global_blacklist = Global_Blacklist::where('team_id', $team->id)->where('keyword', 'like', '%' . $search . '%')->get();
+            /* Build the query to retrieve global blacklists */
+            $query = Global_Blacklist::where('team_id', $team->id);
+
+            if ($search !== 'null') {
+                $query->where('keyword', 'like', '%' . $search . '%');
             }
+
+            $global_blacklist = $query->get();
 
             /* Check if any blacklist items were found */
             if ($global_blacklist->isNotEmpty()) {
@@ -289,9 +291,8 @@ class BlacklistController extends Controller
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
-            /* Redirect to dashboard with an error message */
-            return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong']);
+            /* Return a generic error response */
+            return response()->json(['success' => false, 'message' => 'Something went wrong while searching.'], 500);
         }
     }
 
@@ -308,12 +309,14 @@ class BlacklistController extends Controller
             /* Retrieve the team associated with the slug */
             $team = Team::where('slug', $slug)->first();
 
-            /* Retrieve email blacklists */
-            if ($search == 'null') {
-                $email_blacklist = Email_Blacklist::where('team_id', $team->id)->get();
-            } else {
-                $email_blacklist = Email_Blacklist::where('team_id', $team->id)->where('keyword', 'like', '%' . $search . '%')->get();
+            /* Build the query to retrieve email blacklists */
+            $query = Email_Blacklist::where('team_id', $team->id);
+
+            if ($search !== 'null') {
+                $query->where('keyword', 'like', '%' . $search . '%');
             }
+
+            $email_blacklist = $query->get();
 
             /* Check if any blacklist items were found */
             if ($email_blacklist->isNotEmpty()) {
@@ -330,9 +333,8 @@ class BlacklistController extends Controller
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
-            /* Redirect to dashboard with an error message */
-            return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong']);
+            /* Return a generic error response */
+            return response()->json(['success' => false, 'message' => 'Something went wrong while searching.'], 500);
         }
     }
 
@@ -350,18 +352,18 @@ class BlacklistController extends Controller
             $team = Team::where('slug', $slug)->first();
 
             /* Initialize the query */
-            $global_blacklist = Global_Blacklist::where('team_id', $team->id);
+            $query = Global_Blacklist::where('team_id', $team->id);
 
             /* Apply filters if present */
             if ($request->filled('filter_global_blacklist_type')) {
-                $global_blacklist->whereIn('blacklist_type', $request->input('filter_global_blacklist_type'));
+                $query->whereIn('blacklist_type', $request->input('filter_global_blacklist_type'));
             }
             if ($request->filled('filter_global_comparison_type')) {
-                $global_blacklist->whereIn('comparison_type', $request->input('filter_global_comparison_type'));
+                $query->whereIn('comparison_type', $request->input('filter_global_comparison_type'));
             }
 
             /* Execute the query */
-            $global_blacklist = $global_blacklist->get();
+            $global_blacklist = $query->get();
 
             /* Return response */
             if ($global_blacklist->isNotEmpty()) {
@@ -376,9 +378,8 @@ class BlacklistController extends Controller
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
-            /* Redirect to dashboard with an error message */
-            return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong']);
+            /* Return a generic error response */
+            return response()->json(['success' => false, 'message' => 'Something went wrong while filtering.'], 500);
         }
     }
 
@@ -396,18 +397,18 @@ class BlacklistController extends Controller
             $team = Team::where('slug', $slug)->first();
 
             /* Initialize the query */
-            $email_blacklist = Email_Blacklist::where('team_id', $team->id);
+            $query = Email_Blacklist::where('team_id', $team->id);
 
             /* Apply filters if present */
             if ($request->filled('filter_email_blacklist_type')) {
-                $email_blacklist->whereIn('blacklist_type', $request->input('filter_email_blacklist_type'));
+                $query->whereIn('blacklist_type', $request->input('filter_email_blacklist_type'));
             }
             if ($request->filled('filter_email_comparison_type')) {
-                $email_blacklist->whereIn('comparison_type', $request->input('filter_email_comparison_type'));
+                $query->whereIn('comparison_type', $request->input('filter_email_comparison_type'));
             }
 
             /* Execute the query */
-            $email_blacklist = $email_blacklist->get();
+            $email_blacklist = $query->get();
 
             /* Return response */
             if ($email_blacklist->isNotEmpty()) {
@@ -422,9 +423,8 @@ class BlacklistController extends Controller
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
-            /* Redirect to dashboard with an error message */
-            return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong']);
+            /* Return a generic error response */
+            return response()->json(['success' => false, 'message' => 'Something went wrong while filtering.'], 500);
         }
     }
 }

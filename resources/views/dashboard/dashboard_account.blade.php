@@ -30,40 +30,6 @@
             margin-bottom: 25px !important;
         }
 
-        .alert.alert-success.text-center {
-            background: #e3c935;
-            color: #000;
-            border: none;
-            border-radius: 30px;
-            padding: 20px;
-            width: 50%;
-            margin: 20px auto;
-            margin-bottom: 50px;
-        }
-
-        .alert.alert-success.text-center p {
-            margin: 0;
-            color: #000;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .alert.alert-success.text-center a.close {
-            width: 50px;
-            height: 50px;
-            position: absolute;
-            top: 7px;
-            right: 1%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 100%;
-            background: #0b3b6a;
-            opacity: 1;
-            color: #fff;
-            font-weight: 400;
-        }
-
         #update_seat .accordion .accordion-item .accordion-header button {
             background: #1C1E22 !important;
             width: 100%;
@@ -123,22 +89,6 @@
     @endif
     <section class="dashboard">
         <div class="container-fluid">
-            @if ($errors->first('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        &times;
-                    </button>
-                    {{ $errors->first('error') }}
-                </div>
-            @endif
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible text-center fade show">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        &times;
-                    </button>
-                    {{ session('success') }}
-                </div>
-            @endif
             <div class="row">
                 @include('dashboard/partials/dashboard_sidebar')
                 <div class="col-lg-8">
@@ -281,8 +231,7 @@
                     <div class="modal-body text-center">
                         <form role="form" action="{{ route('stripePayment', ['slug' => $team->slug]) }}" method="post"
                             data-cc-on-file="false" id="payment-form"
-                            data-stripe-publishable-key="{{ config('services.stripe.key') }}"
-                            class="form step_form">
+                            data-stripe-publishable-key="{{ config('services.stripe.key') }}" class="form step_form">
                             @csrf
                             <input type="hidden" name="stripe_token" id="stripe_token">
                             <div class="progress-bar" id="progress-bar">
@@ -303,9 +252,8 @@
                                     </div>
                                     <div class="col-lg-12 required">
                                         <label for="city">City</label>
-                                        <input type="text" name="city" id="city"
-                                            placeholder="Enter your city" required
-                                            class="{{ $errors->has('city') ? 'error' : '' }}"
+                                        <input type="text" name="city" id="city" placeholder="Enter your city"
+                                            required class="{{ $errors->has('city') ? 'error' : '' }}"
                                             value="{{ old('city') }}">
                                         <span class="text-danger">{{ $errors->first('city') }}</span>
                                     </div>
@@ -402,27 +350,28 @@
                                         </div>
                                         <div class='col-lg-4 col-md-6 col-xs-12 form-group cvc required'>
                                             <label class='control-label' for="card_cvc">CVC</label>
-                                            <input autocomplete='off' class='form-control card-cvc' name="card_cvc"
-                                                id="card_cvc" placeholder='311' size='4' type='text'
-                                                class="{{ $errors->has('card_cvc') ? 'error' : '' }}"
-                                                value="{{ old('card_cvc') }}" required>
+                                            <input autocomplete='off'
+                                                class='form-control card-cvc {{ $errors->has('card_cvc') ? 'error' : '' }}'
+                                                name="card_cvc" id="card_cvc" placeholder='311' size='4'
+                                                type='text' value="{{ old('card_cvc') }}" required>
                                             <span class="text-danger">{{ $errors->first('card_cvc') }}</span>
                                         </div>
                                         <div class='col-lg-4 col-md-6 col-xs-12 form-group expiration required'>
                                             <label class='control-label' for="card_expiry_month">Expiration Month</label>
-                                            <input class='form-control card-expiry-month' placeholder='MM'
-                                                name="card_expiry_month" id="card_expiry_month" size='2'
-                                                type='text'
-                                                class="{{ $errors->has('card_expiry_month') ? 'error' : '' }}"
-                                                value="{{ old('card_expiry_month') }}" required>
+                                            <input
+                                                class='form-control card-expiry-month {{ $errors->has('card_expiry_month') ? 'error' : '' }}'
+                                                placeholder='MM' name="card_expiry_month" id="card_expiry_month"
+                                                size='2' type='text' value="{{ old('card_expiry_month') }}"
+                                                required>
                                             <span class="text-danger">{{ $errors->first('card_expiry_month') }}</span>
                                         </div>
                                         <div class='col-lg-4 col-md-6 col-xs-12 form-group expiration required'>
                                             <label class='control-label' for="card_expiry_year">Expiration Year</label>
-                                            <input class='form-control card-expiry-year' name="card_expiry_year"
-                                                id="card_expiry_year" placeholder='YYYY' size='4' type='text'
-                                                class="{{ $errors->has('card_expiry_year') ? 'error' : '' }}"
-                                                value="{{ old('card_expiry_year') }}" required>
+                                            <input
+                                                class='form-control card-expiry-year {{ $errors->has('card_expiry_year') ? 'error' : '' }}'
+                                                name="card_expiry_year" id="card_expiry_year" placeholder='YYYY'
+                                                size='4' type='text' value="{{ old('card_expiry_year') }}"
+                                                required>
                                             <span class="text-danger">{{ $errors->first('card_expiry_year') }}</span>
                                         </div>
                                     </div>

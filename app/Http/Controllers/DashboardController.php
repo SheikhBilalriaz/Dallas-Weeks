@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Assigned_Seat;
 use App\Models\Global_Permission;
 use App\Models\Seat;
 use App\Models\Team;
@@ -41,8 +42,10 @@ class DashboardController extends Controller
             }
         }
 
-        //TODO: Handle the case when no team is found (e.g., user is not assigned to any team).
-        // You could redirect the user to a "No Team" page, or show an error message if $team is still null.
+        /* You could redirect the user to a "No Team" page, or show an error message if $team is still null. */
+        if (!$team) {
+            return redirect()->route('noTeamPage')->withErrors(['error' => 'No team found for the user.']);
+        }
 
         /* Redirect to the dashboard with the team slug */
         $redirect = redirect()->route('dashboardPage', ['slug' => $team->slug]);
@@ -69,15 +72,19 @@ class DashboardController extends Controller
             /* Retrieve the team associated with the slug */
             $team = Team::where('slug', $slug)->first();
 
-            if($user->id == $team->creator_id) {
-                $seats = Seat::where('team_id', $team->id)->get();
-            }
-            dd($seats);
+            $members = Team_Member::where('user_id', $user->id)->where('team_id', $team->id)->get();
+
+            $assigned_seats = Assigned_Seat::whereIn('member_id', $members->pluck('id')->toArray())->get();
+
+            $seats = $user->id == $team->creator_id
+                ? Seat::where('team_id', $team->id)->get()
+                : Seat::whereIn('id', $assigned_seats->pluck('seat_id')->toArray())->get();
 
             /* Prepare data for the view */
             $data = [
                 'title' => 'Dashboard - Networked',
                 'team' => $team,
+                'seat' => $seats,
             ];
 
             /* Include errors if present in the session */
@@ -92,7 +99,9 @@ class DashboardController extends Controller
             Log::error($e);
 
             /* Redirect to login with error message */
-            return redirect()->route('loginPage')->withErrors(['error' => 'Something went wrong']);
+            return redirect()->route('dashboard')
+                ->withErrors(['error' => 'An unexpected error occurred. Please try again.'])
+                ->with('team_slug', $slug);
         }
     }
 }

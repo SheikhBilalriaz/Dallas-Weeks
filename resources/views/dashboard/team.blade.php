@@ -30,14 +30,6 @@
             color: #fff !important;
         }
     </style>
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible text-center fade show">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                &times;
-            </button>
-            {{ session('success') }}
-        </div>
-    @endif
     <section class="blacklist team_management">
         <div class="container-fluid">
             <div class="row">

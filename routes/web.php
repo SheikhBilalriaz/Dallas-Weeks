@@ -24,6 +24,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('/test', function () {
+    return view('email.subscribe_success');
+});
 Route::post('/stripe/webhook', [StripeController::class, 'handleWebhook']);
 
 /* These are home pages url which does not require any authentication */
@@ -51,6 +54,7 @@ Route::middleware(['userAuth'])->group(function () {
 
     /* To dashboard requires authentication */
     Route::get('/dashboard', [DashboardController::class, 'toDashboard'])->name('dashboard'); //Done
+    // Route::get('/')->name('noTeamPage');
 
     Route::prefix('/team/{slug}')->middleware(['teamChecker'])->group(function () {
         Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboardPage');

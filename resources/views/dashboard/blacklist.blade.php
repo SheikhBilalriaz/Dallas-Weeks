@@ -2,66 +2,6 @@
 @section('content')
     <script src="{{ asset('assets/js/blacklist.js') }}"></script>
     <style>
-        .alert.alert-danger.alert-dismissible {
-            background: #870000;
-            border: none;
-            border-radius: 30px;
-            padding: 20px;
-            text-align: center;
-            color: #fff;
-            width: 60%;
-            margin: 20px auto;
-        }
-
-        .alert.alert-danger.alert-dismissible .close {
-            height: 50px;
-            width: 50px;
-            opacity: 1;
-            font-weight: 400;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #fff;
-            border-radius: 100%;
-            position: absolute;
-            top: 5px;
-            right: 10px;
-        }
-
-        .alert.alert-success.text-center {
-            background: #e3c935;
-            color: #000;
-            border: none;
-            border-radius: 30px;
-            padding: 20px;
-            width: 50%;
-            margin: 20px auto;
-            margin-bottom: 50px;
-        }
-
-        .alert.alert-success.text-center p {
-            margin: 0;
-            color: #000;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .alert.alert-success.text-center a.close {
-            width: 50px;
-            height: 50px;
-            position: absolute;
-            top: 7px;
-            right: 1%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 100%;
-            background: #0b3b6a;
-            opacity: 1;
-            color: #fff;
-            font-weight: 400;
-        }
-
         .blacklist_div {
             margin-top: 45px;
         }
@@ -183,14 +123,6 @@
             color: #fff !important;
         }
     </style>
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible text-center fade show">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                &times;
-            </button>
-            {{ session('success') }}
-        </div>
-    @endif
     <section class="blacklist">
         <div class="container-fluid">
             <div class="row">

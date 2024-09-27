@@ -34,7 +34,7 @@ class teamCheckingMiddleware
             /* If no team is found, redirect with an error message */
             return redirect()->route('dashboard')
                 ->withErrors(['error' => 'Team `' . $slug . '` not found'])
-                ->with('team_slug', request()->route('slug'));
+                ->with('team_slug', $slug);
         }
 
         /* If the user is not the team creator, check if the team member exists */
@@ -50,23 +50,21 @@ class teamCheckingMiddleware
             }
         }
 
-        /* Store the user's roles and permissions in the session */
-        $is_creator = Team::where('id', $team->id)->where('creator_id', $user->id)->exists();
-        session(['is_creator' => $is_creator]);
+        /* Store whether the user is the team creator */
+        session(['is_creator' => $team->creator_id === $user->id]);
 
-        /* Manage Payment System permission */
-        $is_manage_payment_system = Global_Permission::where('slug', 'manage_payment_system')
-            ->where('user_id', $user->id)
+        /* Retrieve permissions for the user in a single query */
+        $permissions = Global_Permission::where('user_id', $user->id)
             ->where('team_id', $team->id)
-            ->exists();
-        session(['is_manage_payment_system' => $is_manage_payment_system]);
+            ->whereIn('slug', ['manage_payment_system', 'manage_global_blacklist'])
+            ->pluck('slug')
+            ->toArray();
 
-        /* Manage Global Blacklist permission */
-        $is_manage_global_blacklist = Global_Permission::where('slug', 'manage_global_blacklist')
-            ->where('user_id', $user->id)
-            ->where('team_id', $team->id)
-            ->exists();
-        session(['is_manage_global_blacklist' => $is_manage_global_blacklist]);
+        /* Store permissions in the session */
+        session([
+            'is_manage_payment_system' => in_array('manage_payment_system', $permissions),
+            'is_manage_global_blacklist' => in_array('manage_global_blacklist', $permissions),
+        ]);
 
         /* Continue processing the request */
         return $next($request);

@@ -230,29 +230,28 @@ class RegisterController extends Controller
         try {
             /* Retrieve the currently authenticated user */
             $user = Auth::user();
+            $user = User::find($user->id);
 
-            /* Ensure that a user is authenticated before attempting to send an email */
-            if ($user) {
-                /* Optionally, regenerate the remember token */
-                $user = User::find($user->id);
-                $user->remember_token = Str::random(100);
-                $user->save();
+            /* Wrap the token update and email sending in a transaction */
+            DB::transaction(function () use ($user) {
+                /* Regenerate the remember token */
+                $user->update([
+                    'remember_token' => Str::random(100),
+                    'updated_at' => now()
+                ]);
 
-                /* Send a welcome email to the new user */
+                /* Send a welcome email */
                 Mail::to($user->email)->send(new WelcomeMail($user));
+            });
 
-                /* Optionally, you can add a success message or redirect */
-                return redirect()->back()->with('success', 'Email sent successfully.');
-            } else {
-                /* Optionally, handle the case where no user is authenticated */
-                return redirect()->back()->withErrors(['error' => 'No authenticated user found.']);
-            }
-        } catch (\Exception $e) {
+            /* Return with success message */
+            return redirect()->back()->with('success', 'Email sent successfully.');
+        } catch (\Throwable $e) {
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
             /* Redirect to login with an error message */
-            return redirect()->route('loginPage')->withErrors(['error' => 'Something went wrong']);
+            return redirect()->route('loginPage')->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
         }
     }
 }

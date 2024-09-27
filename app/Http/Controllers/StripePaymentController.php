@@ -10,6 +10,13 @@ use Illuminate\Support\Facades\Validator;
 
 class StripePaymentController extends Controller
 {
+    /**
+     * Create new customer and add subscription using Stripe
+     *
+     * @param  String  $slug
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function stripePayment($slug, Request $request)
     {
         try {
@@ -24,13 +31,13 @@ class StripePaymentController extends Controller
                 'country' => 'required|string|max:100',
                 'company' => 'required|string|max:191',
                 'email' => 'required|email',
-                'phone_number' => 'required',
+                'phone_number' => 'required|string',
                 'stripe_token' => 'required',
-                'card_name' => 'required',
-                'card_number' => 'required',
-                'card_cvc' => 'required',
-                'card_expiry_month' => 'required',
-                'card_expiry_year' => 'required',
+                'card_name' => 'required|string',
+                'card_number' => 'required|string',
+                'card_cvc' => 'required|string',
+                'card_expiry_month' => 'required|max:2',
+                'card_expiry_year' => 'required|max:2',
             ]);
 
             /* Return validation errors if validation fails */
@@ -42,6 +49,7 @@ class StripePaymentController extends Controller
 
             $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
 
+            /* Create a Stripe customer */
             $customer = $stripe->customers->create([
                 'address' => [
                     'city' => $request->input('city'),
@@ -75,9 +83,8 @@ class StripePaymentController extends Controller
                 ],
             ]);
 
-            Log::info('Stripe Customer Created:', ['customer' => $customer]);
-
-            $subscription = $stripe->subscriptions->create([
+            /* Create a subscription for the customer */
+            $stripe->subscriptions->create([
                 'customer' => $customer->id,
                 'items' => [
                     ['price' => config('services.stripe.seat_price_id')],
@@ -85,8 +92,12 @@ class StripePaymentController extends Controller
             ]);
         } catch (\Stripe\Exception\ApiErrorException $e) {
             Log::error('Stripe API Error: ' . $e);
+            return back()->withErrors(['payment_error' => 'Payment processing error. Please try again.'])
+                ->withInput();
         } catch (Exception $e) {
             Log::error('General Error: ' . $e);
+            return back()->withErrors(['payment_error' => 'An unexpected error occurred. Please try again.'])
+                ->withInput();
         }
     }
 }

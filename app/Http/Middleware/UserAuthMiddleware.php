@@ -19,17 +19,19 @@ class UserAuthMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         /* Check if the user is not authenticated */
-        if (!Auth::check()) {
+        $user = Auth::user();
+
+        if (!$user) {
 
             /* If the user is not authenticated, flush (clear) the entire session. */
             session()->flush();
 
-            /* Redirect the user to the homepage */
+            /* Redirect the user to the loginPage */
             return redirect()->route('loginPage')->withErrors(['error' => 'Please log in to access this page.']);
         }
 
         /* Store the user's email verification status in the session */
-        session(['email_verified' => !empty(Auth::user()->verified_at)]);
+        session(['email_verified' => !is_null($user->verified_at)]);
 
         /* Continue processing the request */
         return $next($request);

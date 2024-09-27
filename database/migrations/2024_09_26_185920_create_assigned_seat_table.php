@@ -13,14 +13,12 @@ return new class extends Migration
     {
         Schema::create('assigned_seat', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('user')->onDelete('cascade');
+            $table->unsignedBigInteger('member_id');
+            $table->foreign('member_id')->references('id')->on('team_member')->onDelete('cascade');
             $table->unsignedBigInteger('role_id');
             $table->foreign('role_id')->references('id')->on('role')->onDelete('cascade');
             $table->unsignedBigInteger('seat_id');
             $table->foreign('seat_id')->references('id')->on('seat')->onDelete('cascade');
-            $table->unsignedBigInteger('team_id');
-            $table->foreign('team_id')->references('id')->on('team')->onDelete('cascade');
             $table->timestamps();
         });
     }

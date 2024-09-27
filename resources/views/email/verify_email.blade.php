@@ -11,7 +11,7 @@
     <div style="max-width:640px;margin:0 auto;background:transparent;">
         <table style="width:100%;background:transparent;" align="center" border="0" cellpadding="0" cellspacing="0">
             <tr>
-                <td align="center" style="padding:40px 0">
+                <td align="center" style="padding:40px 15px;">
                     <a href="{{ route('homePage') }}" target="_blank">
                         <img src="{{ $message->embed(public_path('assets/images/logo.png')) }}" alt="Logo"
                             style="width:138px;">
@@ -23,7 +23,8 @@
             <table style="width:100%;font-size:0px;background:#e3c935;" align="center" border="0" cellpadding="0"
                 cellspacing="0">
                 <tr>
-                    <td style="text-align:center;color:white;font-family:Arial;font-size:36px;font-weight:600">
+                    <td
+                        style="text-align:center;color:white;font-family:Arial;font-size:36px;font-weight:600;padding:15px;">
                         Welcome to Networked!
                     </td>
                 </tr>
