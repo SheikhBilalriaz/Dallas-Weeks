@@ -14,18 +14,18 @@ use Illuminate\Support\Facades\Validator;
 class SettingController extends Controller
 {
     /**
-     * Display the setting dashboard.
+     * Display the global setting dashboard for a specific team.
      *
-     * @param String $slug
-     * @return \Illuminate\View\View
+     * @param string $slug The unique slug of the team.
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse The view of the setting page or a redirect on failure.
      */
     public function globalSetting($slug)
     {
         try {
-            /* Retrieve the team associated with the slug */
+            /* Retrieve the team by the provided slug or fail gracefully. */
             $team = Team::where('slug', $slug)->first();
 
-            /* Prepare data to be passed to the view */
+            /* Prepare the data to pass to the view, including the title and the team instance. */
             $data = [
                 'title' => 'Setting - Networked',
                 'team' => $team,
@@ -38,22 +38,24 @@ class SettingController extends Controller
             Log::error($e);
 
             /* Redirect to login with an error message if an exception occurs. */
-            return redirect()->route('loginPage')->withErrors(['error' => $e->getMessage()]);
+            return redirect()->route('dashboardPage', ['slug' => $slug])->withErrors(['error' => 'Something went wrong']);
         }
     }
 
     /**
-     * Change the password.
+     * Change the password for the currently authenticated user.
      *
-     * @param String $slug
-     * @param \Illuminate\Http\Request $request
-     * @return RedirectResponse
+     * @param string $slug The unique slug for the team or page redirection.
+     * @param \Illuminate\Http\Request $request The incoming HTTP request containing password data.
+     * @return \Illuminate\Http\RedirectResponse Redirects back to the settings page with a success or error message.
      */
     public function changePassword($slug, Request $request)
     {
         try {
             /* Get the currently authenticated user */
             $user = Auth::user();
+
+            /* Ensure we have the latest user data from the database. */
             $user = User::find($user->id);
 
             /* Check if the provided old password matches the user's current password */
@@ -61,12 +63,12 @@ class SettingController extends Controller
                 return redirect()->back()->withErrors(['old_password' => 'The old password is incorrect.']);
             }
 
-            /* Validate request data */
+            /* Validate the request data for the new password. */
             $validator = Validator::make($request->all(), [
                 'new_password' => 'required|string|min:8|confirmed',
             ]);
 
-            /* Return validation errors if validation fails */
+            /* If validation fails, redirect back with validation error messages. */
             if ($validator->fails()) {
                 return back()->withErrors($validator)->withInput();
             }
@@ -77,15 +79,13 @@ class SettingController extends Controller
             $user->save();
 
             /* Redirect to the dashboard with a success message */
-            return redirect()->route('globalSetting', ['slug' => $slug])
-                ->with('success', 'Password changed successfully.');
+            return redirect()->route('globalSetting', ['slug' => $slug])->with('success', 'Password changed successfully.');
         } catch (Exception $e) {
             /* Log the exception message for debugging purposes. */
             Log::error($e);
 
             /* Redirect to login with an error message if an exception occurs. */
-            return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong']);
+            return redirect()->route('dashboardPage', ['slug' => $slug])->withErrors(['error' => 'Something went wrong']);
         }
     }
 }

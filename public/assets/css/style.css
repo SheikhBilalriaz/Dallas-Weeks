@@ -7185,11 +7185,11 @@ u {
     background-color: #15171c;
     padding: 9px 13px;
     border-radius: 20px;
-    color: #fff;
+    color: #00ff00;
 }
 
 .activeness_status .active span {
-    background-color: #737373;
+    background-color: #00ff00;
     width: 7px;
     height: 7px;
     position: absolute;

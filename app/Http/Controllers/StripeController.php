@@ -12,6 +12,7 @@ use App\Models\Seat_Info;
 use App\Models\Team;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SubscriptionSuccessMail;
+use App\Models\Invoice;
 use App\Models\User;
 
 class StripeController extends Controller
@@ -165,11 +166,30 @@ class StripeController extends Controller
 
         /* Convert meta data into array */
         $seat = json_decode($stripeCustomer->metadata->seat);
+
+        /* Retreive team using team id from meta data */
+        $team = Team::where('slug', $seat->team_slug)->first();
+
         if (Seat::find($seat->id)->exists()) {
             $seat = Seat::find($seat->id);
             $seat->is_active = 1;
             $seat->updated_at = now();
             $seat->save();
+        }
+
+        $invoices = \Stripe\Invoice::all([
+            'subscription' => $seat->subscription_id,
+            'limit' => 1,
+        ]);
+
+        if (!empty($invoices->data)) {
+            $invoice = $invoices->data[0];
+            Invoice::create([
+                'invoice_id' => $invoice->id,
+                'invoice_url' => $invoice->invoice_pdf,
+                'seat_id' => $seat->id,
+                'team_id' => $team->id,
+            ]);
         }
     }
 }

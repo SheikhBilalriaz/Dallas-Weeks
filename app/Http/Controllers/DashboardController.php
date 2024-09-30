@@ -76,15 +76,17 @@ class DashboardController extends Controller
 
             $assigned_seats = Assigned_Seat::whereIn('member_id', $members->pluck('id')->toArray())->get();
 
-            $seats = $user->id == $team->creator_id
-                ? Seat::where('team_id', $team->id)->get()
-                : Seat::whereIn('id', $assigned_seats->pluck('seat_id')->toArray())->get();
+            if ($user->id == $team->creator_id) {
+                $seats = Seat::where('team_id', $team->id)->get();
+            } else {
+                $seats = Seat::whereIn('id', $assigned_seats->pluck('seat_id')->toArray())->get();;
+            }
 
             /* Prepare data for the view */
             $data = [
                 'title' => 'Dashboard - Networked',
                 'team' => $team,
-                'seat' => $seats,
+                'seats' => $seats,
             ];
 
             /* Include errors if present in the session */

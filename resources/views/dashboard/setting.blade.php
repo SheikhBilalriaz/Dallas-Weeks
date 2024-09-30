@@ -9,14 +9,16 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-lg-12">
-                    @if (session('email_verified'))
-                        <div class="filter_head_row d-flex">
-                            <div class="cont">
-                                <h3>Settings</h3>
+                    <div class="filter_head_row d-flex">
+                        <div class="cont">
+                            <h3>Settings</h3>
+                            @if (session('email_verified'))
                                 <p>Your email was confirmed: {{ auth()->user()->email }}</p>
-                            </div>
+                            @else
+                                <p>Please verify an email: {{ auth()->user()->email }}</p>
+                            @endif
                         </div>
-                    @endif
+                    </div>
                     <div class="setting_pass">
                         <strong>Change password</strong>
                         <form action="{{ route('changePassword', ['slug' => $team->slug]) }}" method="POST"
@@ -47,17 +49,6 @@
                                     required placeholder="Enter Confirm password">
                             </div>
                             <input type="submit" value="Change Password" class="pass_btn">
-                        </form>
-                    </div>
-                    {{-- TODO: API Working --}}
-                    <div class="setting_pass API_Key">
-                        <div class="d-flex justify-content-between"><strong>API Key</strong>
-                            <p>Use this API key to access your Skylead account when using Skylead API.</p>
-                        </div>
-                        <form action="change_password.php" method="post" class="password_form api_key_form">
-                            <label for="old_password">Your Api key</label>
-                            <input type="text" id="api_key" name="api_key" required
-                                placeholder="000000-11223344-556677-00000">
                         </form>
                     </div>
                     {{-- TODO: Delete Account --}}

@@ -298,20 +298,31 @@
         </nav>
     </header>
     @if (session('success'))
-        <div class="alert alert-success alert-dismissible text-center fade show">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                &times;
-            </button>
-            {{ session('success') }}
-        </div>
+        <script>
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            toastr.success("{{ session('success') }}");
+        </script>
     @endif
     @if ($errors->first('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                &times;
-            </button>
-            {{ $errors->first('error') }}
-        </div>
+        <script>
+            toastr.error("{{ $errors->first('error') }}");
+        </script>
     @endif
     @yield('content')
     <script>

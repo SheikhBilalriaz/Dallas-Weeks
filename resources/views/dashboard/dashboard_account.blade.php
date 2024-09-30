@@ -1,5 +1,8 @@
 @extends('dashboard/partials/master')
 @section('content')
+    @php
+        use App\Models\Company_info;
+    @endphp
     <style>
         .step_form {
             padding: 40px;
@@ -121,42 +124,42 @@
                         </div>
                         <hr>
                         <div class="row_table">
-                            {{-- @if ($seats->isNotEmpty())
+                            @if ($seats->isNotEmpty())
                                 <div class="add_account_div" style="width: 100%">
                                     <div class="campaign_list">
                                         <table class="data_table w-100">
                                             <tbody id="campaign_table_body">
                                                 @foreach ($seats as $seat)
-                                                    <tr title="{{ empty(auth()->user()->email_verified_at) ? 'Verify your email first to view seat' : '' }}"
-                                                        style="opacity:{{ empty(auth()->user()->email_verified_at) ? 0.7 : 1 }};"
-                                                        id="{{ 'table_row_' . $seat['id'] }}" class="seat_table_row">
-                                                        @if (isset($seat['account_profile']) && $seat['account_profile']['profile_picture_url'] != '')
-                                                            <td width="10%" class="seat_table_data"
-                                                                style="cursor: {{ empty(auth()->user()->email_verified_at) ? 'auto' : 'pointer' }};">
+                                                    @php
+                                                        $company_info = Company_info::find($seat->company_info_id);
+                                                    @endphp
+                                                    <tr title="{{ !session('email_verified') ? 'Verify your email first to view seat' : '' }}"
+                                                        style="opacity:{{ !session('email_verified') ? 0.7 : 1 }};"
+                                                        id="{{ 'table_row_' . $seat->id }}" class="seat_table_row">
+                                                        <td width="10%" class="seat_table_data"
+                                                            style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};">
+                                                            @if (isset($seat['account_profile']) && $seat['account_profile']['profile_picture_url'] != '')
                                                                 <img class="seat_img"
                                                                     src="{{ $seat['account_profile']['profile_picture_url'] }}"
                                                                     alt="">
-                                                            </td>
-                                                        @else
-                                                            <td width="10%" class="seat_table_data"
-                                                                style="cursor: {{ empty(auth()->user()->email_verified_at) ? 'auto' : 'pointer' }};">
+                                                            @else
                                                                 <img class="seat_img"
                                                                     src="{{ asset('assets/img/acc.png') }}" alt="">
-                                                            </td>
-                                                        @endif
+                                                            @endif
+                                                        </td>
                                                         <td width="50%" class="text-left seat_table_data"
-                                                            style="cursor: {{ empty(auth()->user()->email_verified_at) ? 'auto' : 'pointer' }};">
-                                                            {{ $seat['username'] }}
+                                                            style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};">
+                                                            {{ $company_info->name }}
                                                         </td>
                                                         <td width="15%" class="connection_status">
-                                                            @if ($seat['connected'])
+                                                            @if ($seat->is_connected)
                                                                 <div class="connected"><span></span>Connected</div>
                                                             @else
                                                                 <div class="disconnected"><span></span>Disconnected</div>
                                                             @endif
                                                         </td>
                                                         <td width="15%" class="activeness_status">
-                                                            @if ($seat['active'])
+                                                            @if ($seat->is_active)
                                                                 <div class="active"><span></span>Active</div>
                                                             @else
                                                                 <div class="not_active"><span></span>In Active</div>
@@ -165,8 +168,9 @@
                                                         <td width="10%">
                                                             <a href="javascript:;" type="button"
                                                                 class="setting setting_btn"
-                                                                style="cursor: {{ empty(auth()->user()->email_verified_at) ? 'auto' : 'pointer' }};"><i
-                                                                    class="fa-solid fa-gear"></i></a>
+                                                                style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};">
+                                                                <i class="fa-solid fa-gear"></i>
+                                                            </a>
                                                         </td>
                                                     </tr>
                                                 @endforeach
@@ -174,8 +178,7 @@
                                         </table>
                                     </div>
                                 </div>
-                            @endif --}}
-                            @if (session('is_creator'))
+                            @elseif (session('is_creator'))
                                 <div class="add_account_div"
                                     style="opacity: {{ !session('email_verified') ? '0.7' : '1' }};"
                                     title="{{ !session('email_verified') ? 'To add new seats, you need to verify your email address first.' : '' }}">
@@ -252,8 +255,9 @@
                                     </div>
                                     <div class="col-lg-12 required">
                                         <label for="city">City</label>
-                                        <input type="text" name="city" id="city" placeholder="Enter your city"
-                                            required class="{{ $errors->has('city') ? 'error' : '' }}"
+                                        <input type="text" name="city" id="city"
+                                            placeholder="Enter your city" required
+                                            class="{{ $errors->has('city') ? 'error' : '' }}"
                                             value="{{ old('city') }}">
                                         <span class="text-danger">{{ $errors->first('city') }}</span>
                                     </div>

@@ -75,10 +75,6 @@ Route::middleware(['userAuth'])->group(function () {
         Route::prefix('/stripe')->group(function () {
             Route::post('/payment', [StripePaymentController::class, 'stripePayment'])->name('stripePayment');
         });
-        Route::prefix('/settings')->group(function () {
-            Route::get('/', [SettingController::class, 'globalSetting'])->name('globalSetting'); //Done
-            Route::put('/change-password', [SettingController::class, 'changePassword'])->name('changePassword'); //Done
-        });
 
         /* These are for team member */
         Route::prefix('/member')->group(function () {
@@ -91,7 +87,14 @@ Route::middleware(['userAuth'])->group(function () {
                 Route::put('/edit-role/{id}', [RolesPermissionController::class, 'editRole'])->name('editRole'); //Done
             });
             Route::get('/search-team-member/{search}', [TeamController::class, 'searchTeamMember'])->name('searchTeamMember');
+            Route::post('/invite-team-member', [TeamController::class, 'inviteTeamMember'])->name('inviteTeamMember');
         });
+
         Route::get('/invoice', [InvoiceController::class, 'invoice'])->name('globalInvoice');
+
+        Route::prefix('/settings')->group(function () {
+            Route::get('/', [SettingController::class, 'globalSetting'])->name('globalSetting'); //Done
+            Route::put('/change-password', [SettingController::class, 'changePassword'])->name('changePassword'); //Done
+        });
     });
 });
