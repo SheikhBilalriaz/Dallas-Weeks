@@ -1,8 +1,5 @@
 @extends('dashboard/partials/master')
 @section('content')
-    @php
-        use App\Models\Company_info;
-    @endphp
     <style>
         .step_form {
             padding: 40px;
@@ -131,7 +128,9 @@
                                             <tbody id="campaign_table_body">
                                                 @foreach ($seats as $seat)
                                                     @php
-                                                        $company_info = Company_info::find($seat->company_info_id);
+                                                        $company_info = \App\Models\Company_info::find(
+                                                            $seat->company_info_id,
+                                                        );
                                                     @endphp
                                                     <tr title="{{ !session('email_verified') ? 'Verify your email first to view seat' : '' }}"
                                                         style="opacity:{{ !session('email_verified') ? 0.7 : 1 }};"

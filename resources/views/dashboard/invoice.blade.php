@@ -1,5 +1,16 @@
 @extends('dashboard/partials/master')
 @section('content')
+    <script src="{{ asset('assets/js/invoice.js') }}"></script>
+    <style>
+        .empty_blacklist img {
+            width: 30% !important;
+            height: 100% !important;
+            margin-bottom: 25px;
+        }
+    </style>
+    @php
+        \Stripe\Stripe::setApiKey(config('services.stripe.secret'));    
+    @endphp
     <section class="blacklist invoice_sec">
         <div class="container-fluid">
             <div class="row">
@@ -10,63 +21,88 @@
                             <p>Click on the link to download invoice</p>
                         </div>
                         <div class="filt_opt d-flex">
-                            <select name="name" id="name">
-                                <option value="all" selected>All team members</option>
-                                @foreach ($members as $member)
+                            <select name="name" id="seat_options">
+                                <option value="all" selected>All seats</option>
+                                @foreach ($seats as $seat)
                                     @php
-                                        $member_details = \App\Models\User::find($member->user_id);
+                                        $company_info = \App\Models\Company_Info::find($seat->company_info_id);
                                     @endphp
-                                    <option value="{{ $member_details->id }}">
-                                        {{ $member_details->name }}
+                                    <option value="{{ 'seat_' . $seat->id }}">
+                                        {{ $company_info->name }}
                                     </option>
                                 @endforeach
                             </select>
-                            <select name="num" id="num">
-                                <option value="01">10</option>
-                                <option value="02">20</option>
-                                <option value="03">30</option>
-                                <option value="04">40</option>
-                            </select>
                         </div>
                     </div>
-                    {{-- <div class="data_row">
+                    <div class="data_row">
                         <div class="data_head">
                             <table class="data_table w-100">
                                 <thead>
                                     <tr>
-                                        <th width="15%">Account</th>
+                                        <th width="25%">Account</th>
                                         <th width="15%">Email</th>
-                                        <th width="40%">Invoice data</th>
+                                        <th width="30%">Invoice data</th>
                                         <th width="15%">Date</th>
                                         <th width="15%">Download invoice</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @for ($i = 0; $i < 7; $i++)
-                                        @php
-                                            $asset_id = $i + 1;
-                                            $asset = 'assets/img/acc_img' . $asset_id . '.png';
-                                        @endphp
+                                <tbody id="invoice_row">
+                                    @if ($invoices->isNotEmpty())
+                                        @foreach ($invoices as $invoice)
+                                            @php
+                                                $seat = \App\Models\Seat::find($invoice->seat_id);
+                                                $company_info = \App\Models\Company_Info::find($seat->company_info_id);
+                                                $seat_info = \App\Models\Seat_Info::find($seat->seat_info_id);
+                                                $stripe_invoice = \Stripe\Invoice::retrieve($invoice->invoice_id);
+                                            @endphp
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="{{ asset('assets/img/acc.png') }}" alt="">
+                                                        <strong>{{ $company_info->name }}</strong>
+                                                    </div>
+                                                </td>
+                                                <td>{{ $seat_info->email }}</td>
+                                                <td class="inv_data">
+                                                    Sed ut perspiciatis unde omnis iste natus error sit voluptatem
+                                                </td>
+                                                <td class="inv_date">
+                                                    {{ date('d-M-Y', $stripe_invoice->created) }}
+                                                </td>
+                                                <td>
+                                                    <a href="{{ route('downloadInvoice', ['slug' => $team->slug, 'id' => $invoice->id]) }}"
+                                                        class="black_list_activate download">Download</a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @else
                                         <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center"><img src="{{ asset($asset) }}"
-                                                        alt=""><strong>John doe</strong></div>
-                                            </td>
-                                            <td>info@johndoe.com</td>
-                                            <td class="inv_data">Sed ut perspiciatis unde omnis iste natus error sit
-                                                voluptatem</td>
-                                            <td class="inv_date">28 August 2023</td>
-
-                                            <td><a href="javascript:;" class="black_list_activate download">Download</a>
+                                            <td colspan="5">
+                                                <div style="width: 50%; margin: 0 auto;"
+                                                    class="empty_blacklist text-center">
+                                                    <img style="margin-right: 0px;"
+                                                        src="{{ asset('assets/img/empty.png') }}" alt="">
+                                                    <p>
+                                                        Sorry, no results for that query
+                                                    </p>
+                                                </div>
                                             </td>
                                         </tr>
-                                    @endfor
+                                    @endif
                                 </tbody>
                             </table>
                         </div>
-                    </div> --}}
+                    </div>
                 </div>
             </div>
         </div>
     </section>
+    <script>
+        var emptyImage = "{{ asset('assets/img/empty.png') }}";
+        var accImage = "{{ asset('assets/img/acc.png') }}";
+        var downloadInvoiceRoute = "{{ route('downloadInvoice', ['slug' => $team->slug, 'id' => ':id']) }}";
+    </script>
+    <script>
+        var invoiceBySeatRoute = "{{ route('invoiceBySeat', ['slug' => $team->slug, 'id' => ':id']) }}";
+    </script>
 @endsection

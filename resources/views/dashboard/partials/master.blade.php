@@ -239,7 +239,7 @@
                         ],
                         [
                             'permission' => session('is_manage_payment_system'),
-                            'route' => 'globalInvoice',
+                            'route' => 'globalInvoicePage',
                             'label' => 'Invoice',
                         ],
                         [

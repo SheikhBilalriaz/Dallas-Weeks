@@ -90,7 +90,11 @@ Route::middleware(['userAuth'])->group(function () {
             Route::post('/invite-team-member', [TeamController::class, 'inviteTeamMember'])->name('inviteTeamMember');
         });
 
-        Route::get('/invoice', [InvoiceController::class, 'invoice'])->name('globalInvoice');
+        Route::prefix('/invoice')->middleware(['invoiceAccessChecked'])->group(function () {
+            Route::get('/', [InvoiceController::class, 'invoice'])->name('globalInvoicePage'); //Done
+            Route::get('/seat/{id}', [InvoiceController::class, 'invoiceBySeat'])->name('invoiceBySeat'); //Done
+            Route::get('/download/{id}', [InvoiceController::class, 'downloadInvoice'])->name('downloadInvoice'); //Done
+        });
 
         Route::prefix('/settings')->group(function () {
             Route::get('/', [SettingController::class, 'globalSetting'])->name('globalSetting'); //Done

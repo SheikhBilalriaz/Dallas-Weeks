@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Mail\WelcomeMail;
+use App\Models\Seat_Info;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
@@ -32,27 +33,23 @@ class TeamController extends Controller
     {
         try {
             $user = Auth::user();
-
-            /* Retrieve the team associated with the slug */
             $team = Team::where('slug', $slug)->first();
-
-            $seats = Seat::where('team_id', $team->id)->get();
-
-            foreach ($seats as $seat) {
-                $seat->company_info = Company_Info::find($seat->company_info_id);
+            if ($user->id == $team->creator_id) {
+                $seats = Seat::where('team_id', $team->id)->get();
+            } else {
+                $member = Team_Member::where('user_id', $user->id)->where('team_id', $team->id)->first();
+                $assigned_seats = Assigned_Seat::where('member_id', $member->id)->get();
+                $seats = Seat::whereIn('id', $assigned_seats->pluck('seat_id')->toArray())->get();;
             }
-
             $roles = Role::whereIn('team_id', [0, $team->id])->get();
-
-            /* Prepare data for the view */
+            $members = Team_Member::where('team_id', $team->id)->get();
             $data = [
                 'title' => 'Team Dashboard',
                 'team' => $team,
                 'seats' => $seats,
                 'roles' => $roles,
+                'members' => $members,
             ];
-
-            /* Return the view with the prepared data */
             return view('dashboard.team', $data);
         } catch (Exception $e) {
             /* Log the exception for debugging purposes */
@@ -73,7 +70,7 @@ class TeamController extends Controller
     public function searchTeamMember($slug, $search)
     {
         try {
-            /* Find the team by slug */
+            $user = Auth::user();
             $team = Team::where('slug', $slug)->first();
 
             /* Get team members */
@@ -81,12 +78,14 @@ class TeamController extends Controller
 
             /* Apply search filter if provided */
             if ($search == 'null') {
-                $members = User::whereIn('id', $team_member->pluck('user_id')->toArray())->get();
+                $users = User::whereIn('id', $team_member->pluck('user_id')->toArray())->get();
             } else {
-                $members = User::whereIn('id', $team_member->pluck('user_id')->toArray())
+                $users = User::whereIn('id', $team_member->pluck('user_id')->toArray())
                     ->where('name', 'like', '%' . $search . '%')
                     ->orWhere('email', 'like', '%' . $search . '%')->get();
             }
+
+            $members = Team_Member::where('user_id', $users->pluck('id')->toArray())->get();
 
             /* Check if any team member items were found */
             if ($members->isNotEmpty()) {

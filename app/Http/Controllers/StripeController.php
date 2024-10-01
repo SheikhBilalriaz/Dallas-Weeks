@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\SubscriptionSuccessMail;
 use App\Models\Invoice;
 use App\Models\User;
+use PDF;
+use Storage;
+use Illuminate\Support\Str;
 
 class StripeController extends Controller
 {
@@ -184,12 +187,41 @@ class StripeController extends Controller
 
         if (!empty($invoices->data)) {
             $invoice = $invoices->data[0];
+            $fileName = $this->createUniqueFileName();
+            $invoiceId = str_replace('public/invoices/', '', $fileName);
+            $invoiceId = str_replace('.pdf', '', $invoiceId);
+            $startDateTime = new \DateTime('@' . $invoice->period_start);
+            $startDateTime->modify('+1 month');
+            $newBillingEndDate = $startDateTime->format('M - y');
+            $invoiceData = [
+                'user' => User::find($seat->creator_id),
+                'invoiceId' => $invoiceId,
+                'invoice' => $invoice,
+                'subscription' => $subscription,
+                'seat' => $seat,
+                'company_info' => Company_Info::find($seat->company_info_id),
+                'invoiceDate' => date('Y-m-d', $invoice->created),
+                'dueDate' => date('Y-m-d', $invoice->due_date),
+                'items' => $invoice->lines->data,
+                'billingStart' => date('M - y', $invoice->period_start),
+                'billingEnd' => $newBillingEndDate,
+            ];
+            $pdf = PDF::loadView('pdf.subscription_invoice', $invoiceData);
+            Storage::disk('public')->put('invoices/' . $fileName, $pdf->output());
             Invoice::create([
                 'invoice_id' => $invoice->id,
-                'invoice_url' => $invoice->invoice_pdf,
+                'invoice_url' => $fileName,
                 'seat_id' => $seat->id,
                 'team_id' => $team->id,
             ]);
         }
+    }
+
+    private function createUniqueFileName()
+    {
+        do {
+            $uniqueFileName = 'invoice_' . Str::uuid() . '.pdf';
+        } while (Storage::exists($uniqueFileName));
+        return $uniqueFileName;
     }
 }

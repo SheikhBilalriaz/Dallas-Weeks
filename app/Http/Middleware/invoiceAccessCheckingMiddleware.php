@@ -9,10 +9,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Global_Permission;
 
-class blacklistAccessCheckingMiddleware
+class invoiceAccessCheckingMiddleware
 {
     /**
-     * Handle an incoming request to check if the user has access to the global blacklist.
+     * Handle an incoming request to check if the user has access to the global invoice.
      *
      * @param  \Illuminate\Http\Request  $request  The incoming HTTP request instance.
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next  The next middleware or request handler.
@@ -31,13 +31,13 @@ class blacklistAccessCheckingMiddleware
 
         $permission = Global_Permission::where('user_id', $user->id)
             ->where('team_id', $team->id)
-            ->where('slug', 'manage_global_blacklist')
+            ->where('slug', 'manage_payment_system')
             ->first();
-            
-        /* Check if the session contains the 'is_manage_global_blacklist' permission */
+
+        /* Check if the session contains the 'is_manage_payment_system' permission */
         if (!$permission || !$permission->access) {
             return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => "You don't have permission to manage the blacklist."]);
+                ->withErrors(['error' => "You don't have access to payment and invoices."]);
         }
 
         /* Proceed with the request if the user has the necessary permission */
