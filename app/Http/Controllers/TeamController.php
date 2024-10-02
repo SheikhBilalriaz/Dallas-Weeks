@@ -11,6 +11,7 @@ use App\Models\Company_Info;
 use App\Models\Global_Permission;
 use App\Models\Role;
 use App\Models\Seat;
+use App\Models\Permission;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -27,29 +28,52 @@ class TeamController extends Controller
     /**
      * Retrieve and prepare team members with their associated roles.
      *
-     * @return \Illuminate\View\View The view with team and user data.
+     * @param string $slug The team slug.
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse The view with team and user data or a redirect on error.
      */
     public function team($slug)
     {
         try {
+            /* Get the authenticated user. */
             $user = Auth::user();
+
+            /* Fetch the team using its slug */
             $team = Team::where('slug', $slug)->first();
-            if ($user->id == $team->creator_id) {
-                $seats = Seat::where('team_id', $team->id)->get();
-            } else {
+
+            $creator = User::find($team->creator_id);
+
+            /* Start building the query for fetching seats associated with the team. */
+            $query = Seat::where('team_id', $team->id);
+            if ($user->id != $team->creator_id) {
                 $member = Team_Member::where('user_id', $user->id)->where('team_id', $team->id)->first();
                 $assigned_seats = Assigned_Seat::where('member_id', $member->id)->get();
-                $seats = Seat::whereIn('id', $assigned_seats->pluck('seat_id')->toArray())->get();;
+                $query->whereIn('id', $assigned_seats->pluck('seat_id')->toArray());
             }
+
+            /* Fetch all the seats based on the query, eager loading to reduce additional queries. */
+            $seats = $query->get();
+
+            /* Retrieve the roles associated with the team or default */
             $roles = Role::whereIn('team_id', [0, $team->id])->get();
+
+            /* Fetch all team members */
             $members = Team_Member::where('team_id', $team->id)->get();
+
+            /* Fetch all available permissions */
+            $permissions = Permission::all();
+
+            /* Prepare the data for rendering in the view. */
             $data = [
                 'title' => 'Team Dashboard',
                 'team' => $team,
                 'seats' => $seats,
                 'roles' => $roles,
                 'members' => $members,
+                'permissions' => $permissions,
+                'creator' => $creator,
             ];
+
+            /* Render the team dashboard view with the prepared data. */
             return view('dashboard.team', $data);
         } catch (Exception $e) {
             /* Log the exception for debugging purposes */
@@ -72,11 +96,10 @@ class TeamController extends Controller
         try {
             $user = Auth::user();
             $team = Team::where('slug', $slug)->first();
-
-            /* Get team members */
+            $creator = User::where('name', 'Like', '%' . $search . '%')
+                ->orWhere('email', 'Like', '%' . $search . '%')
+                ->where('id', $team->creator_id)->first();
             $team_member = Team_Member::where('team_id', $team->id)->get();
-
-            /* Apply search filter if provided */
             if ($search == 'null') {
                 $users = User::whereIn('id', $team_member->pluck('user_id')->toArray())->get();
             } else {
@@ -93,6 +116,7 @@ class TeamController extends Controller
                 return response()->json([
                     'success' => true,
                     'team_member' => $members,
+                    'creator' => $creator,
                 ]);
             }
 

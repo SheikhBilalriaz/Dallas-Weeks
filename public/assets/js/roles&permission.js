@@ -1,7 +1,5 @@
-var customRoleAjax = null;
 var deleteRoleAjax = null;
 var editRoleAjax = null;
-var submitEditRoleAjax = null;
 
 $(document).ready(function () {
     toastr.options = {
@@ -21,54 +19,11 @@ $(document).ready(function () {
         "showMethod": "fadeIn",
         "hideMethod": "fadeOut"
     };
-    
-    $(document).on('submit', '.invite_form', custom_role);
-    $(document).on('click', '.delete_role', delete_role);
-    $(document).on('click', '.edit_role', edit_role);
-    $(document).on('click', '.permission', change_permit);
-    $(document).on('submit', '.edit_form', submit_edit_role);
-});
 
-function custom_role(e) {
-    e.preventDefault();
-    const roleNameInput = $(this).find('#role_name_input');
-    const roleName = roleNameInput.val().trim();
-    if (!roleName) {
-        $(this).find('#name_error').html('Role name is required');
-        roleNameInput.addClass('error');
-        return;
-    }
-    if (!customRoleAjax) {
-        let formData = new FormData(e.target);
-        let $submitBtn = $(e.target).find(':submit');
-        $submitBtn.prop('disabled', true);
-        customRoleAjax = $.ajax({
-            url: customRoleRoute,
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            method: 'POST',
-            success: function (response) {
-                if (response.success) {
-                    toastr.success('Role saved successfully.');
-                    setTimeout(function () {
-                        window.location.reload();
-                    }, 2000);
-                }
-            },
-            error: function (xhr, error, status) {
-                toastr.error('Something went wrong');
-            },
-            complete: function () {
-                customRoleAjax = null;
-                $submitBtn.prop('disabled', false);
-            }
-        });
-    }
-}
+    $(document).on('click', '.permission', change_permit);
+    $(document).on('click', '.edit_role', edit_role);
+    $(document).on('click', '.delete_role', delete_role);
+});
 
 function change_permit(e) {
     let displayStyle = $(this).prop('checked') ? 'flex' : 'none';
@@ -107,6 +62,9 @@ function edit_role(e) {
                         }
                     });
                     $('#edit_role').modal('show');
+                    var id = $('#edit_role').find('form.edit_form').attr('id').replace('edit_role_', '');
+                    var action = $('#edit_role').find('form.edit_form').prop('action');
+                    $('#edit_role').find('form.edit_form').prop('action', action.replace(':id', id));
                 }
             },
             error: function (xhr, status, error) {
@@ -122,49 +80,6 @@ function edit_role(e) {
             }
         });
     }
-}
-
-function submit_edit_role(e) {
-    e.preventDefault();
-    var id = $(this).attr('id').replace('edit_role_', '');
-    const roleNameInput = $(this).find('#role_name_input');
-    const roleName = roleNameInput.val().trim();
-    if (!roleName) {
-        $(this).find('#name_error').html('Role name is required');
-        roleNameInput.addClass('error');
-        return;
-    }
-    if (!submitEditRoleAjax) {
-        let formData = new FormData(e.target);
-        let $submitBtn = $(e.target).find(':submit');
-        $submitBtn.prop('disabled', true);
-        submitEditRoleAjax = $.ajax({
-            url: editRoleRoute.replace(':id', id),
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            method: 'POST',
-            success: function (response) {
-                if (response.success) {
-                    toastr.success('Role edited successfully.');
-                    setTimeout(function () {
-                        window.location.reload();
-                    }, 2000);
-                }
-            },
-            error: function (xhr, error, status) {
-                toastr.error(xhr.responseJSON.error);
-            },
-            complete: function () {
-                submitEditRoleAjax = null;
-                $submitBtn.prop('disabled', false);
-            }
-        });
-    }
-    formData.append('_method', 'PUT');
 }
 
 function delete_role(e) {

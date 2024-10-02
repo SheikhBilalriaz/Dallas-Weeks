@@ -71,12 +71,13 @@
                                 <p>You can not invite team members and manage team permissions.</p>
                             @endif
                             @if (session('is_creator'))
-                                <div style="cursor: pointer; {{ !session('email_verified') ? 'opacity: 0.7;' : '' }}"
+                                <div style="cursor: pointer; opacity: {{ !session('email_verified') ? '0.7' : '1' }};"
                                     class="add_btn "
                                     title="{{ !session('email_verified') ? 'To add new team members, you need to verify your email address first.' : '' }}"
                                     {{ !session('email_verified') ? '' : 'data-bs-toggle=modal data-bs-target=#invite_team_modal' }}>
                                     <a href="javascript:;" class="">
-                                        <i class="fa-solid fa-plus"></i></a>
+                                        <i class="fa-solid fa-plus"></i>
+                                    </a>
                                     Add team member
                                 </div>
                             @endif
@@ -114,69 +115,113 @@
                                     </tr>
                                 </thead>
                                 <tbody id="team_row">
+                                    <tr title="{{ session('email_verified') ? '' : 'Verify your email first to view seat' }}"
+                                        style="opacity: {{ !session('email_verified') ? 0.7 : 1 }};">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img style="background: #000; border-radius: 50%;"
+                                                    src="{{ asset('assets/img/acc.png') }}" alt="">
+                                                <strong>{{ $creator->name }}</strong>
+                                            </div>
+                                        </td>
+                                        <td>{{ $creator->email }}</td>
+                                        <td>Creator</td>
+                                        <td>All Seats Access</td>
+                                        @if (!empty($creator->verified_at))
+                                            <td>
+                                                <a style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};"
+                                                    href="javascript:;" class="black_list_activate active">
+                                                    Active
+                                                </a>
+                                            </td>
+                                        @else
+                                            <td>
+                                                <a style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};"
+                                                    href="javascript:;" class="black_list_activate non_active">
+                                                    InActive
+                                                </a>
+                                            </td>
+                                        @endif
+                                        @if (session('is_creator'))
+                                            <td></td>
+                                        @endif
+                                    </tr>
                                     @if ($members->isNotEmpty())
                                         @foreach ($members as $member)
                                             @php
                                                 $member_detail = \App\Models\User::find($member->user_id);
-                                                $assigned_seats = \App\Models\Assigned_Seat::where(
-                                                    'member_id',
-                                                    $member->id,
-                                                )->get();
                                             @endphp
-                                            @foreach ($assigned_seats as $assigned_seat)
-                                                <tr title="{{ session('email_verified') ? '' : 'Verify your email first to view seat' }}"
-                                                    style="opacity: {{ !session('email_verified') ? 0.7 : 1 }};">
+                                            <tr title="{{ session('email_verified') ? '' : 'Verify your email first to view seat' }}"
+                                                style="opacity: {{ !session('email_verified') ? 0.7 : 1 }};">
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img style="background: #000; border-radius: 50%;"
+                                                            src="{{ asset('assets/img/acc.png') }}" alt="">
+                                                        <strong>{{ $member_detail->name }}</strong>
+                                                    </div>
+                                                </td>
+                                                <td>{{ $member_detail->email }}</td>
+                                                @php
+                                                    $assigned_seats = \App\Models\Assigned_Seat::where(
+                                                        'member_id',
+                                                        $member->id,
+                                                    )->get();
+                                                @endphp
+                                                <td>
+                                                    @php
+                                                        $member_role = \App\Models\Role::whereIn(
+                                                            'id',
+                                                            $assigned_seats->pluck('role_id')->toArray(),
+                                                        )->get();
+                                                        $member_roles = $member_role->pluck('name')->toArray();
+                                                    @endphp
+                                                    {{ implode(', ', $member_roles) ?: 'No Role Assigned' }}
+                                                </td>
+                                                <td>
+                                                    @php
+                                                        $member_seat = \App\Models\Seat::whereIn(
+                                                            'id',
+                                                            $assigned_seats->pluck('seat_id')->toArray(),
+                                                        )->get();
+                                                        $member_seat = \App\Models\Company_Info::whereIn(
+                                                            'id',
+                                                            $member_seat->pluck('company_info_id')->toArray(),
+                                                        )->get();
+                                                        $member_seats = $member_seat->pluck('name')->toArray();
+                                                    @endphp
+                                                    {{ implode(', ', $member_seats) ?: 'No Role Assigned' }}
+                                                </td>
+                                                @if (!empty($member_detail->verified_at))
                                                     <td>
-                                                        <div class="d-flex align-items-center">
-                                                            <img style="background: #000; border-radius: 50%;"
-                                                                src="{{ asset('assets/img/acc.png') }}" alt="">
-                                                            <strong>{{ $member_detail->name }}</strong>
-                                                        </div>
+                                                        <a style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};"
+                                                            href="javascript:;" class="black_list_activate active">
+                                                            Active
+                                                        </a>
                                                     </td>
-                                                    <td>{{ $member_detail->email }}</td>
-                                                    @php
-                                                        $member_role = \App\Models\Role::find($assigned_seat->role_id);
-                                                    @endphp
-                                                    <td>{{ $member_role->name }}</td>
-                                                    @php
-                                                        $member_seat = \App\Models\Seat::find($assigned_seat->seat_id);
-                                                        $member_seat = \App\Models\Company_Info::find(
-                                                            $member_seat->company_info_id,
-                                                        );
-                                                    @endphp
-                                                    <td>{{ $member_seat->name }}</td>
-                                                    @if (!empty($member_detail->verified_at))
-                                                        <td>
-                                                            <a style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};"
-                                                                href="javascript:;" class="black_list_activate active">
-                                                                Active
-                                                            </a>
-                                                        </td>
-                                                    @else
-                                                        <td>
-                                                            <a style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};"
-                                                                href="javascript:;" class="black_list_activate non_active">
-                                                                InActive
-                                                            </a>
-                                                        </td>
-                                                    @endif
-                                                    @if (session('is_creator'))
-                                                        <td>
-                                                            <a style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};"
-                                                                href="javascript:;" type="button"
-                                                                class="setting setting_btn" id="">
-                                                                <i class="fa-solid fa-gear"></i>
-                                                            </a>
-                                                            @if (session('email_verified'))
-                                                                <ul class="setting_list">
-                                                                    <li><a href="javascript:;">Edit</a></li>
-                                                                    <li><a href="javascript:;">Delete</a></li>
-                                                                </ul>
-                                                            @endif
-                                                        </td>
-                                                    @endif
-                                                </tr>
-                                            @endforeach
+                                                @else
+                                                    <td>
+                                                        <a style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};"
+                                                            href="javascript:;" class="black_list_activate non_active">
+                                                            InActive
+                                                        </a>
+                                                    </td>
+                                                @endif
+                                                @if (session('is_creator'))
+                                                    <td>
+                                                        <a style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};"
+                                                            href="javascript:;" type="button" class="setting setting_btn"
+                                                            id="">
+                                                            <i class="fa-solid fa-gear"></i>
+                                                        </a>
+                                                        @if (session('email_verified'))
+                                                            <ul class="setting_list">
+                                                                <li><a href="javascript:;">Edit</a></li>
+                                                                <li><a href="javascript:;">Delete</a></li>
+                                                            </ul>
+                                                        @endif
+                                                    </td>
+                                                @endif
+                                            </tr>
                                         @endforeach
                                     @else
                                         <tr>
@@ -207,7 +252,7 @@
         var accImage = "{{ asset('assets/img/acc.png') }}";
         var isCreator = "{{ session('is_creator') }}";
     </script>
-    {{-- @if (session('is_creator'))
+    @if (session('is_creator'))
         <div class="modal fade step_form_popup " id="create_new_role" tabindex="-1" aria-labelledby="create_new_role"
             aria-hidden="true">
             <div class="modal-dialog">
@@ -254,7 +299,7 @@
                 </div>
             </div>
         </div>
-    @endif --}}
+    @endif
     @if (session('is_creator'))
         <div class="modal fade create_sequence_modal invite_team_modal" id="invite_team_modal" tabindex="-1"
             aria-labelledby="invite_team_modal" aria-hidden="true">
@@ -356,9 +401,7 @@
             }
         });
     </script>
-    @if (session('is_creator'))
-        <script>
-            var searchTeamMemberRoute = "{{ route('searchTeamMember', ['slug' => $team->slug, 'search' => ':search']) }}";
-        </script>
-    @endif
+    <script>
+        var searchTeamMemberRoute = "{{ route('searchTeamMember', ['slug' => $team->slug, 'search' => ':search']) }}";
+    </script>
 @endsection

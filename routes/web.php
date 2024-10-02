@@ -72,28 +72,28 @@ Route::middleware(['userAuth'])->group(function () {
             Route::post('/filter-email-blacklist', [BlacklistController::class, 'filterEmailBlacklist'])->name('filterEmailBlacklist'); //Done
         });
 
-        Route::prefix('/stripe')->group(function () {
-            Route::post('/payment', [StripePaymentController::class, 'stripePayment'])->name('stripePayment');
-        });
-
-        /* These are for team member */
-        Route::prefix('/member')->group(function () {
-            Route::get('/', [TeamController::class, 'team'])->name('teamPage');
-            Route::prefix('role')->group(function () {
-                Route::get('/role-and-permission', [RolesPermissionController::class, 'rolesPermission'])->name('rolesPermissionPage'); //Done
-                Route::post('/custom-role', [RolesPermissionController::class, 'customRole'])->name('customRole'); //Done
-                Route::delete('/delete-role/{id}', [RolesPermissionController::class, 'deleteRole'])->name('deleteRole'); //Done
-                Route::get('/get-role/{id}', [RolesPermissionController::class, 'getRole'])->name('getRole'); //Done
-                Route::put('/edit-role/{id}', [RolesPermissionController::class, 'editRole'])->name('editRole'); //Done
-            });
-            Route::get('/search-team-member/{search}', [TeamController::class, 'searchTeamMember'])->name('searchTeamMember');
-            Route::post('/invite-team-member', [TeamController::class, 'inviteTeamMember'])->name('inviteTeamMember');
-        });
-
         Route::prefix('/invoice')->middleware(['invoiceAccessChecked'])->group(function () {
             Route::get('/', [InvoiceController::class, 'invoice'])->name('globalInvoicePage'); //Done
             Route::get('/seat/{id}', [InvoiceController::class, 'invoiceBySeat'])->name('invoiceBySeat'); //Done
             Route::get('/download/{id}', [InvoiceController::class, 'downloadInvoice'])->name('downloadInvoice'); //Done
+        });
+
+        Route::prefix('/stripe')->group(function () {
+            Route::post('/payment', [StripePaymentController::class, 'stripePayment'])->name('stripePayment'); //Done
+        });
+
+        /* These are for team member */
+        Route::prefix('/member')->group(function () {
+            Route::get('/', [TeamController::class, 'team'])->name('teamPage'); //Done
+            Route::prefix('role')->group(function () {
+                Route::get('/role-and-permission', [RolesPermissionController::class, 'rolesPermission'])->name('rolesPermissionPage'); //Done
+                Route::post('/custom-role', [RolesPermissionController::class, 'customRole'])->name('customRole'); //Done
+                Route::get('/get-role/{id}', [RolesPermissionController::class, 'getRole'])->name('getRole'); //Done
+                Route::put('/edit-role/{id}', [RolesPermissionController::class, 'editRole'])->name('editRole'); //Done
+                Route::delete('/delete-role/{id}', [RolesPermissionController::class, 'deleteRole'])->name('deleteRole'); //Done
+            });
+            Route::get('/search-team-member/{search}', [TeamController::class, 'searchTeamMember'])->name('searchTeamMember');
+            Route::post('/invite-team-member', [TeamController::class, 'inviteTeamMember'])->name('inviteTeamMember');
         });
 
         Route::prefix('/settings')->group(function () {

@@ -66,6 +66,55 @@
     #role_name_input.error {
         border: 1px solid red;
     }
+
+    .step_form_popup input.error {
+        border: 1px solid red;
+    }
+
+    .permissions-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        overflow-x: auto;
+    }
+
+    .permissions-table td,
+    .permissions-table th {
+        padding: 8px;
+    }
+
+    .permissions-table td,
+    .permissions-table th {
+        padding: 8px;
+    }
+
+    .permissions-table .per {
+        position: sticky;
+        left: 0;
+        z-index: 999;
+        background-color: #111317;
+    }
+
+    .role_per_sec .data_row .data_table tbody tr td:not(:first-child) {
+        z-index: 1;
+    }
+
+    body.light-mode .permissions-table .per {
+        background-color: #ffffff;
+    }
+
+    .data_head {
+        overflow: hidden;
+        overflow-x: scroll;
+    }
+
+    table.data_table {
+        width: 2800px !important;
+    }
+
+    .role_per_sec .data_row td.text-center {
+        text-align: -webkit-center !important;
+    }
 </style>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 @if (session('is_creator'))
@@ -101,10 +150,10 @@
                     </div>
                     <div class="data_row">
                         <div class="data_head">
-                            <table class="data_table w-100">
+                            <table class="data_table w-100 permissions-table">
                                 <thead>
                                     <tr>
-                                        <th width="70%">Permission</th>
+                                        <th width="15%" class="per">Permission</th>
                                         @if ($roles->isNotEmpty())
                                             @foreach ($roles as $role)
                                                 <th class="text-center" id="{{ 'table_row_' . $role['id'] }}">
@@ -136,14 +185,18 @@
                                                         @endphp
                                                         @if (!empty($role_permission))
                                                             @if ($role_permission['view_only'] == 1)
-                                                                <td><span class="">View Only</span></td>
+                                                                <td class="text-center"><span class="">View
+                                                                        Only</span></td>
                                                             @elseif ($role_permission['access'] == 1)
-                                                                <td><span class="check checked"></span></td>
+                                                                <td class="text-center"><span class="check checked"></span>
+                                                                </td>
                                                             @else
-                                                                <td><span class="check unchecked"></span></td>
+                                                                <td class="text-center"><span
+                                                                        class="check unchecked"></span></td>
                                                             @endif
                                                         @else
-                                                            <td><span class="check unchecked"></span></td>
+                                                            <td class="text-center"><span class="check unchecked"></span>
+                                                            </td>
                                                         @endif
                                                     @endforeach
                                                 @endif
@@ -170,10 +223,13 @@
                         </button>
                     </div>
                     <div class="modal-body" bis_skin_checked="1">
-                        <form class="invite_form" id="">
+                        <form class="invite_form" id="" action="{{ route('customRole', ['slug' => $team->slug]) }}"
+                            method="POST">
+                            @csrf
                             <label for="role_name" id="role_name">Role name</label>
                             <input type="text" name="role_name" id="role_name_input" required
-                                placeholder="Enter role name">
+                                placeholder="Enter role name" value="{{ old('role_name') }}"
+                                class="{{ $errors->first('role_name') ? 'error' : '' }}">
                             <div class="text-danger" id="name_error">{{ $errors->first('role_name') }}</div>
                             <div>
                                 @if ($permissions->isNotEmpty())
@@ -183,16 +239,19 @@
                                                 <input class="permission"
                                                     style="width: 25px; height: 25px; margin-right: 25px;" type="checkbox"
                                                     id="permission_{{ $permission['slug'] }}"
-                                                    name="{{ $permission['slug'] }}">
+                                                    name="{{ $permission['slug'] }}"
+                                                    {{ old($permission['slug']) ? 'checked' : '' }}>
                                                 <label
                                                     for="permission_{{ $permission['slug'] }}">{{ $permission['name'] }}</label>
                                             </div>
-                                            <div class="switch_box" style="display: none; width: 30%;">
+                                            <div class="switch_box"
+                                                style="display: {{ old($permission['slug']) ? 'flex' : 'none' }}; width: 30%;">
                                                 @if ($permission->allow_view_only == 1)
                                                     <input type="checkbox"
                                                         style="width: 25px; height: 25px; margin-right: 25px;"
                                                         id="view_only_{{ $permission['slug'] }}" class="view_only switch"
-                                                        name="view_only_{{ $permission['slug'] }}">
+                                                        name="view_only_{{ $permission['slug'] }}"
+                                                        {{ old('view_only_' . $permission['slug']) ? 'checked' : '' }}>
                                                     <label for="view_only_{{ $permission['slug'] }}"></label>
                                                     View Only
                                                 @endif
@@ -220,31 +279,37 @@
                         </button>
                     </div>
                     <div class="modal-body" bis_skin_checked="1">
-                        <form class="edit_form" method="POST">
+                        <form class="edit_form" method="POST"
+                            action="{{ route('editRole', ['slug' => $team->slug, 'id' => session('role_id') ?? ':id']) }}">
+                            @csrf
                             @method('PUT')
-                            <label for="role_name">Role name</label>
-                            <input type="text" name="role_name" id="role_name_input" required
-                                placeholder="Enter role name">
-                            <div class="text-danger" id="name_error">{{ $errors->first('role_name') }}</div>
+                            <label for="edit_role_name">Role name</label>
+                            <input type="text" name="edit_role_name" id="role_name_input" required
+                                placeholder="Enter role name" value="{{ old('edit_role_name') }}"
+                                class="{{ $errors->first('edit_role_name') ? 'error' : '' }}">
+                            <div class="text-danger" id="name_error">{{ $errors->first('edit_role_name') }}</div>
                             <div>
                                 @if ($permissions->isNotEmpty())
                                     @foreach ($permissions as $permission)
                                         <div class="row invite_modal_row ">
                                             <div class="col-lg-6 checkboxes" style="display: flex; width: 60%;">
-                                                <input class="permission"
+                                                <input class="permission "
                                                     style="width: 25px; height: 25px; margin-right: 25px;" type="checkbox"
                                                     id="edit_permission_{{ $permission['slug'] }}"
-                                                    name="{{ $permission['slug'] }}">
+                                                    name="{{ $permission['slug'] }}"
+                                                    {{ old($permission['slug']) ? 'checked' : '' }}>
                                                 <label
                                                     for="edit_permission_{{ $permission['slug'] }}">{{ $permission['name'] }}</label>
                                             </div>
-                                            <div class="col-lg-6 switch_box" style="display: none; width: 30%;">
+                                            <div class="col-lg-6 switch_box"
+                                                style="display: {{ old($permission['slug']) ? 'flex' : 'none' }}; width: 30%;">
                                                 @if ($permission->allow_view_only == 1)
                                                     <input type="checkbox"
                                                         style="width: 25px; height: 25px; margin-right: 25px;"
                                                         id="edit_view_only_{{ $permission['slug'] }}"
                                                         class="view_only switch"
-                                                        name="view_only_{{ $permission['slug'] }}">
+                                                        name="view_only_{{ $permission['slug'] }}"
+                                                        {{ old('view_only_' . $permission['slug']) ? 'checked' : '' }}>
                                                     <label for="edit_view_only_{{ $permission['slug'] }}"></label>
                                                     View Only
                                                 @endif
@@ -262,9 +327,7 @@
     @endif
     @if (session('is_creator'))
         <script>
-            var customRoleRoute = "{{ route('customRole', ['slug' => $team->slug]) }}";
             var getRoleRoute = "{{ route('getRole', ['slug' => $team->slug, 'id' => ':id']) }}";
-            var editRoleRoute = "{{ route('editRole', ['slug' => $team->slug, 'id' => ':id']) }}";
             var deleteRoleRoute = "{{ route('deleteRole', ['slug' => $team->slug, 'id' => ':id']) }}";
         </script>
     @endif
