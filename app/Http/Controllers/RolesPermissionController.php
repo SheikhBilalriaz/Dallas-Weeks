@@ -53,7 +53,7 @@ class RolesPermissionController extends Controller
             Log::error($e);
 
             /* Return a JSON response with the error message and a 404 status code */
-            return redirect()->route('dashboardPage')->withErrors(['error' => $e->getMessage()]);
+            return redirect()->route('dashboardPage', ['slug' => $slug])->withErrors(['error' => $e->getMessage()]);
         }
     }
 
@@ -303,7 +303,7 @@ class RolesPermissionController extends Controller
                 }
 
                 /* Delete all associated role-permission records before deleting the role */
-                Role_Permission::where('role_id', $role_id)->delete();
+                Role_Permission::where('role_id', $role_id)->each->delete();
 
                 /* Delete the role */
                 $role->delete();

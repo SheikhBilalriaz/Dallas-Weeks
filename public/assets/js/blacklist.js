@@ -79,8 +79,8 @@ $(document).ready(function () {
     });
     $(document).on('click', '.delete-global-blacklist', deleteGlobalBlacklist);
     $(document).on('click', '.delete-email-blacklist', deleteEmailBlacklist);
-    $(document).on('input', "#search-global-blacklist", searchGlobalBlacklist);
-    $(document).on('input', "#search-email-blacklist", searchEmailBlacklist);
+    $(document).on('input', '#search-global-blacklist', searchGlobalBlacklist);
+    $(document).on('input', '#search-email-blacklist', searchEmailBlacklist);
     $(document).on('submit', '#filter-global-blacklist', filterGlobalBlacklist);
     $(document).on('submit', '#filter-email-blacklist', filterEmailBlacklist);
 });
@@ -221,7 +221,7 @@ function searchEmailBlacklist() {
 function deleteGlobalBlacklist() {
     const id = $(this).data('id');
     const $element = $('#global_blacklist_' + id);
-
+    const search = $('#search-global-blacklist').val();
     if (confirm('Are you sure you want to delete this item?')) {
         $.ajax({
             url: deleteGlobalBlacklistRoute.replace(':blacklist-id', id),
@@ -234,7 +234,8 @@ function deleteGlobalBlacklist() {
                 $element.remove();
                 if ($('.delete-global-blacklist').length == 0) {
                     let html = ``;
-                    html += `
+                    if (search == "") {
+                        html += `
                         <tr>
                             <td colspan="4">
                                 <div style="width: 50%; margin: 0 auto; ${!emailVerified ? ' opacity: 0.7;' : ''}"
@@ -243,8 +244,8 @@ function deleteGlobalBlacklist() {
                                     <img src="${emptyImage}" alt="">
                                     <p>
                                         ${!emailVerified
-                            ? "You can't add global blacklist until you verify your email address."
-                            : "You don't have any global blacklist yet. Start by adding your first global blacklist."}
+                                ? "You can't add global blacklist until you verify your email address."
+                                : "You don't have any global blacklist yet. Start by adding your first global blacklist."}
                                     </p>
                                     <div class="add_btn">
                                         <a href="javascript:;" type="button"
@@ -258,11 +259,26 @@ function deleteGlobalBlacklist() {
                             </td>
                         </tr>
                     `;
+                    } else {
+                        html += `
+                        <tr>
+                            <td colspan="4">
+                                <div style="width: 50%; margin: 0 auto;"
+                                    class="empty_blacklist text-center">
+                                    <img src="${emptyImage}" alt="">
+                                    <p>
+                                        Sorry, no results for that query
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    }
                     $('#global_blacklist_row').html(html);
                 }
             },
             error: function (xhr, status, error) {
-                toastr.error('Something went wrong');
+                toastr.error('Something went wrong while deleting the blacklist item.');
             }
         });
     }
@@ -271,7 +287,7 @@ function deleteGlobalBlacklist() {
 function deleteEmailBlacklist() {
     const id = $(this).data('id');
     const $element = $('#email_blacklist_' + id);
-
+    const search = $('#search-email-blacklist').val();
     if (confirm('Are you sure you want to delete this item?')) {
         $.ajax({
             url: deleteEmailBlacklistRoute.replace(':blacklist-id', id),
@@ -284,7 +300,8 @@ function deleteEmailBlacklist() {
                 $element.remove();
                 if ($('.delete-email-blacklist').length == 0) {
                     let html = ``;
-                    html += `
+                    if (search == "") {
+                        html += `
                         <tr>
                             <td colspan="4">
                                 <div style="width: 50%; margin: 0 auto; ${!emailVerified ? ' opacity: 0.7;' : ''}"
@@ -293,8 +310,8 @@ function deleteEmailBlacklist() {
                                     <img src="${emptyImage}" alt="">
                                     <p>
                                     ${!emailVerified
-                            ? "You can't add email blacklist until you verify your email address."
-                            : "You don't have any email blacklist yet. Start by adding your first email blacklist."}
+                                ? "You can't add email blacklist until you verify your email address."
+                                : "You don't have any email blacklist yet. Start by adding your first email blacklist."}
                                     </p>
                                     <div class="add_btn">
                                         <a href="javascript:;" type="button"
@@ -308,11 +325,26 @@ function deleteEmailBlacklist() {
                             </td>
                         </tr>
                     `;
+                    } else {
+                        html += `
+                        <tr>
+                            <td colspan="4">
+                                <div style="width: 50%; margin: 0 auto;"
+                                    class="empty_blacklist text-center">
+                                    <img src="${emptyImage}" alt="">
+                                    <p>
+                                        Sorry, no results for that query
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    }
                     $('#email_blacklist_row').html(html);
                 }
             },
             error: function (xhr, status, error) {
-                toastr.error('Something went wrong');
+                toastr.error('Something went wrong while deleting the blacklist item.');
             }
         });
     }

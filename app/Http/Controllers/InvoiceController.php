@@ -48,7 +48,7 @@ class InvoiceController extends Controller
             Log::error($e);
 
             /* Redirect to dashboardPage with an error message if an exception occurs. */
-            return redirect()->route('dashboardPage')->withErrors(['error' => $e->getMessage()]);
+            return redirect()->route('dashboardPage', ['slug' => $slug])->withErrors(['error' => $e->getMessage()]);
         }
     }
 

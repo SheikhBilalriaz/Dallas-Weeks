@@ -6,9 +6,7 @@
             $seat->seat_info = \App\Models\Seat_Info::find($seat->seat_info_id);
         }
     @endphp
-    @if (session('is_creator'))
-        <script src="{{ asset('assets/js/team.js') }}"></script>
-    @endif
+    <script src="{{ asset('assets/js/team.js') }}"></script>
     <style>
         .disabled {
             opacity: 0.7;
@@ -106,8 +104,8 @@
                                     <tr>
                                         <th width="{{ session('is_creator') ? '30%' : '40%' }}">Name</th>
                                         <th width="15%">Email</th>
-                                        <th width="15%">Role</th>
-                                        <th width="15%">Seat</th>
+                                        <th width="15%">Roles</th>
+                                        <th width="15%">Seats</th>
                                         <th width="15%">Status</th>
                                         @if (session('is_creator'))
                                             <th width="10%">Action</th>
@@ -115,7 +113,8 @@
                                     </tr>
                                 </thead>
                                 <tbody id="team_row">
-                                    <tr title="{{ session('email_verified') ? '' : 'Verify your email first to view seat' }}"
+                                    <tr class="delete-team-member"
+                                        title="{{ session('email_verified') ? '' : 'Verify your email first to view team' }}"
                                         style="opacity: {{ !session('email_verified') ? 0.7 : 1 }};">
                                         <td>
                                             <div class="d-flex align-items-center">
@@ -151,8 +150,9 @@
                                             @php
                                                 $member_detail = \App\Models\User::find($member->user_id);
                                             @endphp
-                                            <tr title="{{ session('email_verified') ? '' : 'Verify your email first to view seat' }}"
-                                                style="opacity: {{ !session('email_verified') ? 0.7 : 1 }};">
+                                            <tr title="{{ session('email_verified') ? '' : 'Verify your email first to view team' }}"
+                                                style="opacity: {{ !session('email_verified') ? 0.7 : 1 }};"
+                                                id="{{ 'table_row_' . $member->id }}">
                                                 <td>
                                                     <div class="d-flex align-items-center">
                                                         <img style="background: #000; border-radius: 50%;"
@@ -189,7 +189,7 @@
                                                         )->get();
                                                         $member_seats = $member_seat->pluck('name')->toArray();
                                                     @endphp
-                                                    {{ implode(', ', $member_seats) ?: 'No Role Assigned' }}
+                                                    {{ implode(', ', $member_seats) ?: 'No Seat Assigned' }}
                                                 </td>
                                                 @if (!empty($member_detail->verified_at))
                                                     <td>
@@ -215,15 +215,17 @@
                                                         </a>
                                                         @if (session('email_verified'))
                                                             <ul class="setting_list">
-                                                                <li><a href="javascript:;">Edit</a></li>
-                                                                <li><a href="javascript:;">Delete</a></li>
+                                                                <li class="edit"><a href="javascript:;">Edit</a></li>
+                                                                <li class="delete-team-member"><a
+                                                                        href="javascript:;">Delete</a></li>
                                                             </ul>
                                                         @endif
                                                     </td>
                                                 @endif
                                             </tr>
                                         @endforeach
-                                    @else
+                                    @endif
+                                    @if (!$members->isNotEmpty() && empty($creator))
                                         <tr>
                                             <td colspan="{{ session('is_creator') ? '6' : '5' }}">
                                                 <div style="width: 50%; margin: 0 auto;"
@@ -312,20 +314,20 @@
                         </button>
                     </div>
                     <div class="modal-body">
+                        <div class="model_alert alert alert-danger alert-dismissible fade show input_errors"
+                            style="display: none;" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
                         @if ($errors->first())
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                                 <a class="close" data-dismiss="alert" aria-label="Close">&times;</a>
                                 {{ $errors->first() }}
                             </div>
                         @endif
-                        <div class="model_alert alert alert-danger alert-dismissible fade show" style="display: none;"
-                            role="alert">
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form class="invite_form" action="{{ route('inviteTeamMember', ['slug' => $team->slug]) }}"
-                            method="POST">
+                        <form class="invite_form" method="POST"
+                            action="{{ route('inviteTeamMember', ['slug' => $team->slug]) }}">
                             @csrf
                             <div class="row invite_modal_row">
                                 <div class="col-lg-6">
@@ -345,7 +347,7 @@
                                         @foreach ($roles as $role)
                                             <div class="checkboxes">
                                                 <div class="check">
-                                                    <input value="{{ 'role_' . $role->id }}" name="role"
+                                                    <input value="{{ 'role_' . $role->id }}" name="roles[]"
                                                         type="checkbox">
                                                     <label class="roles"
                                                         for="{{ 'role_' . $role->id }}">{{ $role->name }}</label>
@@ -384,7 +386,7 @@
                                     </div>
                                 </div>
                                 <button type="submit"
-                                    class="crt_btn edit_able {{ !session()->has('invite_error') ? 'disabled' : '' }} theme_btn manage_member mt-5">
+                                    class="crt_btn edit_able_btn {{ !session()->has('invite_error') ? 'disabled' : '' }} theme_btn manage_member mt-5">
                                     Invite member <i class="fa-solid fa-arrow-right"></i>
                                 </button>
                             </div>
@@ -404,4 +406,9 @@
     <script>
         var searchTeamMemberRoute = "{{ route('searchTeamMember', ['slug' => $team->slug, 'search' => ':search']) }}";
     </script>
+    @if (session('is_creator'))
+        <script>
+            var deleteTeamMemberRoute = "{{ route('deleteTeamMember', ['slug' => $team->slug, 'id' => ':id']) }}";
+        </script>
+    @endif
 @endsection

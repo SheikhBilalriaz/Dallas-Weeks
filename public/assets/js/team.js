@@ -1,5 +1,4 @@
 var customRoleAjax = null;
-var inviteMemberAjax = null;
 var searchMemberAjax = null;
 $(document).ready(function () {
     toastr.options = {
@@ -19,22 +18,37 @@ $(document).ready(function () {
         "showMethod": "fadeIn",
         "hideMethod": "fadeOut"
     };
-    // $('.permission').on('click', function () {
-    //     if ($(this).prop('checked')) {
-    //         $(this).parent().siblings('div').css('display', 'flex');
-    //     } else {
-    //         $(this).parent().siblings('div').css('display', 'none');
-    //     }
-    // });
-    // $(document).on('click', '.seats', function (e) {
-    //     e.preventDefault();
-    //     const checkboxId = $(this).attr('for');
-    //     const checkbox = $(`#${checkboxId}`);
-    //     checkbox.prop('checked', !checkbox.prop('checked'));
-    // });
-    // $(document).on('input', '#invite_email', inviteEmail);
-    // $(document).on('click', '.roles', getRole);
+    $(document).on('click', '.permission', function (e) {
+        if ($(this).prop('checked')) {
+            $(this).parent().siblings('div').css('display', 'flex');
+        } else {
+            $(this).parent().siblings('div').css('display', 'none');
+        }
+    });
+    $(document).on('click', '.seats', function (e) {
+        e.preventDefault();
+        const checkboxId = $(this).attr('for');
+        const checkbox = $(this).parent().find(`#${checkboxId}`);
+        checkbox.prop('checked', !checkbox.prop('checked'));
+        $('.invite_modal_row .edit_able_btn').addClass('disabled');
+        if ($('.seat-management').length > 0) {
+            let notChecked = false;
+            $('.seat-management').each(function (index, element) {
+                if ($(this).find('input[name^="seats"]:checked').length <= 0) {
+                    notChecked = true;
+                    return;
+                }
+            });
+            if (!notChecked) {
+                $('.invite_modal_row .edit_able_btn').removeClass('disabled');
+            }
+        }
+    });
+    $(document).on('input', '#invite_email', inviteEmail);
+    $(document).on('click', '.roles', getRole);
+    $(document).on('submit', '.invite_form', inviteMember);
     // $('.step_form').on('submit', custom_role);
+    $(document).on('click', '.delete-team-member', deleteMember);
     $(document).on('input', '#search-team-member', searchMember);
     $(document).on('click', '.setting_btn', function () {
         var $currentList = $(this).siblings(".setting_list");
@@ -47,6 +61,36 @@ $(document).ready(function () {
         }
     });
 });
+
+function inviteMember(e) {
+    e.preventDefault();
+    var form = $(this).closest('form');
+    $('.input_errors').empty().hide();
+    let errorFound = false;
+
+    if ($('input[name^="roles"]:checked').length <= 0) {
+        $('.input_errors').html(`Please select at least one role.`).show();
+        $('.invite_modal_row .edit_able_btn').addClass('disabled');
+        errorFound = true;
+    }
+
+    if (!errorFound && $('.seat-management').length > 0) {
+        $('.seat-management').each(function () {
+            if ($(this).find('input[name^="seats"]:checked').length <= 0) {
+                var role_name = $(this).siblings('label').html();
+                $('.input_errors').html(`Please select at least one seat for role "${role_name}".`).show();
+                $('.invite_modal_row .edit_able_btn').addClass('disabled');
+                errorFound = true;
+                return false;
+            }
+        });
+    }
+
+    if (!errorFound) {
+        form.removeClass('invite_form');
+        form.submit();
+    }
+}
 
 function searchMember(e) {
     var search = $(this).val();
@@ -64,7 +108,6 @@ function searchMember(e) {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         success: function (response) {
-            console.log(response);
             if (response.success) {
                 let html = ``;
                 if (response.creator) {
@@ -88,7 +131,7 @@ function searchMember(e) {
                         </td>
                         `;
                     }
-                    html += `<tr title="${emailVerified ? '' : 'Verify your email first to view seat'}"
+                    html += `<tr title="${emailVerified ? '' : 'Verify your email first to view team'}"
                                 style="opacity: ${!emailVerified ? 0.7 : 1};">
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -106,71 +149,65 @@ function searchMember(e) {
                 }
                 if (response.team_member.length > 0) {
                     response.team_member.forEach(function (element) {
-                        html += ``;
+                        var td = ``;
+                        if (element.member_deatil.verified_at) {
+                            td = `<td>
+                                    <a style="cursor: ${!emailVerified ? 'auto' : 'pointer'};"
+                                        href="javascript:;" class="black_list_activate active">
+                                        Active
+                                    </a>
+                                </td>`;
+                        } else {
+                            td = `<td>
+                                    <a style="cursor: ${!emailVerified ? 'auto' : 'pointer'};"
+                                        href="javascript:;" class="black_list_activate non_active">
+                                        InActive
+                                    </a>
+                                </td>`;
+                        }
+                        var settingList = ``;
+                        if (emailVerified) {
+                            settingList += `<ul class="setting_list">
+                                                <li class="edit"><a href="javascript:;">Edit</a></li>
+                                                <li class="delete-team-member"><a href="javascript:;">Delete</a></li>
+                                            </ul>`;
+                        }
+                        var creatorTd = ``;
+                        if (isCreator) {
+                            creatorTd += `
+                            <td>
+                                <a style="cursor: ${!emailVerified ? 'auto' : 'pointer'};"
+                                    href="javascript:;" type="button" class="setting setting_btn"
+                                    id="">
+                                    <i class="fa-solid fa-gear"></i>
+                                </a>
+                                ${settingList}
+                            </td>`;
+                        }
+                        html += `<tr title="${emailVerified ? '' : 'Verify your email first to view team'}"
+                                    style="opacity: ${!emailVerified ? 0.7 : 1};"
+                                    id="${'table_row_' + element.id}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img style="background: #000; border-radius: 50%;"
+                                                src="${accImage}" alt="">
+                                            <strong>${element.member_deatil.name}</strong>
+                                        </div>
+                                    </td>
+                                    <td>${element.member_deatil.email}</td>
+                                    <td>
+                                        ${element.member_role}
+                                    </td>
+                                    <td>
+                                        ${element.member_seat}
+                                    </td>
+                                    ${td}
+                                    ${creatorTd}
+                                </tr>`;
                     });
                 }
                 $('#team_row').html(html);
             }
-            // if (response.success && response.team_member.length > 0) {
-            // let html = ``;
-            // response.team_member.forEach(function (element) {
-            //     html += `
-            //     <tr title="{{ session('email_verified') ? '' : 'Verify your email first to view seat' }}"
-            //                                     style="opacity: {{ !session('email_verified') ? 0.7 : 1 }};">
-            //                                     <td>
-            //                                         <div class="d-flex align-items-center">
-            //                                             <img style="background: #000; border-radius: 50%;"
-            //                                                 src="{{ asset('assets/img/acc.png') }}" alt="">
-            //                                             <strong>{{ $member_detail->name }}</strong>
-            //                                         </div>
-            //                                     </td>
-            //                                     <td>{{ $member_detail->email }}</td>
-            //                                     @php
-            //                                         $member_role = \App\Models\Role::find($assigned_seat->role_id);
-            //                                     @endphp
-            //                                     <td>{{ $member_role->name }}</td>
-            //                                     @php
-            //                                         $member_seat = \App\Models\Seat::find($assigned_seat->seat_id);
-            //                                         $member_seat = \App\Models\Company_Info::find(
-            //                                             $member_seat->company_info_id,
-            //                                         );
-            //                                     @endphp
-            //                                     <td>{{ $member_seat->name }}</td>
-            //                                     @if (!empty($member_detail->verified_at))
-            //                                         <td>
-            //                                             <a style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};"
-            //                                                 href="javascript:;" class="black_list_activate active">
-            //                                                 Active
-            //                                             </a>
-            //                                         </td>
-            //                                     @else
-            //                                         <td>
-            //                                             <a style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};"
-            //                                                 href="javascript:;" class="black_list_activate non_active">
-            //                                                 InActive
-            //                                             </a>
-            //                                         </td>
-            //                                     @endif
-            //                                     @if (session('is_creator'))
-            //                                         <td>
-            //                                             <a style="cursor: {{ !session('email_verified') ? 'auto' : 'pointer' }};"
-            //                                                 href="javascript:;" type="button"
-            //                                                 class="setting setting_btn" id="">
-            //                                                 <i class="fa-solid fa-gear"></i>
-            //                                             </a>
-            //                                             @if (session('email_verified'))
-            //                                                 <ul class="setting_list">
-            //                                                     <li><a href="javascript:;">Edit</a></li>
-            //                                                     <li><a href="javascript:;">Delete</a></li>
-            //                                                 </ul>
-            //                                             @endif
-            //                                         </td>
-            //                                     @endif
-            //                                 </tr>
-            //     `;
-            // });
-            // $('#team_row').html(html);
-            // }
         },
         error: function (xhr, status, error) {
             let html = ``;
@@ -195,6 +232,46 @@ function searchMember(e) {
     });
 }
 
+function deleteMember() {
+    const $table_row = $(this).parent().parent().parent();
+    const id = $table_row.prop('id').replace('table_row_', '');
+    const search = $('#search-team-member').val();
+    if (confirm('Are you sure you want to delete this item?')) {
+        $.ajax({
+            url: deleteTeamMemberRoute.replace(':id', id),
+            type: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function (response) {
+                toastr.success('Deleted succesfully');
+                $table_row.remove();
+                if ($('.delete-team-member').length == 0) {
+                    let html = ``;
+                    html += `
+                        <tr>
+                            <td colspan="${isCreator ? '6' : '5'}">
+                                <div style="width: 50%; margin: 0 auto;"
+                                    class="empty_blacklist text-center">
+                                    <img style="margin-right: 0px;" src="${emptyImage}" alt="">
+                                    <p>
+                                        Sorry, no results for that query
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    $('#team_row').html(html);
+                }
+                console.log(response);
+            },
+            error: function (xhr, status, error) {
+                toastr.error('Something went wrong while deleting the team member.');
+            }
+        });
+    }
+}
+
 function inviteEmail(e) {
     var email = $(this).val();
     var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -207,27 +284,32 @@ function inviteEmail(e) {
 }
 
 function getRole(e) {
-    $('.roles').siblings('input').prop('checked', false);
-    $(this).siblings('input').prop('checked', true);
-    $('.seat-management').remove();
-    let html = `
-        <div class="seat-management" style="padding: 17px;">
-            <p>Select seats to manage</p>
-    `;
-    if (seats.length > 0) {
-        const seatCheckboxes = seats.map(seat => `
-            <div style="margin-bottom: 17px;">
-                <input value="${seat.id}" name="seats[]" type="checkbox" id="seat-${seat.id}"> 
-                <label class="seats" for="seat-${seat.id}">${seat.company_info.name}</label>
-            </div>
-        `).join('');
-        html += seatCheckboxes;
+    if ($(this).siblings('input').prop('checked') != true) {
+        $(this).siblings('input').prop('checked', true);
+        let html = `
+            <div class="seat-management" style="padding: 17px;">
+                <p>Select seats to manage</p>
+        `;
+        if (seats.length > 0) {
+            const seatCheckboxes = seats.map(seat => `
+                <div style="margin-bottom: 17px;">
+                    <input value="${seat.id}" name="seats[${$(this).attr('for')}][]" data-role="${$(this).attr('for')}" 
+                        type="checkbox" id="seat-${seat.id}"> 
+                    <label class="seats" for="seat-${seat.id}">${seat.company_info.name}</label>
+                </div>
+            `).join('');
+            html += seatCheckboxes;
+        } else {
+            html += `<p>You don't have any seats to manage. To continue add new seats.</p>`;
+            $('.manage_member').addClass('disabled');
+        }
+        $('.invite_modal_row .edit_able_btn').addClass('disabled');
+        html += `</div>`;
+        $(this).parent().append(html);
     } else {
-        html += `<p>You don't have any seats to manage. To continue add new seats.</p>`;
-        $('.manage_member').addClass('disabled');
+        $(this).siblings('input').prop('checked', false);
+        $(this).siblings('.seat-management').remove()
     }
-    html += `</div>`;
-    $(this).parent().append(html);
 }
 
 function custom_role(e) {

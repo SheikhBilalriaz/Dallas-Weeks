@@ -117,9 +117,7 @@
     }
 </style>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-@if (session('is_creator'))
-    <script src="{{ asset('assets/js/roles&permission.js') }}"></script>
-@endif
+<script src="{{ asset('assets/js/roles&permission.js') }}"></script>
 @section('content')
     <section class="blacklist team_management role_per_sec">
         <div class="container-fluid">

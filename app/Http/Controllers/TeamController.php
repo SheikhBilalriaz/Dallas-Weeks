@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Mail\WelcomeMail;
-use App\Models\Seat_Info;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
@@ -80,55 +79,160 @@ class TeamController extends Controller
             Log::error($e);
 
             /* Return a JSON response with the error message and a 404 status code */
-            return redirect()->route('dashboardPage')->withErrors(['error' => $e->getMessage()]);
+            return redirect()->route('dashboardPage', ['slug' => $slug])->withErrors(['error' => $e->getMessage()]);
         }
     }
 
     /**
-     * Search the search team members for the authenticated user and team.
+     * Search the team members for the authenticated user and team based on search input.
      *
-     * @param  String  $slug
-     * @param  String  $search
-     * @return \Illuminate\Http\JsonResponse
+     * @param  String  $slug   The unique identifier for the team (team slug).
+     * @param  String  $search The search keyword to filter team members by name or email.
+     * @return \Illuminate\Http\JsonResponse Returns a JSON response with the team members and creator.
      */
     public function searchTeamMember($slug, $search)
     {
         try {
+            /* Get the currently authenticated user */
             $user = Auth::user();
+
+            /* Find the team by its slug */
             $team = Team::where('slug', $slug)->first();
-            $creator = User::where('name', 'Like', '%' . $search . '%')
-                ->orWhere('email', 'Like', '%' . $search . '%')
-                ->where('id', $team->creator_id)->first();
-            $team_member = Team_Member::where('team_id', $team->id)->get();
-            if ($search == 'null') {
-                $users = User::whereIn('id', $team_member->pluck('user_id')->toArray())->get();
-            } else {
-                $users = User::whereIn('id', $team_member->pluck('user_id')->toArray())
-                    ->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('email', 'like', '%' . $search . '%')->get();
+
+            /* Query the creator of the team by their user ID */
+            $query = User::where('id', $team->creator_id);
+
+            /* If a search term is provided, apply a filter to search by name or email */
+            if ($search != 'null') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'Like', '%' . $search . '%')
+                        ->orWhere('email', 'Like', '%' . $search . '%');
+                });
             }
 
-            $members = Team_Member::where('user_id', $users->pluck('id')->toArray())->get();
+            /* Fetch the creator's details after applying the search filter (if any) */
+            $creator = $query->first();
 
-            /* Check if any team member items were found */
-            if ($members->isNotEmpty()) {
-                /* Json response with team member */
+            /* Get all members associated with the team */
+            $members = Team_Member::where('team_id', $team->id)->get();
+
+            /* Initialize an empty array to store filtered members */
+            $filtered_members = [];
+
+            /* Iterate through each team member */
+            foreach ($members as $member) {
+                /* Query to fetch the user details of the member */
+                $query = User::where('id', $member->user_id);
+
+                /* Apply search filter if a search term is provided */
+                if ($search != 'null') {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('email', 'like', '%' . $search . '%');
+                    });
+                }
+
+                /* Fetch the member details */
+                $member->member_deatil = $query->first();
+
+                /* If member details are not found, skip this iteration */
+                if (!$member->member_deatil) {
+                    continue;
+                }
+
+                /* Fetch the assigned seats for the current member */
+                $assigned_seats = Assigned_Seat::where('member_id', $member->id)->get();
+
+                /* Fetch the roles based on the role IDs associated with the assigned seats */
+                $member_role = Role::whereIn('id', $assigned_seats->pluck('role_id')->toArray())->get();
+                $member_roles = $member_role->pluck('name')->toArray();
+
+                /* Convert the roles to a comma-separated string or set 'No Role Assigned' if empty */
+                $member->member_role = implode(', ', $member_roles) ?: 'No Role Assigned';
+
+                /* Fetch the seats based on the seat IDs associated with the assigned seats */
+                $member_seat = Seat::whereIn('id', $assigned_seats->pluck('seat_id')->toArray())->get();
+
+                /* Fetch the company information based on the seat's company info IDs */
+                $member_seats = Company_Info::whereIn('id', $member_seat->pluck('company_info_id')->toArray())->get();
+                $member_seats = $member_seats->pluck('name')->toArray();
+
+                /* Convert the seats to a comma-separated string or set 'No Seat Assigned' if empty */
+                $member->member_seat = implode(', ', $member_seats) ?: 'No Seat Assigned';
+
+                /* Add the member to the filtered members array */
+                $filtered_members[] = $member;
+            }
+
+            /* If there are any filtered members, return them in the response */
+            if (!empty($filtered_members) || !empty($creator)) {
                 return response()->json([
                     'success' => true,
-                    'team_member' => $members,
+                    'team_member' => $filtered_members,
                     'creator' => $creator,
                 ]);
             }
 
-            /* Team Member not found */
+            /* Return a response with a failure message if no members are found */
             return response()->json(['success' => false, 'message' => 'No team member found.'], 404);
+        } catch (Exception $e) {
+            /* Log the error for debugging purposes */
+            Log::error($e);
+
+            /* Redirect to the dashboard page with an error message in case of an exception */
+            return redirect()->route('dashboardPage', ['slug' => $slug])
+                ->withErrors(['error' => 'Something went wrong while searching the team.']);
+        }
+    }
+
+    /**
+     * Delete the specified team member for the authenticated user and team.
+     *
+     * @param  String  $slug  The unique identifier for the team (team slug).
+     * @param  Int     $id    The ID of the team member to be deleted.
+     * @return \Illuminate\Http\JsonResponse Returns a JSON response indicating success or failure.
+     */
+    public function deleteTeamMember($slug, $id)
+    {
+        try {
+            /* Find the team by its slug */
+            $team = Team::where('slug', $slug)->first();
+
+            /* Find the team member by their ID and ensure they belong to the specified team */
+            $member = Team_Member::where('id', $id)->where('team_id', $team->id)->first();
+
+            /* If the team member exists, proceed with deletion */
+            if ($member) {
+                /* Find the user associated with the team member */
+                $user = User::find($member->user_id);
+
+                /* Retrieve all assigned seats related to the team member */
+                $assigned_seats = Assigned_Seat::where('member_id', $member->id)->get();
+
+                /* Retrieve global permissions for the user within the specified team */
+                $global_permissions = Global_Permission::where('user_id', $user->id)->where('team_id', $team->id)->get();
+
+                /* Delete the global permissions */
+                $global_permissions->each->delete();
+
+                /* Delete the assigned seats for the team member */
+                $assigned_seats->each->delete();
+
+                /* Finally, delete the team member */
+                $member->delete();
+
+                /* Return a success response indicating the team member was deleted */
+                return response()->json(['success' => true, 'message' => 'Blacklist item deleted successfully.']);
+            }
+
+            /* If the team member was not found, return a 404 response */
+            return response()->json(['error' => 'Team member not found.'], 404);
         } catch (Exception $e) {
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
-            /* Redirect to dashboard with an error message */
-            return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong']);
+            /* Return a generic error response */
+            return response()->json(['success' => false, 'message' => 'Something went wrong while deleting the team member.'], 500);
         }
     }
 
@@ -141,45 +245,72 @@ class TeamController extends Controller
      */
     public function inviteTeamMember($slug, Request $request)
     {
-        /* Find the team by slug */
-        $team = Team::where('slug', $slug)->first();
-
-        /* Validate request data */
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'invite_email' => 'required|email',
-            'role' => 'required|string',
-            'seats' => 'required|array|min:1',
-            'seats.*' => 'string|max:255',
-        ]);
-
-        /* Return validation errors if validation fails */
-        if ($validator->fails()) {
-            return back()->withErrors($validator)
-                ->with('invite_error', true)
-                ->withInput();
-        }
-
-        /* Check if the invitee is the current user */
-        if ($request->input('invite_email') == auth()->user()->email) {
-            return back()->withErrors([
-                'invite_email' => 'You cannot assign roles to yourself',
-            ])->with('invite_error', true)->withInput();
-        }
-
-        /* Remove 'role_' prefix from the role input */
-        $role = str_replace('role_', '', $request->input('role'));
-
-        /* Check if user exists by email */
-        $user = User::where('email', $request->input('invite_email'))->first();
-        $temp_user = null;
-
-        /* Begin a database transaction */
+        /* Start a database transaction */
         DB::beginTransaction();
 
         try {
-            /* Create a new user if they do not exist */
+            /* Find the team by slug */
+            $team = Team::where('slug', $slug)->first();
+
+            /* Validate request data */
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:191',
+                'invite_email' => 'required|email',
+                'roles' => 'required|array|min:1',
+                'roles.*' => 'string|max:255',
+                'seats' => 'required|array|min:1',
+                'seats.*' => 'required|array|min:1',
+                'seats.*.*' => 'string|max:255',
+            ]);
+
+            /* Return validation errors if validation fails */
+            if ($validator->fails()) {
+                return back()->withErrors($validator)
+                    ->with('invite_error', true)
+                    ->withInput();
+            }
+
+            /* Check if the invitee is the current user */
+            if ($request->input('invite_email') == auth()->user()->email) {
+                return back()->withErrors([
+                    'invite_email' => 'You cannot assign roles to yourself',
+                ])->with('invite_error', true)->withInput();
+            }
+
+            /* Validate that at least one seat is assigned for each role */
+            foreach ($request->input('roles') as $role) {
+                if (!isset($request->input('seats')[$role]) || count($request->input('seats')[$role]) <= 0) {
+                    return back()->withErrors([
+                        'roles' => `No Seat Assigned to '{$role}'.`,
+                    ])->with('invite_error', true)->withInput();
+                }
+            }
+
+            /* Check if roles and seats exist in the database */
+            foreach ($request->input('roles') as $role) {
+                $role_id = str_replace('role_', '', $role);
+
+                /* Validate the existence of the role */
+                if (!Role::where('id', $role_id)->exists()) {
+                    return back()->withErrors([
+                        'roles' => `Role '{$role}' not found`,
+                    ])->with('invite_error', true)->withInput();
+                }
+
+                /* Validate the existence of assigned seats for each role */
+                foreach ($request->input('seats')[$role] as $seat) {
+                    if (!Seat::where('id', $seat)->exists()) {
+                        return back()->withErrors([
+                            'roles' => `Seat '{$seat}' not found for role '{$role}'`,
+                        ])->with('invite_error', true)->withInput();
+                    }
+                }
+            }
+
+            /* Check if the user already exists or create a new user */
+            $user = User::where('email', $request->input('invite_email'))->first();
             if (!$user) {
+                /* Generate a random password for the new user */
                 $randomPassword = Str::random(37);
                 $temp_user = User::create([
                     'name' => $request->input('name'),
@@ -188,45 +319,37 @@ class TeamController extends Controller
                     'remember_token' => Str::random(100),
                 ]);
 
-                /* Send welcome email with password */
+                /* Send welcome email to the new user */
                 Mail::to($temp_user->email)->send(new WelcomeMail($temp_user, $randomPassword));
+                $user = $temp_user;
             }
-        } catch (\Exception $e) {
-            if ($temp_user->id) {
-                $temp_user->delete();
+
+            /* Check if the user is already a team member */
+            if (Team_Member::where('user_id', $user->id)->where('team_id', $team->id)->exists()) {
+                return back()->withErrors([
+                    'invite_email' => 'Team Member already existed',
+                ])->with('invite_error', true)->withInput();
             }
-            /* Log the exception message for debugging purposes */
-            Log::error($e);
-
-            /* Redirect to team with an error message */
-            return redirect()->route('teamPage', ['slug' => $slug])->with('invite_error', true)
-                ->withErrors(['error' => 'Something went wrong while inviting a team member.']);
-        }
-
-        if ($temp_user && $temp_user->id) {
-            $user = $temp_user;
-        }
-
-        try {
-            /* Create a team member record */
             $team_member = Team_Member::create([
                 'team_id' => $team->id,
                 'user_id' => $user->id,
             ]);
 
-            /* Assign seats to the team member */
-            foreach ($request->input('seats') as $seat) {
-                $assigned_seats[] = Assigned_Seat::create([
-                    'member_id' => $team_member->id,
-                    'role_id' => $role,
-                    'seat_id' => $seat,
-                ]);
+            /* Assign roles and seats to the team member */
+            foreach ($request->input('roles') as $role) {
+                $role_id = str_replace('role_', '', $role);
+                foreach ($request->input('seats')[$role] as $seat) {
+                    $assigned_seats[] = Assigned_Seat::create([
+                        'member_id' => $team_member->id,
+                        'role_id' => $role_id,
+                        'seat_id' => $seat,
+                    ]);
+                }
             }
 
-            /* Assign additional global permissions if requested */
-            $manage_payment_system = null;
+            /* Handle global permissions based on the request input */
             if ($request->input('manage_payment_system')) {
-                $manage_payment_system = Global_Permission::create([
+                Global_Permission::create([
                     'name' => 'Manage payment system',
                     'slug' => 'manage_payment_system',
                     'user_id' => $user->id,
@@ -234,9 +357,8 @@ class TeamController extends Controller
                     'access' => 1,
                 ]);
             }
-            $manage_global_blacklist = null;
             if ($request->input('manage_global_blacklist')) {
-                $manage_global_blacklist = Global_Permission::create([
+                Global_Permission::create([
                     'name' => 'Manage global blacklist',
                     'slug' => 'manage_global_blacklist',
                     'user_id' => $user->id,
@@ -244,31 +366,23 @@ class TeamController extends Controller
                     'access' => 1,
                 ]);
             }
-            /* Commit the transaction as all operations succeeded */
-            DB::commit();
-            return redirect()->route('teamPage')->with(['success' => 'Add Team Member Successfully']);
-        } catch (\Exception $e) {
-            if ($manage_global_blacklist->id) {
-                $manage_global_blacklist->delete();
-            }
-            if ($manage_payment_system->id) {
-                $manage_payment_system->delete();
-            }
-            foreach ($assigned_seats as $seat) {
-                if ($seat->id) {
-                    $seat->delete();
-                }
-            }
-            if ($team_member->id) {
-                $team_member->delete();
-            }
 
-            /* Log the exception message for debugging purposes */
+            /* Commit the transaction */
+            DB::commit();
+
+            /* Redirect to the team page with a success message */
+            return redirect()->route('teamPage')->with(['success' => 'Add Team Member Successfully']);
+        } catch (Exception $e) {
+            // Rollback the transaction if an error occurs
+            DB::rollBack();
+
+            // Log the exception message
             Log::error($e);
 
-            /* Redirect to team with an error message */
-            return redirect()->route('teamPage', ['slug' => $slug])->with('invite_error', true)
-                ->withErrors(['error' => 'Something went wrong while inviting a team member.']);
+            // Redirect back with an error message
+            return back()->withErrors(['error' => 'An error occurred while inviting the team member. Please try again.'])
+                ->with('invite_error', true)
+                ->withInput();
         }
     }
 }
