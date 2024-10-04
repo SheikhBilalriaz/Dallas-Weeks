@@ -21,12 +21,9 @@ class UserAuthMiddleware
         /* Check if the user is not authenticated */
         $user = Auth::user();
 
+        /* If the user is not authenticated, clear the specific session keys */
         if (!$user) {
-
-            /* If the user is not authenticated, flush (clear) the entire session. */
             session()->flush();
-
-            /* Redirect the user to the loginPage */
             return redirect()->route('loginPage')->withErrors(['error' => 'Please log in to access this page.']);
         }
 

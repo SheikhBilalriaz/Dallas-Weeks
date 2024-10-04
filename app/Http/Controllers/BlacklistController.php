@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class BlacklistController extends Controller
 {
@@ -25,9 +27,9 @@ class BlacklistController extends Controller
             /* Retrieve the team associated with the slug */
             $team = Team::where('slug', $slug)->first();
 
-            /* Retrieve both blacklists in a single block */
-            $global_blacklist = Global_Blacklist::where('team_id', $team->id)->get();
-            $email_blacklist = Email_Blacklist::where('team_id', $team->id)->get();
+            /* Retrieve both blacklists in a single block using eager loading */
+            $global_blacklist = $team->globalBlacklist;
+            $email_blacklist = $team->emailBlacklist;
 
             /* Prepare data for the view */
             $data = [
@@ -45,7 +47,7 @@ class BlacklistController extends Controller
 
             /* Redirect to dashboard with an error message */
             return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong while retrieving the blacklist.']);
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 
@@ -80,50 +82,65 @@ class BlacklistController extends Controller
                     ->withInput();
             }
 
-            /* Additional validation for 'profile_url' type */
+            /* Retrieve the blacklist type and comparison type from the request */
             $globalBlacklistType = $request->input('global_blacklist_type');
             $globalComparisonType = $request->input('global_comparison_type');
             $blacklistItems = $request->input('global_blacklist_item');
 
+            /* Additional validation for 'profile_url' blacklist type */
             if ($globalBlacklistType === 'profile_url') {
                 if ($globalComparisonType !== 'exact') {
                     return back()->withErrors([
                         'global_comparison_type' => 'If Profile Urls is selected, the comparison type must be exact',
-                    ])->with('global_blacklist_error', true)
+                    ])
+                        ->with('global_blacklist_error', true)
                         ->withInput();
                 }
 
+                /* Validate that each profile URL contains 'https://www.linkedin.com/in/' */
                 foreach ($blacklistItems as $item) {
                     if (strpos($item, 'https://www.linkedin.com/in/') === false) {
                         return back()->withErrors([
                             'global_blacklist_item' => 'Profile URLs must contain "https://www.linkedin.com/in/"'
-                        ])->with('global_blacklist_error', true)
+                        ])
+                            ->with('global_blacklist_error', true)
                             ->withInput();
                     }
                 }
             }
 
-            /* Save each blacklist item to the Global_Blacklist table */
+            /* Begin a database transaction to ensure all-or-nothing operations. */
+            DB::beginTransaction();
+
+            /* Loop through each blacklist item and insert them into the database. */
             foreach ($request->input('global_blacklist_item') as $item) {
-                Global_Blacklist::create([
+                DB::table('global_blacklist')->insert([
                     'creator_id' => $creator->id,
                     'team_id' => $team->id,
                     'keyword' => $item,
                     'blacklist_type' => $request->input('global_blacklist_type'),
                     'comparison_type' => $request->input('global_comparison_type'),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
 
-            /* Redirect back to the global blacklist page */
+            /* Commit the transaction if all inserts are successful. */
+            DB::commit();
+
+            /* Redirect back to the global blacklist page with a success message */
             return redirect()->route('globalBlacklistPage', ['slug' => $slug])
                 ->with('success', 'Global blacklist items saved successfully.');
         } catch (Exception $e) {
+            /* Rollback the transaction if an error occurs. */
+            DB::rollBack();
+
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
-            /* Redirect to dashboard with an error message */
+            /* Redirect to the global blacklist page with a generic error message */
             return redirect()->route('globalBlacklistPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong while saving the blacklist.']);
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 
@@ -158,27 +175,38 @@ class BlacklistController extends Controller
                     ->withInput();
             }
 
-            /* Save each blacklist item to the Email_Blacklist table */
+            /* Begin a database transaction to ensure all-or-nothing operations. */
+            DB::beginTransaction();
+
+            /* Loop through each blacklist item from the request */
             foreach ($request->input('email_blacklist_item') as $item) {
-                Email_Blacklist::create([
+                DB::table('email_blacklist')->insert([
                     'creator_id' => $creator->id,
                     'team_id' => $team->id,
                     'keyword' => $item,
                     'blacklist_type' => $request->input('email_blacklist_type'),
                     'comparison_type' => $request->input('email_comparison_type'),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
+
+            /* Commit the transaction if all inserts are successful. */
+            DB::commit();
 
             /* Redirect back to the global blacklist page */
             return redirect()->route('globalBlacklistPage', ['slug' => $slug])
                 ->with('success', 'Email blacklist items saved successfully.');
         } catch (Exception $e) {
+            /* Rollback the transaction if an error occurs. */
+            DB::rollBack();
+
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
             /* Redirect to dashboard with an error message */
             return redirect()->route('globalBlacklistPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong while saving the email blacklist.']);
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 
@@ -196,17 +224,14 @@ class BlacklistController extends Controller
             $team = Team::where('slug', $slug)->first();
 
             /* Find the blacklist item by ID */
-            $blacklistItem = Global_Blacklist::where('id', $id)->where('team_id', $team->id)->first();
+            $blacklistItem = Global_Blacklist::where('id', $id)->where('team_id', $team->id)->firstOrFail();
 
-            /* Check if the blacklist item exists and belongs to the team */
-            if ($blacklistItem) {
-                /* Delete the blacklist item */
-                $blacklistItem->delete();
+            /* Delete the blacklist item */
+            $blacklistItem->delete();
 
-                /* Return a success response */
-                return response()->json(['success' => true, 'message' => 'Blacklist item deleted successfully.']);
-            }
-
+            /* Return a success response */
+            return response()->json(['success' => true, 'message' => 'Blacklist item deleted successfully.']);
+        } catch (ModelNotFoundException $e) {
             /* Return a 404 Not Found response if the item does not exist */
             return response()->json(['error' => 'Blacklist item not found.'], 404);
         } catch (Exception $e) {
@@ -214,7 +239,7 @@ class BlacklistController extends Controller
             Log::error($e);
 
             /* Return a generic error response */
-            return response()->json(['success' => false, 'message' => 'Something went wrong while deleting the blacklist item.'], 500);
+            return response()->json(['success' => false, 'message' => 'Something went wrong'], 500);
         }
     }
 
@@ -232,17 +257,14 @@ class BlacklistController extends Controller
             $team = Team::where('slug', $slug)->first();
 
             /* Find the blacklist item by ID */
-            $blacklistItem = Email_Blacklist::where('id', $id)->where('team_id', $team->id)->first();
+            $blacklistItem = Email_Blacklist::where('id', $id)->where('team_id', $team->id)->firstOrFail();
 
-            /* Check if the blacklist item exists */
-            if ($blacklistItem) {
-                /* Delete the blacklist item */
-                $blacklistItem->delete();
+            /* Delete the blacklist item */
+            $blacklistItem->delete();
 
-                /* Return a success response */
-                return response()->json(['success' => true, 'message' => 'Blacklist item deleted successfully.']);
-            }
-
+            /* Return a success response */
+            return response()->json(['success' => true, 'message' => 'Blacklist item deleted successfully.']);
+        } catch (ModelNotFoundException $e) {
             /* Return a 404 Not Found response if the item does not exist */
             return response()->json(['error' => 'Blacklist item not found.'], 404);
         } catch (Exception $e) {
@@ -250,7 +272,7 @@ class BlacklistController extends Controller
             Log::error($e);
 
             /* Return a generic error response */
-            return response()->json(['success' => false, 'message' => 'Something went wrong while deleting the blacklist item.'], 500);
+            return response()->json(['success' => false, 'message' => 'Something went wrong'], 500);
         }
     }
 
@@ -270,7 +292,8 @@ class BlacklistController extends Controller
             /* Build the query to retrieve global blacklists */
             $query = Global_Blacklist::where('team_id', $team->id);
 
-            if ($search !== 'null') {
+            /* Check if search is not empty */
+            if (!empty($search) && $search !== 'null') {
                 $query->where('keyword', 'like', '%' . $search . '%');
             }
 
@@ -292,7 +315,7 @@ class BlacklistController extends Controller
             Log::error($e);
 
             /* Return a generic error response */
-            return response()->json(['success' => false, 'message' => 'Something went wrong while searching.'], 500);
+            return response()->json(['success' => false, 'message' => 'Something went wrong'], 500);
         }
     }
 
@@ -312,7 +335,7 @@ class BlacklistController extends Controller
             /* Build the query to retrieve email blacklists */
             $query = Email_Blacklist::where('team_id', $team->id);
 
-            if ($search !== 'null') {
+            if (!empty($search) && $search !== 'null') {
                 $query->where('keyword', 'like', '%' . $search . '%');
             }
 
@@ -334,7 +357,7 @@ class BlacklistController extends Controller
             Log::error($e);
 
             /* Return a generic error response */
-            return response()->json(['success' => false, 'message' => 'Something went wrong while searching.'], 500);
+            return response()->json(['success' => false, 'message' => 'Something went wrong'], 500);
         }
     }
 
@@ -373,13 +396,14 @@ class BlacklistController extends Controller
                 ]);
             }
 
+            /* Global Blacklist not found */
             return response()->json(['success' => false, 'message' => 'No blacklist items found.'], 404);
         } catch (Exception $e) {
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
             /* Return a generic error response */
-            return response()->json(['success' => false, 'message' => 'Something went wrong while filtering.'], 500);
+            return response()->json(['success' => false, 'message' => 'Something went wrong'], 500);
         }
     }
 
@@ -418,13 +442,14 @@ class BlacklistController extends Controller
                 ]);
             }
 
+            /* Email Blacklist not found */
             return response()->json(['success' => false, 'message' => 'No blacklist items found.'], 404);
         } catch (Exception $e) {
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
             /* Return a generic error response */
-            return response()->json(['success' => false, 'message' => 'Something went wrong while filtering.'], 500);
+            return response()->json(['success' => false, 'message' => 'Something went wrong'], 500);
         }
     }
 }

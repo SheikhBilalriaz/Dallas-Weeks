@@ -26,16 +26,17 @@ class blacklistAccessCheckingMiddleware
         /* Retrieve the slug from the request URL parameters */
         $slug = $request->route('slug');
 
-        /* Attempt to retrieve the team where the user is the creator */
+        /* Attempt to retrieve the team by slug */
         $team = Team::where('slug', $slug)->first();
 
+        /* Check user permissions for managing the global blacklist */
         $permission = Global_Permission::where('user_id', $user->id)
             ->where('team_id', $team->id)
             ->where('slug', 'manage_global_blacklist')
-            ->first();
-            
-        /* Check if the session contains the 'is_manage_global_blacklist' permission */
-        if (!$permission || !$permission->access) {
+            ->value('access');
+
+        /* Check if the user has the necessary permission */
+        if (!$permission) {
             return redirect()->route('dashboardPage', ['slug' => $slug])
                 ->withErrors(['error' => "You don't have permission to manage the blacklist."]);
         }

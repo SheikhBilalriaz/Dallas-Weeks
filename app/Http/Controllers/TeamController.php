@@ -307,6 +307,8 @@ class TeamController extends Controller
                 }
             }
 
+            dd($request->all());
+
             /* Check if the user already exists or create a new user */
             $user = User::where('email', $request->input('invite_email'))->first();
             if (!$user) {

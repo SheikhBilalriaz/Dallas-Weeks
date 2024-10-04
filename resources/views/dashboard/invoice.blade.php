@@ -9,7 +9,7 @@
         }
     </style>
     @php
-        \Stripe\Stripe::setApiKey(config('services.stripe.secret'));    
+        \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
     @endphp
     <section class="blacklist invoice_sec">
         <div class="container-fluid">

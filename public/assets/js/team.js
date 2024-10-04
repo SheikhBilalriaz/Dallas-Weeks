@@ -303,13 +303,13 @@ function getRole(e) {
             html += `<p>You don't have any seats to manage. To continue add new seats.</p>`;
             $('.manage_member').addClass('disabled');
         }
-        $('.invite_modal_row .edit_able_btn').addClass('disabled');
         html += `</div>`;
         $(this).parent().append(html);
     } else {
         $(this).siblings('input').prop('checked', false);
         $(this).siblings('.seat-management').remove()
     }
+    $('.invite_modal_row .edit_able_btn').addClass('disabled');
 }
 
 function custom_role(e) {

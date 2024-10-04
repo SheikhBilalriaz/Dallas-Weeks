@@ -63,10 +63,10 @@ class RegisterController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        /* Begin a database transaction */
-        DB::beginTransaction();
-
         try {
+            /* Begin a database transaction */
+            DB::beginTransaction();
+
             /* Create a new user with the provided name, email, and hashed password */
             $user = User::create([
                 'name' => $request->input('name'),

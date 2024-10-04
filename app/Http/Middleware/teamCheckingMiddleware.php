@@ -27,31 +27,32 @@ class teamCheckingMiddleware
         /* Retrieve the slug from the request URL parameters */
         $slug = $request->route('slug');
 
-        /* Attempt to retrieve the team where the user is the creator */
+        /* Attempt to retrieve the team by slug */
         $team = Team::where('slug', $slug)->first();
 
+        /* If no team is found, redirect with an error message */
         if (!$team) {
-            /* If no team is found, redirect with an error message */
             return redirect()->route('dashboard')
-                ->withErrors(['error' => 'Team `' . $slug . '` not found'])
+                ->withErrors(['error' => "Team `{$slug}` not found"])
                 ->with('team_slug', $slug);
         }
 
-        /* If the user is not the team creator, check if the team member exists */
+        /* Check if the user is the team creator or a team member */
         if ($team->creator_id !== $user->id) {
-            /* If the team exists, check if the user is a member of the team */
-            $team_member = Team_Member::where('team_id', $team->id)->where('user_id', $user->id)->first();
+            $team_member = Team_Member::where('team_id', $team->id)
+                ->where('user_id', $user->id)
+                ->first();
 
             /* If the user is not a member of the team, redirect with an error message */
             if (!$team_member) {
                 return redirect()->route('dashboard')
-                    ->withErrors(['error' => 'You cannot access team `' . $slug . '`'])
+                    ->withErrors(['error' => "You cannot access team `{$slug}`"])
                     ->with('team_slug', $slug);
             }
         }
 
         /* Store whether the user is the team creator */
-        session(['is_creator' => $team->creator_id === $user->id]);
+        session(['is_creator' => $team->creator_id == $user->id]);
 
         /* Retrieve permissions for the user in a single query */
         $permissions = Global_Permission::where('user_id', $user->id)
