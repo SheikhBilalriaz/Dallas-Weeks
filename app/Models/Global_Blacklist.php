@@ -8,13 +8,18 @@ use Illuminate\Database\Eloquent\Model;
 class Global_Blacklist extends Model
 {
     use HasFactory;
+    
     /**
      * The table associated with the model.
+     * 
+     * @var string
      */
     protected $table = 'global_blacklist';
 
     /**
      * The attributes that are mass assignable.
+     * 
+     * @var array<int, string>
      */
     protected $fillable = [
         'creator_id',
@@ -25,7 +30,15 @@ class Global_Blacklist extends Model
     ];
 
     /**
-     * Get the team that owns the email blacklist entry.
+     * Get the creator of the global blacklist entry.
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'creator_id');
+    }
+
+    /**
+     * Get the team that owns the global blacklist entry.
      */
     public function team()
     {

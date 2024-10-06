@@ -276,7 +276,7 @@ $(document).ready(function () {
                             debug: false,
                             newestOnTop: false,
                             progressBar: true,
-                            positionClass: "toast-top-right",
+                            positionClass: "toast-bottom-rightghtghtghtght",
                             preventDuplicates: false,
                             onclick: null,
                             showDuration: "300",

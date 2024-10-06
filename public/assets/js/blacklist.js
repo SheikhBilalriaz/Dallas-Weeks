@@ -9,7 +9,7 @@ $(document).ready(function () {
         "debug": false,
         "newestOnTop": false,
         "progressBar": true,
-        "positionClass": "toast-top-right",
+        "positionClass": "toast-bottom-right",
         "preventDuplicates": false,
         "onclick": null,
         "showDuration": "300",
@@ -21,8 +21,7 @@ $(document).ready(function () {
         "showMethod": "fadeIn",
         "hideMethod": "fadeOut"
     };
-    $('.tag_input_wrapper_input').on('input', inputWrapper);
-    $('.global_blacklist_type').on('click', function () {
+    $(document).on('click', '.global_blacklist_type', function () {
         $('.global_blacklist_type').siblings('input').prop('checked', false);
         let comparisonType = $('.global_comparison_type').parent().parent();
         if ($(this).siblings('input').val() == 'profile_url') {
@@ -43,50 +42,36 @@ $(document).ready(function () {
         }
         $(this).siblings('input').prop('checked', true);
     });
-    $('.global_comparison_type').on('click', function () {
+    $(document).on('click', '.global_comparison_type', function () {
         $('.global_comparison_type').siblings('input').prop('checked', false);
         $(this).siblings('input').prop('checked', true);
     });
-    $('.email_blacklist_type').on('click', function () {
+    $(document).on('click', '.email_blacklist_type', function () {
         $('.email_blacklist_type').siblings('input').prop('checked', false);
         $(this).siblings('input').prop('checked', true);
     });
-    $('.email_comparison_type').on('click', function () {
+    $(document).on('click', '.email_comparison_type', function () {
         $('.email_comparison_type').siblings('input').prop('checked', false);
         $(this).siblings('input').prop('checked', true);
     });
-    $('.filter_global_blacklist_type').on('click', function () {
+    $(document).on('click', '.filter_global_blacklist_type, .filter_global_comparison_type, .filter_email_blacklist_type, .filter_email_comparison_type', function () {
         const input = $(this).siblings('input');
         input.prop('checked', !input.prop('checked'));
     });
-    $('.filter_global_comparison_type').on('click', function () {
-        const input = $(this).siblings('input');
-        input.prop('checked', !input.prop('checked'));
-    });
-    $('.filter_email_blacklist_type').on('click', function () {
-        const input = $(this).siblings('input');
-        input.prop('checked', !input.prop('checked'));
-    });
-    $('.filter_email_comparison_type').on('click', function () {
-        const input = $(this).siblings('input');
-        input.prop('checked', !input.prop('checked'));
-    });
-    $(document).on('click', '.remove_global_blacklist_item', function () {
+    $(document).on('click', '.remove_global_blacklist_item, .remove_email_blacklist_item', function () {
         $(this).parent().remove();
     });
-    $(document).on('click', '.remove_email_blacklist_item', function () {
-        $(this).parent().remove();
-    });
-    $(document).on('click', '.delete-global-blacklist', deleteGlobalBlacklist);
-    $(document).on('click', '.delete-email-blacklist', deleteEmailBlacklist);
-    $(document).on('input', '#search-global-blacklist', searchGlobalBlacklist);
-    $(document).on('input', '#search-email-blacklist', searchEmailBlacklist);
-    $(document).on('submit', '#filter-global-blacklist', filterGlobalBlacklist);
-    $(document).on('submit', '#filter-email-blacklist', filterEmailBlacklist);
+    $(document).on('input', '.tag_input_wrapper_input', inputWrapper); //Done
+    $(document).on('input', '#search-global-blacklist', searchGlobalBlacklist); //Done
+    $(document).on('input', '#search-email-blacklist', searchEmailBlacklist); //Done
+    $(document).on('click', '.delete-global-blacklist', deleteGlobalBlacklist); //Done
+    $(document).on('click', '.delete-email-blacklist', deleteEmailBlacklist); //Done
+    $(document).on('submit', '#filter-global-blacklist', filterGlobalBlacklist); //Done
+    $(document).on('submit', '#filter-email-blacklist', filterEmailBlacklist); //Done
 });
 
 function searchGlobalBlacklist() {
-    var search = $(this).val();
+    var search = $(this).val().trim();
     if (search === "") {
         search = "null";
     }
@@ -101,8 +86,8 @@ function searchGlobalBlacklist() {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         success: function (response) {
+            let html = ``;
             if (response.success && response.global_blacklist.length > 0) {
-                let html = ``;
                 response.global_blacklist.forEach(function (element) {
                     html += `
                         <tr id="global_blacklist_${element.id}">
@@ -125,8 +110,22 @@ function searchGlobalBlacklist() {
                         </tr>
                     `;
                 });
-                $('#global_blacklist_row').html(html);
+            } else {
+                html += `
+                    <tr>
+                        <td colspan="4">
+                            <div style="width: 50%; margin: 0 auto;"
+                                class="empty_blacklist text-center">
+                                <img src="${emptyImage}" alt="">
+                                <p>
+                                    Sorry, no results for that query
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
             }
+            $('#global_blacklist_row').html(html);
         },
         error: function (xhr, status, error) {
             let html = ``;
@@ -152,7 +151,7 @@ function searchGlobalBlacklist() {
 }
 
 function searchEmailBlacklist() {
-    var search = $(this).val();
+    var search = $(this).val().trim();
     if (search === "") {
         search = "null";
     }
@@ -167,8 +166,8 @@ function searchEmailBlacklist() {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         success: function (response) {
+            let html = ``;
             if (response.success && response.email_blacklist.length > 0) {
-                let html = ``;
                 response.email_blacklist.forEach(function (element) {
                     html += `
                         <tr id="email_blacklist_${element.id}">
@@ -192,8 +191,22 @@ function searchEmailBlacklist() {
                         </tr>
                     `;
                 });
-                $('#email_blacklist_row').html(html);
+            } else {
+                html += `
+                    <tr>
+                        <td colspan="4">
+                            <div style="width: 50%; margin: 0 auto;"
+                                class="empty_blacklist text-center">
+                                <img src="${emptyImage}" alt="">
+                                <p>
+                                    Sorry, no results for that query
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
             }
+            $('#email_blacklist_row').html(html);
         },
         error: function (xhr, status, error) {
             let html = ``;
@@ -221,7 +234,8 @@ function searchEmailBlacklist() {
 function deleteGlobalBlacklist() {
     const id = $(this).data('id');
     const $element = $('#global_blacklist_' + id);
-    const search = $('#search-global-blacklist').val();
+    const search = $('#search-global-blacklist').val().trim();
+
     if (confirm('Are you sure you want to delete this item?')) {
         $.ajax({
             url: deleteGlobalBlacklistRoute.replace(':blacklist-id', id),
@@ -236,29 +250,29 @@ function deleteGlobalBlacklist() {
                     let html = ``;
                     if (search == "") {
                         html += `
-                        <tr>
-                            <td colspan="4">
-                                <div style="width: 50%; margin: 0 auto; ${!emailVerified ? ' opacity: 0.7;' : ''}"
-                                    class="empty_blacklist text-center"
-                                    title="${!emailVerified ? 'To add new global blacklist, you need to verify your email address first.' : ''}">
-                                    <img src="${emptyImage}" alt="">
-                                    <p>
-                                        ${!emailVerified
+                            <tr>
+                                <td colspan="4">
+                                    <div style="width: 50%; margin: 0 auto; ${!emailVerified ? ' opacity: 0.7;' : ''}"
+                                        class="empty_blacklist text-center"
+                                        title="${!emailVerified ? 'To add new global blacklist, you need to verify your email address first.' : ''}">
+                                        <img src="${emptyImage}" alt="">
+                                        <p>
+                                            ${!emailVerified
                                 ? "You can't add global blacklist until you verify your email address."
                                 : "You don't have any global blacklist yet. Start by adding your first global blacklist."}
-                                    </p>
-                                    <div class="add_btn">
-                                        <a href="javascript:;" type="button"
-                                            data-bs-toggle="${emailVerified ? 'modal' : ''}"
-                                            data-bs-target="${emailVerified ? '#addGlobalBlacklist' : ''}"
-                                            style="${!emailVerified ? 'cursor: default;' : ''}">
-                                            <i class="fa-solid fa-plus"></i>
-                                        </a>
+                                        </p>
+                                        <div class="add_btn">
+                                            <a href="javascript:;" type="button"
+                                                data-bs-toggle="${emailVerified ? 'modal' : ''}"
+                                                data-bs-target="${emailVerified ? '#addGlobalBlacklist' : ''}"
+                                                style="${!emailVerified ? 'cursor: default;' : ''}">
+                                                <i class="fa-solid fa-plus"></i>
+                                            </a>
+                                        </div>
                                     </div>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                                </td>
+                            </tr>
+                        `;
                     } else {
                         html += `
                         <tr>
@@ -278,7 +292,8 @@ function deleteGlobalBlacklist() {
                 }
             },
             error: function (xhr, status, error) {
-                toastr.error('Something went wrong while deleting the blacklist item.');
+                const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
+                toastr.error(errorMessage);
             }
         });
     }
@@ -287,7 +302,8 @@ function deleteGlobalBlacklist() {
 function deleteEmailBlacklist() {
     const id = $(this).data('id');
     const $element = $('#email_blacklist_' + id);
-    const search = $('#search-email-blacklist').val();
+    const search = $('#search-email-blacklist').val().trim();
+
     if (confirm('Are you sure you want to delete this item?')) {
         $.ajax({
             url: deleteEmailBlacklistRoute.replace(':blacklist-id', id),
@@ -344,7 +360,8 @@ function deleteEmailBlacklist() {
                 }
             },
             error: function (xhr, status, error) {
-                toastr.error('Something went wrong while deleting the blacklist item.');
+                const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
+                toastr.error(errorMessage);
             }
         });
     }
@@ -354,21 +371,11 @@ function inputWrapper(e) {
     let blacklistValue = $(this).val();
     let blacklistItems = blacklistValue.split(';');
     let blacklistDivId = $(this).data('div-id');
-    let removeItem;
-    let inputItem;
+    let removeItem = blacklistDivId == 'global_blacklist_div' ? 'remove_global_blacklist_item' : 'remove_email_blacklist_item';
+    let inputItem = blacklistDivId == 'global_blacklist_div' ? 'global_blacklist_item' : 'email_blacklist_item';
 
     blacklistItems.forEach((item, index) => {
         let trimmedItem = item.trim();
-        if (blacklistDivId == 'global_blacklist_div') {
-            removeItem = 'remove_global_blacklist_item';
-        } else {
-            removeItem = 'remove_email_blacklist_item';
-        }
-        if (blacklistDivId == 'global_blacklist_div') {
-            inputItem = 'global_blacklist_item';
-        } else {
-            inputItem = 'email_blacklist_item';
-        }
         if (trimmedItem !== '' && index < blacklistItems.length - 1) {
             $('#' + blacklistDivId).append(
                 `<div class="item"><span>`
@@ -384,21 +391,24 @@ function inputWrapper(e) {
 }
 
 function filterGlobalBlacklist(e) {
+    e.preventDefault();
+
     if (filterGlobalBlacklistAjax) {
         filterGlobalBlacklistAjax.abort();
         filterGlobalBlacklistAjax = null;
     }
-    e.preventDefault();
+
     var form = $(this);
     var actionUrl = form.attr('action');
     var formData = form.serialize();
-    $.ajax({
+
+    filterGlobalBlacklistAjax = $.ajax({
         url: actionUrl,
         type: 'POST',
         data: formData,
         success: function (response) {
+            let html = ``;
             if (response.success && response.global_blacklist.length > 0) {
-                let html = ``;
                 response.global_blacklist.forEach(function (element) {
                     html += `
                         <tr id="global_blacklist_${element.id}">
@@ -421,8 +431,22 @@ function filterGlobalBlacklist(e) {
                         </tr>
                     `;
                 });
-                $('#global_blacklist_row').html(html);
+            } else {
+                html += `
+                    <tr>
+                        <td colspan="4">
+                            <div style="width: 50%; margin: 0 auto;"
+                                class="empty_blacklist text-center">
+                                <img src="${emptyImage}" alt="">
+                                <p>
+                                    Sorry, no results for that query
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
             }
+            $('#global_blacklist_row').html(html);
         },
         error: function (xhr) {
             let html = ``;
@@ -449,21 +473,24 @@ function filterGlobalBlacklist(e) {
 }
 
 function filterEmailBlacklist(e) {
+    e.preventDefault();
+
     if (filterEmailBlacklistAjax) {
         filterEmailBlacklistAjax.abort();
         filterEmailBlacklistAjax = null;
     }
-    e.preventDefault();
+
     var form = $(this);
     var actionUrl = form.attr('action');
     var formData = form.serialize();
-    $.ajax({
+
+    filterEmailBlacklistAjax = $.ajax({
         url: actionUrl,
         type: 'POST',
         data: formData,
         success: function (response) {
+            let html = ``;
             if (response.success && response.email_blacklist.length > 0) {
-                let html = ``;
                 response.email_blacklist.forEach(function (element) {
                     html += `
                         <tr id="email_blacklist_${element.id}">
@@ -487,8 +514,22 @@ function filterEmailBlacklist(e) {
                         </tr>
                     `;
                 });
-                $('#email_blacklist_row').html(html);
+            } else {
+                html += `
+                    <tr>
+                        <td colspan="4">
+                            <div style="width: 50%; margin: 0 auto;"
+                                class="empty_blacklist text-center">
+                                <img src="${emptyImage}" alt="">
+                                <p>
+                                    Sorry, no results for that query
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
             }
+            $('#email_blacklist_row').html(html);
         },
         error: function (xhr) {
             let html = ``;

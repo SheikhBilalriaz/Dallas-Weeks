@@ -25,18 +25,14 @@ class BlacklistController extends Controller
     {
         try {
             /* Retrieve the team associated with the slug */
-            $team = Team::where('slug', $slug)->first();
-
-            /* Retrieve both blacklists in a single block using eager loading */
-            $global_blacklist = $team->globalBlacklist;
-            $email_blacklist = $team->emailBlacklist;
+            $team = Team::with(['globalBlacklists', 'emailBlacklists'])->where('slug', $slug)->first();
 
             /* Prepare data for the view */
             $data = [
                 'title' => 'Blacklist - Networked',
                 'team' => $team,
-                'global_blacklist' => $global_blacklist,
-                'email_blacklist' => $email_blacklist,
+                'global_blacklists' => $team->globalBlacklists,
+                'email_blacklists' => $team->emailBlacklists,
             ];
 
             /* Return the view with the prepared data */
@@ -75,6 +71,22 @@ class BlacklistController extends Controller
                 'global_comparison_type' => 'required|string',
             ]);
 
+            /* Additional validation for 'profile_url' blacklist type */
+            $validator->after(function ($validator) use ($request) {
+                if ($request->input('global_blacklist_type') === 'profile_url') {
+                    if ($request->input('global_comparison_type') !== 'exact') {
+                        $validator->errors()->add('global_comparison_type', 'If Profile URLs is selected, the comparison type must be exact.');
+                    }
+
+                    /* Validate that each profile URL contains 'https://www.linkedin.com/in/' */
+                    foreach ($request->input('global_blacklist_item') as $item) {
+                        if (strpos($item, 'https://www.linkedin.com/in/') === false) {
+                            $validator->errors()->add('global_blacklist_item', 'Profile URLs must contain "https://www.linkedin.com/in/".');
+                        }
+                    }
+                }
+            });
+
             /* Return validation errors if validation fails */
             if ($validator->fails()) {
                 return back()->withErrors($validator)
@@ -82,48 +94,30 @@ class BlacklistController extends Controller
                     ->withInput();
             }
 
-            /* Retrieve the blacklist type and comparison type from the request */
+            /* Retrieve the validated data */
             $globalBlacklistType = $request->input('global_blacklist_type');
             $globalComparisonType = $request->input('global_comparison_type');
             $blacklistItems = $request->input('global_blacklist_item');
 
-            /* Additional validation for 'profile_url' blacklist type */
-            if ($globalBlacklistType === 'profile_url') {
-                if ($globalComparisonType !== 'exact') {
-                    return back()->withErrors([
-                        'global_comparison_type' => 'If Profile Urls is selected, the comparison type must be exact',
-                    ])
-                        ->with('global_blacklist_error', true)
-                        ->withInput();
-                }
-
-                /* Validate that each profile URL contains 'https://www.linkedin.com/in/' */
-                foreach ($blacklistItems as $item) {
-                    if (strpos($item, 'https://www.linkedin.com/in/') === false) {
-                        return back()->withErrors([
-                            'global_blacklist_item' => 'Profile URLs must contain "https://www.linkedin.com/in/"'
-                        ])
-                            ->with('global_blacklist_error', true)
-                            ->withInput();
-                    }
-                }
-            }
-
             /* Begin a database transaction to ensure all-or-nothing operations. */
             DB::beginTransaction();
 
-            /* Loop through each blacklist item and insert them into the database. */
-            foreach ($request->input('global_blacklist_item') as $item) {
-                DB::table('global_blacklist')->insert([
+            /* Prepare the batch insert data */
+            $insertData = [];
+            foreach ($blacklistItems as $item) {
+                $insertData[] = [
                     'creator_id' => $creator->id,
                     'team_id' => $team->id,
                     'keyword' => $item,
-                    'blacklist_type' => $request->input('global_blacklist_type'),
-                    'comparison_type' => $request->input('global_comparison_type'),
+                    'blacklist_type' => $globalBlacklistType,
+                    'comparison_type' => $globalComparisonType,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ];
             }
+
+            /* Perform a batch insert */
+            DB::table('global_blacklist')->insert($insertData);
 
             /* Commit the transaction if all inserts are successful. */
             DB::commit();
@@ -175,21 +169,30 @@ class BlacklistController extends Controller
                     ->withInput();
             }
 
+            /* Retrieve input values */
+            $emailBlacklistType = $request->input('email_blacklist_type');
+            $emailComparisonType = $request->input('email_comparison_type');
+            $blacklistItems = $request->input('email_blacklist_item');
+
             /* Begin a database transaction to ensure all-or-nothing operations. */
             DB::beginTransaction();
 
-            /* Loop through each blacklist item from the request */
-            foreach ($request->input('email_blacklist_item') as $item) {
-                DB::table('email_blacklist')->insert([
+            /* Prepare the batch insert data */
+            $insertData = [];
+            foreach ($blacklistItems as $item) {
+                $insertData[] = [
                     'creator_id' => $creator->id,
                     'team_id' => $team->id,
                     'keyword' => $item,
-                    'blacklist_type' => $request->input('email_blacklist_type'),
-                    'comparison_type' => $request->input('email_comparison_type'),
+                    'blacklist_type' => $emailBlacklistType,
+                    'comparison_type' => $emailComparisonType,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ];
             }
+
+            /* Perform a batch insert */
+            DB::table('email_blacklist')->insert($insertData);
 
             /* Commit the transaction if all inserts are successful. */
             DB::commit();
@@ -223,11 +226,17 @@ class BlacklistController extends Controller
             /* Retrieve the team associated with the slug */
             $team = Team::where('slug', $slug)->first();
 
+            /* Begin a database transaction */
+            DB::beginTransaction();
+
             /* Find the blacklist item by ID */
             $blacklistItem = Global_Blacklist::where('id', $id)->where('team_id', $team->id)->firstOrFail();
 
             /* Delete the blacklist item */
             $blacklistItem->delete();
+
+            /* Commit the transaction */
+            DB::commit();
 
             /* Return a success response */
             return response()->json(['success' => true, 'message' => 'Blacklist item deleted successfully.']);
@@ -235,6 +244,9 @@ class BlacklistController extends Controller
             /* Return a 404 Not Found response if the item does not exist */
             return response()->json(['error' => 'Blacklist item not found.'], 404);
         } catch (Exception $e) {
+            /* Rollback the transaction if something went wrong */
+            DB::rollBack();
+
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
@@ -256,15 +268,24 @@ class BlacklistController extends Controller
             /* Retrieve the team associated with the slug */
             $team = Team::where('slug', $slug)->first();
 
+            /* Begin a database transaction */
+            DB::beginTransaction();
+
             /* Find the blacklist item by ID */
             $blacklistItem = Email_Blacklist::where('id', $id)->where('team_id', $team->id)->firstOrFail();
 
             /* Delete the blacklist item */
             $blacklistItem->delete();
 
+            /* Commit the transaction */
+            DB::commit();
+
             /* Return a success response */
             return response()->json(['success' => true, 'message' => 'Blacklist item deleted successfully.']);
         } catch (ModelNotFoundException $e) {
+            /* Rollback the transaction if something went wrong */
+            DB::rollBack();
+
             /* Return a 404 Not Found response if the item does not exist */
             return response()->json(['error' => 'Blacklist item not found.'], 404);
         } catch (Exception $e) {

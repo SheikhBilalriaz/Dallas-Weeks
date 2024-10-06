@@ -182,8 +182,8 @@
                                         </tr>
                                     </thead>
                                     <tbody id="global_blacklist_row">
-                                        @if ($global_blacklist->isNotEmpty())
-                                            @foreach ($global_blacklist as $blacklist)
+                                        @if ($global_blacklists->isNotEmpty())
+                                            @foreach ($global_blacklists as $blacklist)
                                                 <tr id="{{ 'global_blacklist_' . $blacklist->id }}">
                                                     <td class="text-center">
                                                         <div class="d-flex align-items-center">
@@ -278,8 +278,8 @@
                                         </tr>
                                     </thead>
                                     <tbody id="email_blacklist_row">
-                                        @if ($email_blacklist->isNotEmpty())
-                                            @foreach ($email_blacklist as $blacklist)
+                                        @if ($email_blacklists->isNotEmpty())
+                                            @foreach ($email_blacklists as $blacklist)
                                                 <tr id="{{ 'email_blacklist_' . $blacklist->id }}">
                                                     <td class="text-center">
                                                         <div class="d-flex align-items-center">
@@ -793,16 +793,6 @@
             if ("{{ session()->has('email_blacklist_error') }}") {
                 $('#addEmailBlacklist').modal('show');
             }
-            $(".setting_list").hide();
-            $(".setting_btn").on("click", function(e) {
-                $(".setting_list").not($(this).siblings(".setting_list")).hide();
-                $(this).siblings(".setting_list").toggle();
-            });
-            $(document).on("click", function(e) {
-                if (!$(event.target).closest(".setting").length) {
-                    $(".setting_list").hide();
-                }
-            });
         });
     </script>
 @endsection

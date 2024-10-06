@@ -11,11 +11,15 @@ class Global_Permission extends Model
 
     /**
      * The table associated with the model.
+     * 
+     * @var string
      */
     protected $table = 'global_permission';
 
     /**
      * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
@@ -28,9 +32,25 @@ class Global_Permission extends Model
     /**
      * The attributes that should be cast to native types.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $casts = [
         'access' => 'boolean',
     ];
+    
+    /**
+     * Get the user associated with permission.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Get the team associated with permission.
+     */
+    public function team()
+    {
+        return $this->belongsTo(Team::class, 'team_id');
+    }
 }

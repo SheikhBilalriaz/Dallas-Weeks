@@ -33,10 +33,10 @@ class blacklistAccessCheckingMiddleware
         $permission = Global_Permission::where('user_id', $user->id)
             ->where('team_id', $team->id)
             ->where('slug', 'manage_global_blacklist')
-            ->value('access');
+            ->first();
 
         /* Check if the user has the necessary permission */
-        if (!$permission) {
+        if (!$permission || !$permission->access) {
             return redirect()->route('dashboardPage', ['slug' => $slug])
                 ->withErrors(['error' => "You don't have permission to manage the blacklist."]);
         }
