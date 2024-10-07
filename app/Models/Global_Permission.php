@@ -37,20 +37,4 @@ class Global_Permission extends Model
     protected $casts = [
         'access' => 'boolean',
     ];
-    
-    /**
-     * Get the user associated with permission.
-     */
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    /**
-     * Get the team associated with permission.
-     */
-    public function team()
-    {
-        return $this->belongsTo(Team::class, 'team_id');
-    }
 }

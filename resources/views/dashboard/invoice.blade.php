@@ -40,10 +40,9 @@
                                 <thead>
                                     <tr>
                                         <th width="25%">Account</th>
-                                        <th width="15%">Email</th>
-                                        <th width="30%">Invoice data</th>
-                                        <th width="15%">Date</th>
-                                        <th width="15%">Download invoice</th>
+                                        <th width="25%">Email</th>
+                                        <th width="25%">Date</th>
+                                        <th width="25%">Download invoice</th>
                                     </tr>
                                 </thead>
                                 <tbody id="invoice_row">
@@ -63,9 +62,6 @@
                                                     </div>
                                                 </td>
                                                 <td>{{ $seat_info->email }}</td>
-                                                <td class="inv_data">
-                                                    Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                                                </td>
                                                 <td class="inv_date">
                                                     {{ date('d-M-Y', $stripe_invoice->created) }}
                                                 </td>
@@ -77,7 +73,7 @@
                                         @endforeach
                                     @else
                                         <tr>
-                                            <td colspan="5">
+                                            <td colspan="4">
                                                 <div style="width: 50%; margin: 0 auto;"
                                                     class="empty_blacklist text-center">
                                                     <img style="margin-right: 0px;"

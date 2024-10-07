@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('state');
             $table->string('postal_code');
             $table->string('country');
-            $table->integer('tax_id');
+            $table->integer('tax_id')->nullable();
             $table->timestamps();
         });
     }

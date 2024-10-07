@@ -18,6 +18,11 @@
             border: 1px solid red;
         }
 
+        #update_seat input.error {
+            border: 1px solid red;
+            margin-bottom: 5px !important;
+        }
+
         #payment-form input.form-control {
             color: white !important;
         }
@@ -82,11 +87,7 @@
             color: #8e99a8;
         }
     </style>
-    @if (session('email_verified'))
-        <script src="{{ asset('assets/js/dashboard-account.js') }}"></script>
-    @else
-        <script src="{{ asset('assets/js/dashboard-account-filter-search.js') }}"></script>
-    @endif
+    <script src="{{ asset('assets/js/dashboard-account.js') }}"></script>
     <section class="dashboard">
         <div class="container-fluid">
             <div class="row">
@@ -106,10 +107,11 @@
                                     </button>
                                 </div>
                                 @if (session('is_creator'))
-                                    <div class="add_btn" style="opacity: {{ !session('email_verified') ? 0.7 : 1 }}">
-                                        <span style="cursor: {{ !session('email_verified') ? 'default' : 'pointer' }};"
-                                            title="{{ !session('email_verified') ? 'To add new seats, you need to verify your email address first.' : '' }}"
-                                            {{ session('email_verified') ? 'data-bs-toggle=modal data-bs-target=#addaccount' : '' }}>
+                                    <div class="add_btn"
+                                        style="opacity: {{ !session('email_verified') ? 0.7 : 1 }}; cursor: {{ !session('email_verified') ? 'default' : 'pointer' }};"
+                                        {{ session('email_verified') ? 'data-bs-toggle=modal data-bs-target=#addaccount' : '' }}>
+                                        <span
+                                            title="{{ !session('email_verified') ? 'To add new seats, you need to verify your email address first.' : '' }}">
                                             <a style="cursor: {{ !session('email_verified') ? 'default' : 'pointer' }};"
                                                 href="javascript:;" type="button">
                                                 <i class="fa-solid fa-plus"></i>
@@ -201,12 +203,15 @@
                                         <table class="data_table w-100">
                                             <tbody id="campaign_table_body">
                                                 <tr>
-                                                    <td colspan="8">
-                                                        <div class="text-center text-danger"
-                                                            style="font-size: 25px; font-weight: bold; font-style: italic;">
-                                                            Not Found!
+                                                <tr>
+                                                    <td colspan="4">
+                                                        <div style="width: 50%; margin: 0 auto;"
+                                                            class="empty_blacklist text-center">
+                                                            <img src="{{ asset('assets/img/empty.png') }}" alt="">
+                                                            <p>Sorry, no results for that query</p>
                                                         </div>
                                                     </td>
+                                                </tr>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -231,8 +236,8 @@
                         </button>
                     </div>
                     <div class="modal-body text-center">
-                        <form role="form" action="{{ route('stripePayment', ['slug' => $team->slug]) }}" method="post"
-                            data-cc-on-file="false" id="payment-form"
+                        <form role="form" action="{{ route('stripePayment', ['slug' => $team->slug]) }}"
+                            method="post" data-cc-on-file="false" id="payment-form"
                             data-stripe-publishable-key="{{ config('services.stripe.key') }}" class="form step_form">
                             @csrf
                             <input type="hidden" name="stripe_token" id="stripe_token">
@@ -397,25 +402,24 @@
             }
         });
     </script>
-    <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
     @if (session('email_verified'))
         <div class="modal fade step_form_popup" id="update_seat" tabindex="-1" role="dialog"
             aria-labelledby="update_seat" aria-hidden="true">
-            <div class="modal-dialog" style="border-radius: 45px;width: 35%;">
+            <div class="modal-dialog" style="border-radius: 45px;width: 30%;">
                 <div class="modal-content"></div>
             </div>
         </div>
     @endif
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    {{-- @if (session('email_verified'))
+    @if (session('email_verified'))
         <script>
-            var getSeatRoute = "{{ route('getSeatById', [':seat_id']) }}";
-            var deleteSeatRoute = "{{ route('deleteSeat', [':seat_id']) }}";
-            var updateNameRoute = "{{ route('updateName', [':seat_id', ':seat_name']) }}";
-            var dashboardRoute = "{{ route('acc_dash') }}";
+            var getSeatRoute = "{{ route('getSeatById', ['slug' => $team->slug, ':seat_id']) }}";
         </script>
-    @endif --}}
-    {{-- <script>
-        var filterSeatRoute = "{{ route('filterSeat', [':search']) }}";
-    </script> --}}
+    @endif
+    <script>
+        var accImage = "{{ asset('assets/img/acc.png') }}";
+        var emailVerified = "{{ session('email_verified') }}";
+        var emptyImage = "{{ asset('assets/img/empty.png') }}";
+        var filterSeatRoute = "{{ route('filterSeat', ['slug' => $team->slug, ':search']) }}";
+    </script>
 @endsection

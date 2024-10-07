@@ -23,9 +23,6 @@ function filterInvoices(e) {
                         <td class="text-left seat_table_data">
                             <div style="width: 250px; height: 35px; border-radius: 15px;" bis_skin_checked="1"></div>
                         </td>
-                        <td class="text-left seat_table_data">
-                            <div style="width: 250px; height: 35px; border-radius: 15px;" bis_skin_checked="1"></div>
-                        </td>
                         <td>
                             <div style="width: 250px; height: 35px; border-radius: 15px;" bis_skin_checked="1"></div>
                         </td>
@@ -51,9 +48,6 @@ function filterInvoices(e) {
                                 </div>
                             </td>
                             <td>${element.seat_info.email}</td>
-                            <td class="inv_data">
-                                Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-                            </td>
                             <td class="inv_date">${formattedDate}</td>
                             <td>
                                 <a href="${downloadInvoiceRoute.replace(':id', element.id)}"
@@ -69,7 +63,7 @@ function filterInvoices(e) {
             let html = ``;
             html += `
                 <tr>
-                    <td colspan="5">
+                    <td colspan="4">
                         <div style="width: 50%; margin: 0 auto;"
                             class="empty_blacklist text-center">
                             <img style="margin-right: 0px;"

@@ -61,20 +61,17 @@ $(document).ready(function () {
     $(document).on('click', '.remove_global_blacklist_item, .remove_email_blacklist_item', function () {
         $(this).parent().remove();
     });
-    $(document).on('input', '.tag_input_wrapper_input', inputWrapper); //Done
-    $(document).on('input', '#search-global-blacklist', searchGlobalBlacklist); //Done
-    $(document).on('input', '#search-email-blacklist', searchEmailBlacklist); //Done
-    $(document).on('click', '.delete-global-blacklist', deleteGlobalBlacklist); //Done
-    $(document).on('click', '.delete-email-blacklist', deleteEmailBlacklist); //Done
-    $(document).on('submit', '#filter-global-blacklist', filterGlobalBlacklist); //Done
-    $(document).on('submit', '#filter-email-blacklist', filterEmailBlacklist); //Done
+    $(document).on('input', '.tag_input_wrapper_input', inputWrapper);
+    $(document).on('input', '#search-global-blacklist', searchGlobalBlacklist);
+    $(document).on('input', '#search-email-blacklist', searchEmailBlacklist);
+    $(document).on('click', '.delete-global-blacklist', deleteGlobalBlacklist);
+    $(document).on('click', '.delete-email-blacklist', deleteEmailBlacklist);
+    $(document).on('submit', '#filter-global-blacklist', filterGlobalBlacklist);
+    $(document).on('submit', '#filter-email-blacklist', filterEmailBlacklist);
 });
 
 function searchGlobalBlacklist() {
-    var search = $(this).val().trim();
-    if (search === "") {
-        search = "null";
-    }
+    var search = $(this).val().trim() || "null";
     if (searchGlobalBlacklistAjax) {
         searchGlobalBlacklistAjax.abort();
         searchGlobalBlacklistAjax = null;
@@ -111,37 +108,12 @@ function searchGlobalBlacklist() {
                     `;
                 });
             } else {
-                html += `
-                    <tr>
-                        <td colspan="4">
-                            <div style="width: 50%; margin: 0 auto;"
-                                class="empty_blacklist text-center">
-                                <img src="${emptyImage}" alt="">
-                                <p>
-                                    Sorry, no results for that query
-                                </p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                html += getEmptyBlacklistHTML();
             }
             $('#global_blacklist_row').html(html);
         },
         error: function (xhr, status, error) {
-            let html = ``;
-            html += `
-                <tr>
-                    <td colspan="4">
-                        <div style="width: 50%; margin: 0 auto;"
-                            class="empty_blacklist text-center">
-                            <img src="${emptyImage}" alt="">
-                            <p>
-                                Sorry, no results for that query
-                            </p>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            let html = getEmptyBlacklistHTML();
             $('#global_blacklist_row').html(html);
         },
         complete: function () {
@@ -151,10 +123,7 @@ function searchGlobalBlacklist() {
 }
 
 function searchEmailBlacklist() {
-    var search = $(this).val().trim();
-    if (search === "") {
-        search = "null";
-    }
+    var search = $(this).val().trim() || "null";
     if (searchEmailBlacklistAjax) {
         searchEmailBlacklistAjax.abort();
         searchEmailBlacklistAjax = null;
@@ -192,37 +161,12 @@ function searchEmailBlacklist() {
                     `;
                 });
             } else {
-                html += `
-                    <tr>
-                        <td colspan="4">
-                            <div style="width: 50%; margin: 0 auto;"
-                                class="empty_blacklist text-center">
-                                <img src="${emptyImage}" alt="">
-                                <p>
-                                    Sorry, no results for that query
-                                </p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                html += getEmptyBlacklistHTML();
             }
             $('#email_blacklist_row').html(html);
         },
         error: function (xhr, status, error) {
-            let html = ``;
-            html += `
-                <tr>
-                    <td colspan="4">
-                        <div style="width: 50%; margin: 0 auto;"
-                            class="empty_blacklist text-center">
-                            <img src="${emptyImage}" alt="">
-                            <p>
-                                Sorry, no results for that query
-                            </p>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            let html = getEmptyBlacklistHTML();
             $('#email_blacklist_row').html(html);
         },
         complete: function () {
@@ -274,19 +218,7 @@ function deleteGlobalBlacklist() {
                             </tr>
                         `;
                     } else {
-                        html += `
-                        <tr>
-                            <td colspan="4">
-                                <div style="width: 50%; margin: 0 auto;"
-                                    class="empty_blacklist text-center">
-                                    <img src="${emptyImage}" alt="">
-                                    <p>
-                                        Sorry, no results for that query
-                                    </p>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                        html += getEmptyBlacklistHTML();
                     }
                     $('#global_blacklist_row').html(html);
                 }
@@ -342,19 +274,7 @@ function deleteEmailBlacklist() {
                         </tr>
                     `;
                     } else {
-                        html += `
-                        <tr>
-                            <td colspan="4">
-                                <div style="width: 50%; margin: 0 auto;"
-                                    class="empty_blacklist text-center">
-                                    <img src="${emptyImage}" alt="">
-                                    <p>
-                                        Sorry, no results for that query
-                                    </p>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                        html += getEmptyBlacklistHTML();
                     }
                     $('#email_blacklist_row').html(html);
                 }
@@ -365,29 +285,6 @@ function deleteEmailBlacklist() {
             }
         });
     }
-}
-
-function inputWrapper(e) {
-    let blacklistValue = $(this).val();
-    let blacklistItems = blacklistValue.split(';');
-    let blacklistDivId = $(this).data('div-id');
-    let removeItem = blacklistDivId == 'global_blacklist_div' ? 'remove_global_blacklist_item' : 'remove_email_blacklist_item';
-    let inputItem = blacklistDivId == 'global_blacklist_div' ? 'global_blacklist_item' : 'email_blacklist_item';
-
-    blacklistItems.forEach((item, index) => {
-        let trimmedItem = item.trim();
-        if (trimmedItem !== '' && index < blacklistItems.length - 1) {
-            $('#' + blacklistDivId).append(
-                `<div class="item"><span>`
-                + trimmedItem +
-                `</span><span class="` + removeItem + `"><i class="fa-solid fa-xmark"></i></span>
-                <input type="hidden" name="` + inputItem + `[]" value="`
-                + trimmedItem +
-                `"></div>`);
-        } else {
-            $(this).val(item);
-        }
-    });
 }
 
 function filterGlobalBlacklist(e) {
@@ -432,42 +329,55 @@ function filterGlobalBlacklist(e) {
                     `;
                 });
             } else {
-                html += `
-                    <tr>
-                        <td colspan="4">
-                            <div style="width: 50%; margin: 0 auto;"
-                                class="empty_blacklist text-center">
-                                <img src="${emptyImage}" alt="">
-                                <p>
-                                    Sorry, no results for that query
-                                </p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                html += getEmptyBlacklistHTML();
             }
             $('#global_blacklist_row').html(html);
         },
         error: function (xhr) {
-            let html = ``;
-            html += `
-                <tr>
-                    <td colspan="4">
-                        <div style="width: 50%; margin: 0 auto;"
-                            class="empty_blacklist text-center">
-                            <img src="${emptyImage}" alt="">
-                            <p>
-                                Sorry, no results for that query
-                            </p>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            let html = getEmptyBlacklistHTML();
             $('#global_blacklist_row').html(html);
         },
         complete: function () {
             filterGlobalBlacklistAjax = null;
             $('#filterGlobalBlacklist').modal('hide');
+            let count = 0;
+            let isChecked = false;
+            $('.filter_global_blacklist_type').siblings('input').each(function () {
+                if ($(this).prop('checked')) {
+                    count++;
+                }
+            })
+            $('.filter_global_comparison_type').siblings('input').each(function () {
+                if ($(this).prop('checked')) {
+                    count++;
+                }
+            });
+            $('.filter_global_blacklist_type').siblings('input').each(function () {
+                if ($(this).prop('checked')) {
+                    isChecked = true;
+                    return false;
+                }
+            });
+            $('.filter_global_comparison_type').siblings('input').each(function () {
+                if ($(this).prop('checked')) {
+                    isChecked = true;
+                    return false;
+                }
+            });
+            if (isChecked) {
+                $('#search-global-blacklist').val('');
+                $('#search-global-blacklist').prop('disabled', true);
+                $('#search-global-blacklist').attr('title', 'Remove filter to search...');
+                $('#search-global-blacklist').css('opacity', '0.7');
+                $('#filterGlobalBlacklistButton span').html(`${count}`);
+                $('#filterGlobalBlacklistButton span').addClass('span');
+            } else {
+                $('#search-global-blacklist').prop('disabled', false);
+                $('#search-global-blacklist').attr('title', '');
+                $('#search-global-blacklist').css('opacity', '1');
+                $('#filterGlobalBlacklistButton span').html(``);
+                $('#filterGlobalBlacklistButton span').removeClass('span');
+            }
         }
     });
 }
@@ -515,42 +425,91 @@ function filterEmailBlacklist(e) {
                     `;
                 });
             } else {
-                html += `
-                    <tr>
-                        <td colspan="4">
-                            <div style="width: 50%; margin: 0 auto;"
-                                class="empty_blacklist text-center">
-                                <img src="${emptyImage}" alt="">
-                                <p>
-                                    Sorry, no results for that query
-                                </p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                html += getEmptyBlacklistHTML();
             }
             $('#email_blacklist_row').html(html);
         },
         error: function (xhr) {
-            let html = ``;
-            html += `
-                <tr>
-                    <td colspan="4">
-                        <div style="width: 50%; margin: 0 auto;"
-                            class="empty_blacklist text-center">
-                            <img src="${emptyImage}" alt="">
-                            <p>
-                                Sorry, no results for that query
-                            </p>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            let html = getEmptyBlacklistHTML();
             $('#email_blacklist_row').html(html);
         },
         complete: function () {
             filterEmailBlacklistAjax = null;
             $('#filterEmailBlacklist').modal('hide');
+            let count = 0;
+            let isChecked = false;
+            $('.filter_email_blacklist_type').siblings('input').each(function () {
+                if ($(this).prop('checked')) {
+                    count++;
+                }
+            })
+            $('.filter_email_comparison_type').siblings('input').each(function () {
+                if ($(this).prop('checked')) {
+                    count++;
+                }
+            });
+            $('.filter_email_blacklist_type').siblings('input').each(function () {
+                if ($(this).prop('checked')) {
+                    isChecked = true;
+                    return false;
+                }
+            });
+            $('.filter_email_comparison_type').siblings('input').each(function () {
+                if ($(this).prop('checked')) {
+                    isChecked = true;
+                    return false;
+                }
+            });
+            if (isChecked) {
+                $('#search-email-blacklist').val('');
+                $('#search-email-blacklist').prop('disabled', true);
+                $('#search-email-blacklist').attr('title', 'Remove filter to search...');
+                $('#search-email-blacklist').css('opacity', '0.7');
+                $('#filterEmailBlacklistButton span').html(`${count}`);
+                $('#filterEmailBlacklistButton span').addClass('span');
+            } else {
+                $('#search-email-blacklist').prop('disabled', false);
+                $('#search-email-blacklist').attr('title', '');
+                $('#search-email-blacklist').css('opacity', '1');
+                $('#filterEmailBlacklistButton span').html(``);
+                $('#filterEmailBlacklistButton span').removeClass('span');
+            }
+        }
+    });
+}
+
+function getEmptyBlacklistHTML() {
+    return `
+        <tr>
+            <td colspan="4">
+                <div style="width: 50%; margin: 0 auto;" class="empty_blacklist text-center">
+                    <img src="${emptyImage}" alt="">
+                    <p>Sorry, no results for that query</p>
+                </div>
+            </td>
+        </tr>
+    `;
+}
+
+function inputWrapper(e) {
+    let blacklistValue = $(this).val();
+    let blacklistItems = blacklistValue.split(';');
+    let blacklistDivId = $(this).data('div-id');
+    let removeItem = blacklistDivId == 'global_blacklist_div' ? 'remove_global_blacklist_item' : 'remove_email_blacklist_item';
+    let inputItem = blacklistDivId == 'global_blacklist_div' ? 'global_blacklist_item' : 'email_blacklist_item';
+
+    blacklistItems.forEach((item, index) => {
+        let trimmedItem = item.trim();
+        if (trimmedItem !== '' && index < blacklistItems.length - 1) {
+            $('#' + blacklistDivId).append(
+                `<div class="item"><span>`
+                + trimmedItem +
+                `</span><span class="` + removeItem + `"><i class="fa-solid fa-xmark"></i></span>
+                <input type="hidden" name="` + inputItem + `[]" value="`
+                + trimmedItem +
+                `"></div>`);
+        } else {
+            $(this).val(item);
         }
     });
 }

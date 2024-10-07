@@ -90,6 +90,8 @@ class StripePaymentController extends Controller
                     ['price' => config('services.stripe.seat_price_id')],
                 ],
             ]);
+
+            return redirect()->route('dashboardPage', ['slug' => $slug])->with('success', 'Seat created successfully.');
         } catch (\Stripe\Exception\ApiErrorException $e) {
             Log::error('Stripe API Error: ' . $e);
             return back()->withErrors(['payment_error' => 'Payment processing error. Please try again.'])

@@ -31,7 +31,7 @@ class InvoiceController extends Controller
             $seats = Seat::where('team_id', $team->id)->get();
 
             /* Extract the invoices based on seat IDs */
-            $invoices = Invoice::whereIn('seat_id', $seats->pluck('id')->toArray())->get();
+            $invoices = Invoice::whereIn('seat_id', $seats->pluck('id'))->get();
 
             /* Prepare data for the view */
             $data = [

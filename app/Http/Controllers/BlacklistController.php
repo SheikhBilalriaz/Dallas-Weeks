@@ -25,14 +25,18 @@ class BlacklistController extends Controller
     {
         try {
             /* Retrieve the team associated with the slug */
-            $team = Team::with(['globalBlacklists', 'emailBlacklists'])->where('slug', $slug)->first();
+            $team = Team::where('slug', $slug)->first();
+
+            /* Retrieve the global and email blacklists in a single query each */
+            $globalBlacklists = Global_Blacklist::where('team_id', $team->id)->get();
+            $emailBlacklists = Email_Blacklist::where('team_id', $team->id)->get();
 
             /* Prepare data for the view */
             $data = [
                 'title' => 'Blacklist - Networked',
                 'team' => $team,
-                'global_blacklists' => $team->globalBlacklists,
-                'email_blacklists' => $team->emailBlacklists,
+                'global_blacklists' => $globalBlacklists,
+                'email_blacklists' => $emailBlacklists,
             ];
 
             /* Return the view with the prepared data */

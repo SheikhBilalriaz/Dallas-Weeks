@@ -28,20 +28,4 @@ class Global_Blacklist extends Model
         'blacklist_type',
         'comparison_type',
     ];
-
-    /**
-     * Get the creator of the global blacklist entry.
-     */
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'creator_id');
-    }
-
-    /**
-     * Get the team that owns the global blacklist entry.
-     */
-    public function team()
-    {
-        return $this->belongsTo(Team::class, 'team_id');
-    }
 }

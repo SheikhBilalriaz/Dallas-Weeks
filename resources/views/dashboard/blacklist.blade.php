@@ -122,6 +122,18 @@
         .global-blacklist__back-arrow:hover * {
             color: #fff !important;
         }
+
+        #filterGlobalBlacklistButton .span,
+        #filterEmailBlacklistButton .span {
+            background-color: #42464e;
+            border-radius: 4px;
+            color: #fff;
+            width: 20px;
+            height: 22px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
     </style>
     <section class="blacklist">
         <div class="container-fluid">
@@ -144,8 +156,8 @@
                                 </div>
                                 <div class="filter">
                                     <a href="javascript:void(0);" data-bs-toggle="modal"
-                                        data-bs-target="#filterGlobalBlacklist">
-                                        <i class="fa-solid fa-filter"></i>
+                                        data-bs-target="#filterGlobalBlacklist" id="filterGlobalBlacklistButton">
+                                        <span></span><i class="fa-solid fa-filter"></i>
                                     </a>
                                     <div>
                                         <button class="add_to_blacklist"
@@ -240,8 +252,8 @@
                                 </div>
                                 <div class="filter">
                                     <a href="javascript:void(0);" data-bs-toggle="modal"
-                                        data-bs-target="#filterEmailBlacklist">
-                                        <i class="fa-solid fa-filter"></i>
+                                        data-bs-target="#filterEmailBlacklist" id="filterEmailBlacklistButton">
+                                        <span></span><i class="fa-solid fa-filter"></i>
                                     </a>
                                     <div>
                                         <button class="add_to_blacklist"

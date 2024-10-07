@@ -48,36 +48,4 @@ class User extends Authenticatable
     protected $casts = [
         'verified_at' => 'datetime',
     ];
-
-    /**
-     * Get the teams created by user.
-     */
-    public function createdTeams()
-    {
-        return $this->hasMany(Team::class, 'creator_id');
-    }
-
-    /**
-     * Get the global blacklists created by user.
-     */
-    public function createdGlobalBlacklists()
-    {
-        return $this->hasMany(Global_Blacklist::class, 'creator_id');
-    }
-
-    /**
-     * Get the email blacklists created by user.
-     */
-    public function createdEmailBlacklists()
-    {
-        return $this->hasMany(Email_Blacklist::class, 'creator_id');
-    }
-
-    /**
-     * Get the global permissions assigned to this user.
-     */
-    public function globalPermissions()
-    {
-        return $this->hasMany(Global_Permission::class, 'user_id');
-    }
 }

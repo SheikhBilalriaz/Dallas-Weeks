@@ -27,19 +27,11 @@ class DashboardController extends Controller
         /* Retrieve the team where the user is the creator */
         $team = Team::where('creator_id', $user->id)->first();
 
-        /* If the user is not a creator or the session team slug matches the team slug */
-        if (!$team || ($team && session()->has('team_slug') && session('team_slug') == $team->slug)) {
-
-            /* Retrieve all teams where the user is a member */
-            $teams = Team::whereIn('id', Team_Member::where('user_id', $user->id)->pluck('team_id'))->get();
-
-            /* Find the first team where the session team slug doesn't match */
-            foreach ($teams as $team) {
-                /* Break the loop as soon as a team with a different slug is found */
-                if (session('team_slug') != $team->slug) {
-                    break;
-                }
-            }
+        /* Check if the session has a team_slug, and if it matches the creator's team slug */
+        if (!$team || (session()->has('team_slug') && session('team_slug') == $team->slug)) {
+            /* Retrieve the user's teams as a member */
+            $teamMemberIds = Team_Member::where('user_id', $user->id)->pluck('team_id');
+            $team = Team::whereIn('id', $teamMemberIds)->where('slug', '!=', session('team_slug'))->first();
         }
 
         /* You could redirect the user to a "No Team" page, or show an error message if $team is still null. */
@@ -67,19 +59,23 @@ class DashboardController extends Controller
     public function dashboard($slug)
     {
         try {
+            /* Get the currently authenticated user */
             $user = Auth::user();
 
             /* Retrieve the team associated with the slug */
             $team = Team::where('slug', $slug)->first();
 
-            $members = Team_Member::where('user_id', $user->id)->where('team_id', $team->id)->get();
-
-            $assigned_seats = Assigned_Seat::whereIn('member_id', $members->pluck('id')->toArray())->get();
-
+            /* Check if the user is the team creator or a member */
             if ($user->id == $team->creator_id) {
+                /* If the user is the team creator, retrieve all seats for the team */
                 $seats = Seat::where('team_id', $team->id)->get();
             } else {
-                $seats = Seat::whereIn('id', $assigned_seats->pluck('seat_id')->toArray())->get();;
+                /* Retrieve the member and assigned seats for the user */
+                $assignedSeatIds = Assigned_Seat::whereIn('member_id', Team_Member::where('user_id', $user->id)
+                    ->where('team_id', $team->id)
+                    ->pluck('id'))
+                    ->pluck('seat_id');
+                $seats = Seat::whereIn('id', $assignedSeatIds)->get();
             }
 
             /* Prepare data for the view */
@@ -87,12 +83,8 @@ class DashboardController extends Controller
                 'title' => 'Dashboard - Networked',
                 'team' => $team,
                 'seats' => $seats,
+                'error' => session()->has('errors') ? session('errors')->first() : null,
             ];
-
-            /* Include errors if present in the session */
-            if (session()->has('errors')) {
-                $data['error'] = session('errors')->first();
-            }
 
             /* Return the view with the prepared data */
             return view('dashboard.dashboard_account', $data);

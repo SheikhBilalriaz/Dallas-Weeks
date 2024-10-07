@@ -11,6 +11,7 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\StripeController;
+use App\Http\Controllers\SeatController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -59,6 +60,13 @@ Route::middleware(['userAuth'])->group(function () {
     Route::prefix('/team/{slug}')->middleware(['teamChecker'])->group(function () {
         Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboardPage');
 
+        Route::prefix('seat')->group(function () {
+            Route::get('/filter-seat/{search}', [SeatController::class, 'filterSeat'])->name('filterSeat'); //Done
+            Route::get('/get-seat-by-id/{id}', [SeatController::class, 'getSeatById'])->name('getSeatById');
+            Route::get('/deleteSeat/{id}', [SeatController::class, 'delete_seat'])->name('deleteSeat');
+            Route::get('/updateName/{id}/{seat_name}', [SeatController::class, 'update_name'])->name('updateName');
+        });
+
         /* These are for blacklist requires access blacklist manage */
         Route::prefix('/blacklist')->middleware(['blacklistAccessChecker'])->group(function () {
             Route::get('/', [BlacklistController::class, 'blacklist'])->name('globalBlacklistPage'); //Done
@@ -70,16 +78,6 @@ Route::middleware(['userAuth'])->group(function () {
             Route::get('/search-email-blacklist/{search}', [BlacklistController::class, 'searchEmailBlacklist'])->name('searchEmailBlacklist'); //Done
             Route::post('/filter-global-blacklist', [BlacklistController::class, 'filterGlobalBlacklist'])->name('filterGlobalBlacklist'); //Done
             Route::post('/filter-email-blacklist', [BlacklistController::class, 'filterEmailBlacklist'])->name('filterEmailBlacklist'); //Done
-        });
-
-        Route::prefix('/invoice')->middleware(['invoiceAccessChecked'])->group(function () {
-            Route::get('/', [InvoiceController::class, 'invoice'])->name('globalInvoicePage'); //Done
-            Route::get('/seat/{id}', [InvoiceController::class, 'invoiceBySeat'])->name('invoiceBySeat'); //Done
-            Route::get('/download/{id}', [InvoiceController::class, 'downloadInvoice'])->name('downloadInvoice'); //Done
-        });
-
-        Route::prefix('/stripe')->group(function () {
-            Route::post('/payment', [StripePaymentController::class, 'stripePayment'])->name('stripePayment'); //Done
         });
 
         /* These are for team member */
@@ -95,6 +93,16 @@ Route::middleware(['userAuth'])->group(function () {
             Route::get('/search-team-member/{search}', [TeamController::class, 'searchTeamMember'])->name('searchTeamMember'); //Done
             Route::delete('/delete-team-member/{id}', [TeamController::class, 'deleteTeamMember'])->name('deleteTeamMember'); //Done
             Route::post('/invite-team-member', [TeamController::class, 'inviteTeamMember'])->name('inviteTeamMember');
+        });
+
+        Route::prefix('/invoice')->middleware(['invoiceAccessChecked'])->group(function () {
+            Route::get('/', [InvoiceController::class, 'invoice'])->name('globalInvoicePage'); //Done
+            Route::get('/seat/{id}', [InvoiceController::class, 'invoiceBySeat'])->name('invoiceBySeat'); //Done
+            Route::get('/download/{id}', [InvoiceController::class, 'downloadInvoice'])->name('downloadInvoice'); //Done
+        });
+
+        Route::prefix('/stripe')->group(function () {
+            Route::post('/payment', [StripePaymentController::class, 'stripePayment'])->name('stripePayment'); //Done
         });
 
         Route::prefix('/settings')->group(function () {
