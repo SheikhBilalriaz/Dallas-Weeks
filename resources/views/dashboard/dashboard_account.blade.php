@@ -414,6 +414,9 @@
     @if (session('email_verified'))
         <script>
             var getSeatRoute = "{{ route('getSeatById', ['slug' => $team->slug, ':seat_id']) }}";
+            var getSeatAccessRoute = "{{ route('getSeatAccess', ['slug' => $team->slug, ':seat_id']) }}";
+            var seatDashboardPageRoute = "{{ route('seatDashboardPage', ['slug' => $team->slug]) }}";
+            var updateNameRoute = "{{ route('updateName', ['slug' => $team->slug, ':seat_id', ':seat_name']) }}";
         </script>
     @endif
     <script>

@@ -68,5 +68,6 @@ class Kernel extends HttpKernel
         'teamChecker' => \App\Http\Middleware\teamCheckingMiddleware::class,
         'blacklistAccessChecker' => \App\Http\Middleware\blacklistAccessCheckingMiddleware::class,
         'invoiceAccessChecked' => \App\Http\Middleware\invoiceAccessCheckingMiddleware::class,
+        'seatAccessChecker' => \App\Http\Middleware\seatAccessCheckingMiddleware::class,
     ];
 }

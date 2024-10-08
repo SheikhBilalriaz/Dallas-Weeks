@@ -26,5 +26,6 @@ class Seat extends Model
         'customer_id',
         'is_active',
         'is_connected',
+        'slug',
     ];
 }

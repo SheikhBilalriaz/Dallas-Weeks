@@ -2,35 +2,17 @@ var deleteRoleAjax = null;
 var editRoleAjax = null;
 
 $(document).ready(function () {
-    toastr.options = {
-        "closeButton": true,
-        "debug": false,
-        "newestOnTop": false,
-        "progressBar": true,
-        "positionClass": "toast-bottom-right",
-        "preventDuplicates": false,
-        "onclick": null,
-        "showDuration": "300",
-        "hideDuration": "1000",
-        "timeOut": "5000",
-        "extendedTimeOut": "1000",
-        "showEasing": "swing",
-        "hideEasing": "linear",
-        "showMethod": "fadeIn",
-        "hideMethod": "fadeOut"
-    };
-
-    $(document).on('click', '.permission', change_permit);
-    $(document).on('click', '.edit_role', edit_role);
-    $(document).on('click', '.delete_role', delete_role);
+    $(document).on('click', '.permission', changePermit);
+    $(document).on('click', '.edit_role', editRole);
+    $(document).on('click', '.delete_role', deleteRole);
 });
 
-function change_permit(e) {
+function changePermit(e) {
     let displayStyle = $(this).prop('checked') ? 'flex' : 'none';
     $(this).parent().siblings('.switch_box').css('display', displayStyle);
 }
 
-function edit_role(e) {
+function editRole(e) {
     e.preventDefault();
     var id = $(this).parent().attr('id').replace('table_row_', '');
 
@@ -82,7 +64,7 @@ function edit_role(e) {
     }
 }
 
-function delete_role(e) {
+function deleteRole(e) {
     e.preventDefault();
     var id = $(this).parent().attr('id').replace('table_row_', '');
     if (!deleteRoleAjax) {

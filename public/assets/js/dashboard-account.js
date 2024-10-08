@@ -2,27 +2,27 @@ var searchAjax = null;
 var deleteAjax = null;
 
 $(document).ready(function () {
+    $(document).on('click', '.btn-prev', btnPrev);
+    $(document).on('click', '.btn-next', btnNext);
     $(document).on('input', '.error', function () {
         const $requiredFields = $(this).parent();
         $requiredFields.find('.text-danger').html('');
         $requiredFields.find('.error').removeClass('error');
     });
-    $(document).on('click', '.btn-prev', btn_prev);
-    $(document).on('click', '.btn-next', btn_next);
     $('#payment-form').bind('submit', paymentForm);
-    $(document).on('input', '#search_seat', filter_search);
-    $(document).on('click', '.setting_btn', setting_list);
-    $(document).on('click', '.update_seat_name', update_seat_name);
-    // $(document).on('click', '.seat_table_data', toSeat);
+    $(document).on('input', '#search_seat', filterSearch);
+    $(document).on('click', '.setting_btn', settingList);
+    $(document).on('click', '.seat_table_data', toSeat);
+    $(document).on('click', '.update_seat_name', updateSeatName);
     // $(document).on('click', '.delete_seat', deleteSeat);
 });
 
-function btn_next(e) {
-    changeStep(true);
+function btnPrev(e) {
+    changeStep(false);
 }
 
-function btn_prev(e) {
-    changeStep(false);
+function btnNext(e) {
+    changeStep(true);
 }
 
 function changeStep(isNext) {
@@ -114,7 +114,7 @@ function stripeResponseHandler(status, response) {
     }
 }
 
-function filter_search(e) {
+function filterSearch(e) {
     e.preventDefault();
     var search = $("#search_seat").val().trim() || "null";
     if (searchAjax) {
@@ -198,21 +198,26 @@ function filter_search(e) {
     });
 }
 
-function getEmptyBlacklistHTML() {
-    return `
-        <tr>
-            <td colspan="4">
-                <div style="width: 50%; margin: 0 auto;" class="empty_blacklist text-center">
-                    <img src="${emptyImage}" alt="">
-                    <p>Sorry, no results for that query</p>
-                </div>
-            </td>
-        </tr>
-    `;
+function settingList(e) {
+    var id = $(this).parent().parent().attr("id").replace("table_row_", "");
+    $.ajax({
+        url: getSeatAccessRoute.replace(':seat_id', id),
+        type: "GET",
+        success: function (response) {
+            if (response.success && response.access) {
+                renderSeatSettings(id);
+            } else {
+                toastr.error('You do not have access to this seat');
+            }
+        },
+        error: function (xhr, status, error) {
+            const errorMessage = xhr.responseJSON?.errors || 'Something went wrong.';
+            toastr.error(errorMessage);
+        }
+    });
 }
 
-function setting_list(e) {
-    var id = $(this).parent().parent().attr("id").replace("table_row_", "");
+function renderSeatSettings(id) {
     $.ajax({
         url: getSeatRoute.replace(':seat_id', id),
         type: "GET",
@@ -276,7 +281,7 @@ function setting_list(e) {
         },
         error: function (xhr, status, error) {
             $('#update_seat').modal('hide');
-            const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
+            const errorMessage = xhr.responseJSON?.errors || 'Something went wrong.';
             toastr.error(errorMessage);
         }
     });
@@ -296,38 +301,33 @@ function accordionItem(id, title, content, expanded = false, icon = 'fa-address-
         </div>`;
 }
 
-function update_seat_name(e) {
-    e.preventDefault();
-    var id = $(this).attr('id').replace('update_seat_name_', '');
-    var name = $('#seat_input_name').val();
-    if (!name.trim()) {
-        $('#seat_input_name_error').html('Seat name cannot be empty.');
-        $('#seat_input_name').addClass('error');
-        return;
-    }
+function toSeat(e) {
+    var id = $(this).parent().attr("id").replace("table_row_", "");
     $.ajax({
-        url: updateNameRoute.replace(':seat_id', id).replace(':seat_name', name),
+        url: getSeatAccessRoute.replace(':seat_id', id),
         type: "GET",
         success: function (response) {
-            if (response.success) {
-                $('#update_seat').modal('hide');
-                $('#table_row_' + id).find('.text-left').html(response.seat.username);
-                toastr.options = toastrOptions;
-                toastr.success('Seat name updated successfully.');
+            if (response.success && response.access) {
+                if (response.active) {
+                    renderSeatDashboard(id);
+                } else {
+                    toastr.error('You subscription payment is not updated');
+                }
+            } else {
+                toastr.error('You do not have access to this seat');
             }
         },
         error: function (xhr, status, error) {
-            const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
-            $('#seat_input_name_error').html(errorMessage);
+            const errorMessage = xhr.responseJSON?.errors || 'Something went wrong.';
+            toastr.error(errorMessage);
         }
     });
 }
 
-function toSeat(e) {
-    var id = $(this).parent().attr("id").replace("table_row_", "");
+function renderSeatDashboard(id) {
     var form = $("<form>", {
-        method: "POST",
-        action: dashboardRoute
+        method: "GET",
+        action: seatDashboardPageRoute
     });
     form.append(
         $("<input>", {
@@ -342,6 +342,75 @@ function toSeat(e) {
         })
     );
     form.appendTo("body").submit();
+}
+
+function updateSeatName(e) {
+    e.preventDefault();
+    var id = $(this).attr('id').replace('update_seat_name_', '');
+    var name = $('#seat_input_name').val();
+    if (!name.trim()) {
+        $('#seat_input_name_error').html('Seat name cannot be empty.');
+        $('#seat_input_name').addClass('error');
+        return;
+    }
+    $.ajax({
+        url: getSeatAccessRoute.replace(':seat_id', id),
+        type: "GET",
+        success: function (response) {
+            if (response.success && response.access) {
+                renderSeatNameUpdate(id, name);
+            } else {
+                toastr.error('You do not have access to this seat');
+            }
+        },
+        error: function (xhr, status, error) {
+            const errorMessage = xhr.responseJSON?.errors || 'Something went wrong.';
+            toastr.error(errorMessage);
+        }
+    });
+}
+
+function renderSeatNameUpdate(id, name) {
+    $.ajax({
+        url: updateNameRoute.replace(':seat_id', id).replace(':seat_name', name),
+        type: "GET",
+        success: function (response) {
+            if (response.success) {
+                $('#update_seat').modal('hide');
+                $('#table_row_' + id).find('.text-left').html(response.seat.company_info.name);
+                toastr.success('Seat name updated successfully.');
+            }
+        },
+        error: function (xhr, status, error) {
+            const errorMessage = xhr.responseJSON?.errors || 'Something went wrong.';
+            if (xhr.status == 500) {
+                $('#seat_input_name').addClass('error');
+                $('#seat_input_name_error').html(errorMessage);
+            } else {
+                toastr.error(errorMessage);
+            }
+        }
+    });
+}
+
+function toTitleCase(str) {
+    return str
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
+function getEmptyBlacklistHTML() {
+    return `
+        <tr>
+            <td colspan="4">
+                <div style="width: 50%; margin: 0 auto;" class="empty_blacklist text-center">
+                    <img src="${emptyImage}" alt="">
+                    <p>Sorry, no results for that query</p>
+                </div>
+            </td>
+        </tr>
+    `;
 }
 
 function deleteSeat(e) {
@@ -399,11 +468,4 @@ function deleteSeat(e) {
         });
         deleteAjax = null;
     }
-}
-
-function toTitleCase(str) {
-    return str
-        .split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
 }

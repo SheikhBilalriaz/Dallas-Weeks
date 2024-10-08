@@ -53,7 +53,8 @@ class RolesPermissionController extends Controller
             Log::error($e);
 
             /* Return a JSON response with the error message and a 404 status code */
-            return redirect()->route('dashboardPage', ['slug' => $slug])->withErrors(['error' => $e->getMessage()]);
+            return redirect()->route('dashboardPage', ['slug' => $slug])
+                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
         }
     }
 
@@ -129,7 +130,7 @@ class RolesPermissionController extends Controller
             /* Return a JSON response with the error message */
             return redirect()
                 ->route('rolesPermissionPage', ['slug' => $team->slug])
-                ->withErrors(['error' => $e->getMessage()]);
+                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
         }
     }
 
@@ -153,9 +154,7 @@ class RolesPermissionController extends Controller
 
                 /* If the role doesn't exist, return a JSON response with the error message */
                 if (!$role) {
-                    return redirect()
-                        ->route('rolesPermissionPage', ['slug' => $team->slug])
-                        ->withErrors(['error' => 'You do not have access to edit this role']);
+                    return response()->json(['success' => false, 'error' => 'Role not found'], 404);
                 }
 
                 /* Retrieve the permissions associated with this role */
@@ -173,16 +172,14 @@ class RolesPermissionController extends Controller
                 ]);
             }
 
-            /* If the role ID is one of the default roles (1, 2, 3), throw an exception */
-            return redirect()
-                ->route('rolesPermissionPage', ['slug' => $team->slug])
-                ->withErrors(['error' => 'You cannot edit default roles']);
+            /* If the role ID is one of the default roles (1, 2, 3) */
+            return response()->json(['success' => false, 'error' => 'You cannot edit default roles'], 403);
         } catch (Exception $e) {
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
             /* Return a JSON response with the error message and failure status */
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return response()->json(['success' => false, 'error' => 'An unexpected error occurred. Please try again.'], 500);
         }
     }
 
@@ -221,7 +218,7 @@ class RolesPermissionController extends Controller
                     /* Return a JSON response with the error message */
                     return redirect()
                         ->route('rolesPermissionPage', ['slug' => $team->slug])
-                        ->withErrors(['error' => 'You do not have access to edit this role']);
+                        ->withErrors(['error' => 'Role not found']);
                 }
 
                 $role->name = $request->input('edit_role_name');
@@ -261,7 +258,7 @@ class RolesPermissionController extends Controller
             /* Return a redirect with an error message */
             return redirect()
                 ->route('rolesPermissionPage', ['slug' => $team->slug])
-                ->withErrors(['error' => $e->getMessage()]);
+                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
         }
     }
 
@@ -285,7 +282,7 @@ class RolesPermissionController extends Controller
 
                 /* If the role doesn't exist, throw an exception */
                 if (!$role) {
-                    throw new Exception('You do not have access to delete this role');
+                    return response()->json(['success' => false, 'error' => 'Role not found'], 404);
                 }
 
                 /* Get the currently authenticated user */
@@ -299,11 +296,13 @@ class RolesPermissionController extends Controller
 
                 /* If the role is already in use (assigned to a member), throw an exception */
                 if ($assignedSeat) {
-                    throw new Exception('Role is already in use');
+                    return response()->json(['success' => false, 'error' => 'Role is already in use'], 500);
                 }
 
                 /* Delete all associated role-permission records before deleting the role */
-                Role_Permission::where('role_id', $role_id)->each->delete();
+                Role_Permission::where('role_id', $role->id)->get()->each(function ($permission) {
+                    $permission->delete();
+                });
 
                 /* Delete the role */
                 $role->delete();
@@ -312,14 +311,14 @@ class RolesPermissionController extends Controller
                 return response()->json(['success' => true]);
             }
 
-            /* Throw an exception if trying to delete a default role (ID 1, 2, 3) */
-            throw new Exception('You cannot delete default roles');
+            /* Return a failure response with the exception message */
+            return response()->json(['success' => false, 'error' => 'You cannot edit default roles'], 403);
         } catch (Exception $e) {
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
             /* Return a failure response with the exception message */
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return response()->json(['success' => false, 'error' => 'An unexpected error occurred. Please try again.'], 500);
         }
     }
 }

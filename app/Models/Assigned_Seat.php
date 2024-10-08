@@ -17,9 +17,8 @@ class Assigned_Seat extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'user_id',
         'role_id',
         'seat_id',
-        'team_id',
+        'member_id'
     ];
 }

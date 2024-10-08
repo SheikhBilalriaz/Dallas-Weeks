@@ -12,6 +12,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\SeatController;
+use App\Http\Controllers\SeatDashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -55,16 +56,22 @@ Route::middleware(['userAuth'])->group(function () {
 
     /* To dashboard requires authentication */
     Route::get('/dashboard', [DashboardController::class, 'toDashboard'])->name('dashboard'); //Done
-    // Route::get('/')->name('noTeamPage');
+    Route::get('/no-team-page')->name('noTeamPage');
 
     Route::prefix('/team/{slug}')->middleware(['teamChecker'])->group(function () {
         Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboardPage');
 
+        Route::middleware(['seatAccessChecker'])->group(function () {
+            Route::get('seat-dashboard', [SeatDashboardController::class, 'seatDashboard'])->name('seatDashboardPage');
+        });
+
         Route::prefix('seat')->group(function () {
             Route::get('/filter-seat/{search}', [SeatController::class, 'filterSeat'])->name('filterSeat'); //Done
-            Route::get('/get-seat-by-id/{id}', [SeatController::class, 'getSeatById'])->name('getSeatById');
-            Route::get('/deleteSeat/{id}', [SeatController::class, 'delete_seat'])->name('deleteSeat');
-            Route::get('/updateName/{id}/{seat_name}', [SeatController::class, 'update_name'])->name('updateName');
+            Route::get('/get-seat-access/{id}', [SeatController::class, 'getSeatAccess'])->name('getSeatAccess'); //Done
+            Route::get('/get-seat-by-id/{id}', [SeatController::class, 'getSeatById'])->name('getSeatById'); //Done
+            Route::get('/update-seat-name/{id}/{seat_name}', [SeatController::class, 'updateName'])->name('updateName'); //Done
+            Route::get('/cancel-seat-subscription/{id}', [SeatController::class, 'cancelSubscription'])->name('cancelSubscription');
+            Route::get('/delete-seat/{id}', [SeatController::class, 'deleteSeat'])->name('deleteSeat');
         });
 
         /* These are for blacklist requires access blacklist manage */
@@ -92,7 +99,7 @@ Route::middleware(['userAuth'])->group(function () {
             });
             Route::get('/search-team-member/{search}', [TeamController::class, 'searchTeamMember'])->name('searchTeamMember'); //Done
             Route::delete('/delete-team-member/{id}', [TeamController::class, 'deleteTeamMember'])->name('deleteTeamMember'); //Done
-            Route::post('/invite-team-member', [TeamController::class, 'inviteTeamMember'])->name('inviteTeamMember');
+            Route::post('/invite-team-member', [TeamController::class, 'inviteTeamMember'])->name('inviteTeamMember'); //Done
         });
 
         Route::prefix('/invoice')->middleware(['invoiceAccessChecked'])->group(function () {

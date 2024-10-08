@@ -24,6 +24,5 @@ class Company_Info extends Model
         'state',
         'postal_code',
         'country',
-        'tax_id'
     ];
 }

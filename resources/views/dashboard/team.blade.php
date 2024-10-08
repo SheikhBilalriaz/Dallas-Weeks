@@ -8,6 +8,49 @@
     @endphp
     <script src="{{ asset('assets/js/team.js') }}"></script>
     <style>
+        .filter_head_row .d-flex {
+            justify-content: space-between;
+        }
+
+        .create_sequence_modal .modal-dialog .modal-body {
+            padding: 10% !important;
+        }
+
+        .create_sequence_modal .modal-dialog .modal-body #role_name {
+            width: 100%;
+            text-align: start;
+        }
+
+        .btn-theme {
+            padding: 20px 30px !important;
+            border-radius: 30px !important;
+            font-size: 18px !important;
+            line-height: 1 !important;
+            position: relative;
+            background: #e3c935 !important;
+            border: 1px solid #e3c935 !important;
+            transition: 0.5s !important;
+            margin: 0 10px;
+            color: #000 !important;
+        }
+
+        #name_error {
+            text-align: start;
+            margin-bottom: 40px !important;
+        }
+
+        #role_name_input {
+            margin-bottom: 0px !important;
+        }
+
+        #role_name_input.error {
+            border: 1px solid red;
+        }
+
+        .step_form_popup input.error {
+            border: 1px solid red;
+        }
+
         .disabled {
             opacity: 0.7;
             pointer-events: none;
@@ -255,54 +298,6 @@
         var isCreator = "{{ session('is_creator') }}";
     </script>
     @if (session('is_creator'))
-        <div class="modal fade step_form_popup " id="create_new_role" tabindex="-1" aria-labelledby="create_new_role"
-            aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="create_new_role">Create a custom role</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                    <div class="modal-body" bis_skin_checked="1">
-                        <form class="step_form">
-                            <label for="role_name">Role name</label>
-                            <input type="text" name="role_name" required>
-                            <div>
-                                @if ($permissions->isNotEmpty())
-                                    @foreach ($permissions as $permission)
-                                        <div class="row">
-                                            <div class="col-lg-6" style="display: flex; width: 390px;">
-                                                <input class="permission"
-                                                    style="width: 25px; height: 25px; margin-right: 25px;" type="checkbox"
-                                                    id="permission_{{ $permission['slug'] }}"
-                                                    name="{{ $permission['slug'] }}">
-                                                <label
-                                                    for="permission_{{ $permission['slug'] }}">{{ $permission['name'] }}</label>
-                                            </div>
-                                            <div class="col-lg-6" style="display: none; width: 390px;">
-                                                @if ($permission->allow_view_only == 1)
-                                                    <input type="radio"
-                                                        style="width: 25px; height: 25px; margin-right: 25px;"
-                                                        id="view_only_{{ $permission['slug'] }}" class="view_only"
-                                                        name="view_only_{{ $permission['slug'] }}">
-                                                    <label for="view_only_{{ $permission['slug'] }}">View
-                                                        Only</label>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                @endif
-                            </div>
-                            <button type="submit" class="btn btn-next">Create Role</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-    @if (session('is_creator'))
         <div class="modal fade create_sequence_modal invite_team_modal" id="invite_team_modal" tabindex="-1"
             aria-labelledby="invite_team_modal" aria-hidden="true">
             <div class="modal-dialog">
@@ -342,7 +337,7 @@
                                         required>
                                 </div>
                                 <span>Select one role for your team member</span>
-                                <div class="col-lg-6 edit_able {{ !session()->has('invite_error') ? 'disabled' : '' }}">
+                                <div class="col-lg-12 edit_able {{ !session()->has('invite_error') ? 'disabled' : '' }}">
                                     @if ($roles->isNotEmpty())
                                         @foreach ($roles as $role)
                                             <div class="checkboxes">
@@ -355,17 +350,6 @@
                                             </div>
                                         @endforeach
                                     @endif
-                                </div>
-                                <div
-                                    class="col-lg-6 add_col edit_able {{ !session()->has('invite_error') ? 'disabled' : '' }}">
-                                    <div class="d-flex justify-content-end">
-                                        <div style="cursor: pointer;" class="add_btn" data-bs-toggle="modal"
-                                            data-bs-target="#create_new_role">
-                                            <a href="javascript:;" class="" type="button"><i
-                                                    class="fa-solid fa-plus"></i></a>
-                                            Create custom role
-                                        </div>
-                                    </div>
                                 </div>
                                 <div class="col-lg-6 edit_able {{ !session()->has('invite_error') ? 'disabled' : '' }}">
                                     <div class="border_box">

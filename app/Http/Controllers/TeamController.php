@@ -56,7 +56,7 @@ class TeamController extends Controller
             $roles = Role::whereIn('team_id', [0, $team->id])->get();
 
             /* Fetch all team members */
-            $members = Team_Member::where('team_id', $team->id)->get();
+            $members = Team_Member::where('team_id', $team->id)->whereNot('user_id', $team->creator_id)->get();
 
             /* Fetch all available permissions */
             $permissions = Permission::all();
@@ -79,7 +79,8 @@ class TeamController extends Controller
             Log::error($e);
 
             /* Return a JSON response with the error message and a 404 status code */
-            return redirect()->route('dashboardPage', ['slug' => $slug])->withErrors(['error' => $e->getMessage()]);
+            return redirect()->route('dashboardPage', ['slug' => $slug])
+                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
         }
     }
 
@@ -114,7 +115,7 @@ class TeamController extends Controller
             $creator = $query->first();
 
             /* Get all members associated with the team */
-            $members = Team_Member::where('team_id', $team->id)->get();
+            $members = Team_Member::where('team_id', $team->id)->whereNot('user_id', $team->creator_id)->get();;
 
             /* Initialize an empty array to store filtered members */
             $filtered_members = [];
@@ -181,7 +182,7 @@ class TeamController extends Controller
 
             /* Redirect to the dashboard page with an error message in case of an exception */
             return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'Something went wrong while searching the team.']);
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 
@@ -277,23 +278,44 @@ class TeamController extends Controller
                 ])->with('invite_error', true)->withInput();
             }
 
+            /* Check if the user already exists and is a member of the team */
+            $existingUser = User::where('email', $request->input('invite_email'))->first();
+            if ($existingUser && Team_Member::where('team_id', $team->id)->where('user_id', $existingUser->id)->exists()) {
+                return back()->withErrors([
+                    'invite_email' => 'User already a member of the team',
+                ])->with('invite_error', true)->withInput();
+            }
+
             /* Validate that at least one seat is assigned for each role */
             foreach ($request->input('roles') as $role) {
-                if (!isset($request->input('seats')[$role]) || count($request->input('seats')[$role]) <= 0) {
+                if (empty($request->input('seats')[$role])) {
                     return back()->withErrors([
-                        'roles' => `No Seat Assigned to '{$role}'.`,
+                        'seats' => 'No seat assigned to "' . $role . '".',
                     ])->with('invite_error', true)->withInput();
                 }
             }
 
-            /* Check if roles and seats exist in the database */
+            /* Ensure no role is assigned to the same seat */
+            $existed_seat = [];
+            foreach ($request->input('roles') as $role) {
+                foreach ($request->input('seats')[$role] as $seat) {
+                    if (in_array($seat, $existed_seat)) {
+                        return back()->withErrors([
+                            'seats' => 'You cannot assign different roles to the same seat',
+                        ])->with('invite_error', true)->withInput();
+                    }
+                    $existed_seat[] = $seat;
+                }
+            }
+
+            /* Validate existence of roles and seats in the database */
             foreach ($request->input('roles') as $role) {
                 $role_id = str_replace('role_', '', $role);
 
                 /* Validate the existence of the role */
                 if (!Role::where('id', $role_id)->exists()) {
                     return back()->withErrors([
-                        'roles' => `Role '{$role}' not found`,
+                        'roles' => 'Role "' . $role . '" not found',
                     ])->with('invite_error', true)->withInput();
                 }
 
@@ -301,20 +323,17 @@ class TeamController extends Controller
                 foreach ($request->input('seats')[$role] as $seat) {
                     if (!Seat::where('id', $seat)->exists()) {
                         return back()->withErrors([
-                            'roles' => `Seat '{$seat}' not found for role '{$role}'`,
+                            'seats' => 'Seat "' . $seat . '" not found for role "' . $role . ' "',
                         ])->with('invite_error', true)->withInput();
                     }
                 }
             }
 
-            dd($request->all());
-
             /* Check if the user already exists or create a new user */
-            $user = User::where('email', $request->input('invite_email'))->first();
-            if (!$user) {
+            if (!$existingUser) {
                 /* Generate a random password for the new user */
                 $randomPassword = Str::random(37);
-                $temp_user = User::create([
+                $newUser = User::create([
                     'name' => $request->input('name'),
                     'email' => $request->input('invite_email'),
                     'password' => Hash::make($randomPassword),
@@ -322,16 +341,13 @@ class TeamController extends Controller
                 ]);
 
                 /* Send welcome email to the new user */
-                Mail::to($temp_user->email)->send(new WelcomeMail($temp_user, $randomPassword));
-                $user = $temp_user;
+                Mail::to($newUser->email)->send(new WelcomeMail($newUser, $randomPassword));
+                $user = $newUser;
+            } else {
+                $user = $existingUser;
             }
 
-            /* Check if the user is already a team member */
-            if (Team_Member::where('user_id', $user->id)->where('team_id', $team->id)->exists()) {
-                return back()->withErrors([
-                    'invite_email' => 'Team Member already existed',
-                ])->with('invite_error', true)->withInput();
-            }
+            /* Create the team member association */
             $team_member = Team_Member::create([
                 'team_id' => $team->id,
                 'user_id' => $user->id,
@@ -341,7 +357,7 @@ class TeamController extends Controller
             foreach ($request->input('roles') as $role) {
                 $role_id = str_replace('role_', '', $role);
                 foreach ($request->input('seats')[$role] as $seat) {
-                    $assigned_seats[] = Assigned_Seat::create([
+                    Assigned_Seat::create([
                         'member_id' => $team_member->id,
                         'role_id' => $role_id,
                         'seat_id' => $seat,
@@ -350,30 +366,28 @@ class TeamController extends Controller
             }
 
             /* Handle global permissions based on the request input */
-            if ($request->input('manage_payment_system')) {
-                Global_Permission::create([
-                    'name' => 'Manage payment system',
-                    'slug' => 'manage_payment_system',
-                    'user_id' => $user->id,
-                    'team_id' => $team->id,
-                    'access' => 1,
-                ]);
-            }
-            if ($request->input('manage_global_blacklist')) {
-                Global_Permission::create([
-                    'name' => 'Manage global blacklist',
-                    'slug' => 'manage_global_blacklist',
-                    'user_id' => $user->id,
-                    'team_id' => $request->input('team_id'),
-                    'access' => 1,
-                ]);
+            $globalPermissions = [
+                'manage_payment_system' => 'Manage payment system',
+                'manage_global_blacklist' => 'Manage global blacklist',
+            ];
+
+            foreach ($globalPermissions as $inputKey => $permissionName) {
+                if ($request->input($inputKey)) {
+                    Global_Permission::create([
+                        'name' => $permissionName,
+                        'slug' => $inputKey,
+                        'user_id' => $user->id,
+                        'team_id' => $team->id,
+                        'access' => 1,
+                    ]);
+                }
             }
 
             /* Commit the transaction */
             DB::commit();
 
             /* Redirect to the team page with a success message */
-            return redirect()->route('teamPage')->with(['success' => 'Add Team Member Successfully']);
+            return redirect()->route('teamPage', ['slug' => $slug])->with(['success' => 'Add Team Member Successfully']);
         } catch (Exception $e) {
             // Rollback the transaction if an error occurs
             DB::rollBack();

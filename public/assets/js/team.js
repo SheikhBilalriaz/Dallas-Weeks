@@ -1,23 +1,6 @@
 var customRoleAjax = null;
 var searchMemberAjax = null;
 $(document).ready(function () {
-    toastr.options = {
-        "closeButton": true,
-        "debug": false,
-        "newestOnTop": false,
-        "progressBar": true,
-        "positionClass": "toast-bottom-right",
-        "preventDuplicates": false,
-        "onclick": null,
-        "showDuration": "300",
-        "hideDuration": "1000",
-        "timeOut": "5000",
-        "extendedTimeOut": "1000",
-        "showEasing": "swing",
-        "hideEasing": "linear",
-        "showMethod": "fadeIn",
-        "hideMethod": "fadeOut"
-    };
     $(document).on('click', '.permission', function (e) {
         if ($(this).prop('checked')) {
             $(this).parent().siblings('div').css('display', 'flex');
@@ -47,7 +30,6 @@ $(document).ready(function () {
     $(document).on('input', '#invite_email', inviteEmail);
     $(document).on('click', '.roles', getRole);
     $(document).on('submit', '.invite_form', inviteMember);
-    // $('.step_form').on('submit', custom_role);
     $(document).on('click', '.delete-team-member', deleteMember);
     $(document).on('input', '#search-team-member', searchMember);
     $(document).on('click', '.setting_btn', function () {
@@ -310,32 +292,4 @@ function getRole(e) {
         $(this).siblings('.seat-management').remove()
     }
     $('.invite_modal_row .edit_able_btn').addClass('disabled');
-}
-
-function custom_role(e) {
-    e.preventDefault();
-    if (!customRoleAjax) {
-        let formData = new FormData(e.target);
-        customRoleAjax = $.ajax({
-            url: customRoleRoute,
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            method: 'POST',
-            success: function (response) {
-                if (response.success) {
-                    window.location.reload();
-                }
-            },
-            error: function (xhr, error, status) {
-                console.error(error);
-            },
-            complete: function () {
-                customRoleAjax = null;
-            }
-        });
-    }
 }

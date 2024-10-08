@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('seat', function (Blueprint $table) {
             $table->id();
+            $table->string('slug')->unique();
             $table->unsignedBigInteger('creator_id');
             $table->foreign('creator_id')->references('id')->on('user')->onDelete('cascade');
             $table->unsignedBigInteger('team_id');

@@ -20,6 +20,5 @@ class Seat_Info extends Model
     protected $fillable = [
         'email',
         'phone_number',
-        'summary',
     ];
 }
