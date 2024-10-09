@@ -91,7 +91,7 @@
     <section class="dashboard">
         <div class="container-fluid">
             <div class="row">
-                @include('dashboard/partials/dashboard_sidebar')
+                @include('dashboard/partials/sidebar')
                 <div class="col-lg-8">
                     <div class="dashboard_cont">
                         <div class="row_filter d-flex align-items-center justify-content-between">

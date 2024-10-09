@@ -87,7 +87,7 @@ class DashboardController extends Controller
             ];
 
             /* Return the view with the prepared data */
-            return view('dashboard.dashboard_account', $data);
+            return view('dashboard.main', $data);
         } catch (Exception $e) {
             /* Log the exception message for debugging */
             Log::error($e);
