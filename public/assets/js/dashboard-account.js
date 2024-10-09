@@ -211,7 +211,7 @@ function settingList(e) {
             }
         },
         error: function (xhr, status, error) {
-            const errorMessage = xhr.responseJSON?.errors || 'Something went wrong.';
+            const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
             toastr.error(errorMessage);
         }
     });
@@ -258,8 +258,8 @@ function renderSeatSettings(id) {
                         Are you sure you want to cancel subscription <span class="seat_name" style="color: #16adcb; font-weight: 600;"></span> seat?
                         <button type="button" class="theme_btn mb-3 delete_seat">Cancel Subscription</button>`);
                 } else {
-                    html += accordionItem('Three', 'Delete seat', `
-                        You cannot delete this '<span class="seat_name" style="color: #16adcb; font-weight: 600;"></span>' seat.`);
+                    html += accordionItem('Three', 'Cancel Subscription', `
+                        You cannot cancel subscription of this '<span class="seat_name" style="color: #16adcb; font-weight: 600;"></span>' seat.`);
                 }
                 if (deleteSeat) {
                     html += accordionItem('Four', 'Delete seat', `
@@ -281,7 +281,7 @@ function renderSeatSettings(id) {
         },
         error: function (xhr, status, error) {
             $('#update_seat').modal('hide');
-            const errorMessage = xhr.responseJSON?.errors || 'Something went wrong.';
+            const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
             toastr.error(errorMessage);
         }
     });
@@ -318,7 +318,7 @@ function toSeat(e) {
             }
         },
         error: function (xhr, status, error) {
-            const errorMessage = xhr.responseJSON?.errors || 'Something went wrong.';
+            const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
             toastr.error(errorMessage);
         }
     });
@@ -327,7 +327,7 @@ function toSeat(e) {
 function renderSeatDashboard(id) {
     var form = $("<form>", {
         method: "GET",
-        action: seatDashboardPageRoute
+        action: seatDashboardRoute
     });
     form.append(
         $("<input>", {
@@ -364,7 +364,7 @@ function updateSeatName(e) {
             }
         },
         error: function (xhr, status, error) {
-            const errorMessage = xhr.responseJSON?.errors || 'Something went wrong.';
+            const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
             toastr.error(errorMessage);
         }
     });
@@ -382,7 +382,7 @@ function renderSeatNameUpdate(id, name) {
             }
         },
         error: function (xhr, status, error) {
-            const errorMessage = xhr.responseJSON?.errors || 'Something went wrong.';
+            const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
             if (xhr.status == 500) {
                 $('#seat_input_name').addClass('error');
                 $('#seat_input_name_error').html(errorMessage);
@@ -417,24 +417,6 @@ function deleteSeat(e) {
     e.preventDefault();
     var id = $(this).attr('id').replace('delete_seat_', '');
 
-    var toastrOptions = {
-        closeButton: true,
-        debug: false,
-        newestOnTop: false,
-        progressBar: true,
-        positionClass: "toast-bottom-right",
-        preventDuplicates: false,
-        onclick: null,
-        showDuration: "300",
-        hideDuration: "1000",
-        timeOut: "5000",
-        extendedTimeOut: "1000",
-        showEasing: "swing",
-        hideEasing: "linear",
-        showMethod: "fadeIn",
-        hideMethod: "fadeOut",
-    };
-
     if (!deleteAjax) {
         deleteAjax = $.ajax({
             url: deleteSeatRoute.replace(':seat_id', id),
@@ -459,8 +441,8 @@ function deleteSeat(e) {
                 }
             },
             error: function (xhr, status, error) {
-                toastr.options = toastrOptions;
-                toastr.error(xhr.responseJSON.errors);
+                const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
+                toastr.error(errorMessage);
             },
             complete: function () {
                 deleteAjax = null;

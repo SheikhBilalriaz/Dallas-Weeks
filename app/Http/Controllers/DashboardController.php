@@ -43,8 +43,8 @@ class DashboardController extends Controller
         $redirect = redirect()->route('dashboardPage', ['slug' => $team->slug]);
 
         /* Include errors if present in the session */
-        if (session()->has('errors')) {
-            $redirect->withErrors(['error' => session('errors')->first()]);
+        if (session()->has('error')) {
+            $redirect->withErrors(['error' => session('error')->first()]);
         }
 
         return $redirect;
@@ -83,7 +83,7 @@ class DashboardController extends Controller
                 'title' => 'Dashboard - Networked',
                 'team' => $team,
                 'seats' => $seats,
-                'error' => session()->has('errors') ? session('errors')->first() : null,
+                'error' => session()->has('error') ? session('error')->first() : null,
             ];
 
             /* Return the view with the prepared data */

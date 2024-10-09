@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Mail\WelcomeMail;
+use App\Models\Global_Blacklist;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
@@ -227,13 +228,13 @@ class TeamController extends Controller
             }
 
             /* If the team member was not found, return a 404 response */
-            return response()->json(['error' => 'Team member not found.'], 404);
+            return response()->json(['success' => false, 'error' => 'Team member not found.'], 404);
         } catch (Exception $e) {
             /* Log the exception message for debugging purposes */
             Log::error($e);
 
             /* Return a generic error response */
-            return response()->json(['success' => false, 'message' => 'Something went wrong while deleting the team member.'], 500);
+            return response()->json(['success' => false, 'message' => 'Something went wrong'], 500);
         }
     }
 
@@ -389,16 +390,193 @@ class TeamController extends Controller
             /* Redirect to the team page with a success message */
             return redirect()->route('teamPage', ['slug' => $slug])->with(['success' => 'Add Team Member Successfully']);
         } catch (Exception $e) {
-            // Rollback the transaction if an error occurs
+            /* Rollback the transaction if an error occurs */
             DB::rollBack();
 
-            // Log the exception message
+            /* Log the exception message */
             Log::error($e);
 
-            // Redirect back with an error message
+            /* Redirect back with an error message */
             return back()->withErrors(['error' => 'An error occurred while inviting the team member. Please try again.'])
                 ->with('invite_error', true)
                 ->withInput();
+        }
+    }
+
+    public function getTeamMember($slug, $id)
+    {
+        try {
+            /* Retrieve the team by its slug */
+            $team = Team::where('slug', $slug)->first();
+
+            /* Retrieve the team member by their ID, ensuring they belong to the specified team */
+            $member = Team_Member::where('id', $id)->where('team_id', $team->id)->first();
+
+            /* Check if the team member exists */
+            if ($member) {
+                /* Fetch the user associated with the team member */
+                $user = User::find($member->user_id);
+
+                /* Retrieve all assigned seats for the member */
+                $assigned_seats = Assigned_Seat::where('member_id', $member->id)->get();
+
+                /* Fetch global permissions for the user within the team context */
+                $global_permissions = Global_Permission::where('user_id', $user->id)
+                    ->where('team_id', $team->id)
+                    ->get();
+
+                /* Return a successful JSON response with member details */
+                return response()->json([
+                    'success' => true,
+                    'member' => $member,
+                    'user' => $user,
+                    'assigned_seats' => $assigned_seats,
+                    'global_permissions' => $global_permissions,
+                ]);
+            }
+
+            /* Return a 404 response if the team member was not found */
+            return response()->json(['success' => false, 'error' => 'Team member not found.'], 404);
+        } catch (Exception $e) {
+            /* Log the exception message for debugging purposes */
+            Log::error($e);
+
+            /* Return a generic error response */
+            return response()->json(['success' => false, 'message' => 'Something went wrong.'], 500);
+        }
+    }
+
+    public function editTeamMember($slug, $id, Request $request)
+    {
+        /* Start a database transaction */
+        DB::beginTransaction();
+
+        try {
+            /* Find the team by slug */
+            $team = Team::where('slug', $slug)->first();
+
+            /* Find the team member by their ID and ensure they belong to the specified team */
+            $member = Team_Member::where('id', $id)->where('team_id', $team->id)->first();
+
+            if (!$member) {
+                return redirect()
+                    ->route('teamPage', ['slug' => $team->slug])
+                    ->withErrors(['error' => 'Team member not found.']);
+            }
+
+            /* Validate request data */
+            $validator = Validator::make($request->all(), [
+                'roles' => 'required|array|min:1',
+                'roles.*' => 'string|max:255',
+                'seats' => 'required|array|min:1',
+                'seats.*' => 'required|array|min:1',
+                'seats.*.*' => 'string|max:255',
+            ]);
+
+            /* Return validation errors if validation fails */
+            if ($validator->fails()) {
+                return back()->withErrors($validator)
+                    ->with('edit_invite_error', true)
+                    ->withInput();
+            }
+
+            /* Validate that at least one seat is assigned for each role */
+            foreach ($request->input('roles') as $role) {
+                if (empty($request->input('seats')[$role])) {
+                    return back()->withErrors([
+                        'seats' => 'No seat assigned to "' . $role . '".',
+                    ])->with('edit_invite_error', true)->withInput();
+                }
+            }
+
+            /* Ensure no role is assigned to the same seat */
+            $existed_seat = [];
+            foreach ($request->input('roles') as $role) {
+                foreach ($request->input('seats')[$role] as $seat) {
+                    if (in_array($seat, $existed_seat)) {
+                        return back()->withErrors([
+                            'seats' => 'You cannot assign different roles to the same seat',
+                        ])->with('edit_invite_error', true)->withInput();
+                    }
+                    $existed_seat[] = $seat;
+                }
+            }
+
+            /* Validate existence of roles and seats in the database */
+            foreach ($request->input('roles') as $role) {
+                $role_id = str_replace('role_', '', $role);
+
+                /* Validate the existence of the role */
+                if (!Role::where('id', $role_id)->exists()) {
+                    return back()->withErrors([
+                        'roles' => 'Role "' . $role . '" not found',
+                    ])->with('edit_invite_error', true)->withInput();
+                }
+
+                /* Validate the existence of assigned seats for each role */
+                foreach ($request->input('seats')[$role] as $seat) {
+                    if (!Seat::where('id', $seat)->exists()) {
+                        return back()->withErrors([
+                            'seats' => 'Seat "' . $seat . '" not found for role "' . $role . ' "',
+                        ])->with('edit_invite_error', true)->withInput();
+                    }
+                }
+            }
+
+            $user = User::find($member->user_id);
+
+            $permissions = [
+                'manage_payment_system' => 'Manage payment system',
+                'manage_global_blacklist' => 'Manage global blacklist',
+            ];
+
+            foreach ($permissions as $perm_slug => $name) {
+                if (!$request->has('edit_' . $perm_slug)) {
+                    Global_Permission::where('slug', $perm_slug)
+                        ->where('user_id', $user->id)
+                        ->where('team_id', $team->id)
+                        ->delete();
+                } else {
+                    if (!Global_Permission::where('user_id', $user->id)->where('team_id', $team->id)->where('slug', $perm_slug)->exists()) {
+                        Global_Permission::create([
+                            'name' => $name,
+                            'slug' => $perm_slug,
+                            'user_id' => $user->id,
+                            'team_id' => $team->id,
+                            'access' => 1,
+                        ]);
+                    }
+                }
+            }
+
+            Assigned_Seat::where('member_id', $member->id)->delete();
+
+            foreach ($request->input('roles') as $role) {
+                $role_id = str_replace('role_', '', $role);
+                foreach ($request->input('seats')[$role] as $seat) {
+                    Assigned_Seat::create([
+                        'member_id' => $member->id,
+                        'role_id' => $role_id,
+                        'seat_id' => $seat,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            /* Redirect to the team page with a success message */
+            return redirect()->route('teamPage', ['slug' => $slug])->with(['success' => 'Team Member edited Successfully']);
+        } catch (Exception $e) {
+            /* Rollback the transaction if an error occurs */
+            DB::rollBack();
+
+            /* Log the exception for debugging purposes */
+            Log::error($e);
+
+            /* Return a redirect with an error message */
+            return redirect()
+                ->route('teamPage', ['slug' => $team->slug])
+                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
         }
     }
 }

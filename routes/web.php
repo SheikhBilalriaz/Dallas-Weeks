@@ -61,8 +61,10 @@ Route::middleware(['userAuth'])->group(function () {
     Route::prefix('/team/{slug}')->middleware(['teamChecker'])->group(function () {
         Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboardPage');
 
-        Route::middleware(['seatAccessChecker'])->group(function () {
-            Route::get('seat-dashboard', [SeatDashboardController::class, 'seatDashboard'])->name('seatDashboardPage');
+        Route::get('/seat-dashboard', [SeatDashboardController::class, 'toSeatDashboard'])->name('seatDashboard');
+
+        Route::prefix('/seat/{seat_slug}')->middleware(['seatAccessChecker'])->group(function () {
+            Route::get('/', [SeatDashboardController::class, 'seatDashboard'])->name('seatDashboardPage');
         });
 
         Route::prefix('seat')->group(function () {
@@ -100,6 +102,8 @@ Route::middleware(['userAuth'])->group(function () {
             Route::get('/search-team-member/{search}', [TeamController::class, 'searchTeamMember'])->name('searchTeamMember'); //Done
             Route::delete('/delete-team-member/{id}', [TeamController::class, 'deleteTeamMember'])->name('deleteTeamMember'); //Done
             Route::post('/invite-team-member', [TeamController::class, 'inviteTeamMember'])->name('inviteTeamMember'); //Done
+            Route::get('/get-team-member/{id}', [TeamController::class, 'getTeamMember'])->name('getTeamMember'); //Done
+            Route::put('/edit-team-member/{id}', [TeamController::class, 'editTeamMember'])->name('editTeamMember'); //Done
         });
 
         Route::prefix('/invoice')->middleware(['invoiceAccessChecked'])->group(function () {

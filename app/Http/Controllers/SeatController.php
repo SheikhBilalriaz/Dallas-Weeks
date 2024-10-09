@@ -114,16 +114,16 @@ class SeatController extends Controller
             }
 
             /* If the user is not the creator or doesn't have an assigned seat, deny access */
-            return response()->json(['success' => false, 'errors' => 'You do not have access to this seat'], 403);
+            return response()->json(['success' => false, 'error' => 'You do not have access to this seat'], 403);
         } catch (ModelNotFoundException $e) {
             /* Return a 404 response if any model (SeatInfo, AssignedSeats, Role) is not found */
-            return response()->json(['success' => false, 'errors' => 'Seat Not Found'], 404);
+            return response()->json(['success' => false, 'error' => 'Seat Not Found'], 404);
         } catch (Exception $e) {
             /* Log the exception for debugging purposes */
             Log::error($e);
 
             /* Return a JSON response with the error message and a 404 status code */
-            return response()->json(['success' => false, 'errors' => 'Something went wrong'], 500);
+            return response()->json(['success' => false, 'error' => 'Something went wrong'], 500);
         }
     }
 
@@ -152,7 +152,7 @@ class SeatController extends Controller
             /* Access control: Check if the user is the team creator or has an assigned seat */
             if ($user->id != $team->creator_id) {
                 if (!$member || !Assigned_Seat::where('member_id', $member->id)->where('seat_id', $seat->id)->exists()) {
-                    return response()->json(['success' => false, 'errors' => 'You do not have access to this seat'], 403);
+                    return response()->json(['success' => false, 'error' => 'You do not have access to this seat'], 403);
                 }
             }
 
@@ -175,7 +175,7 @@ class SeatController extends Controller
             } else {
                 /* Retrieve assigned seat for the member and the associated role */
                 $assignedSeat = Assigned_Seat::where('member_id', $member->id)->where('seat_id', $seat->id)->first();
-                $role = Role::find($assignedSeat->id);
+                $role = Role::find($assignedSeat->role_id);
                 $permissions = Permission::whereIn('slug', [
                     'manage_seat_settings',
                     'cancel_subscription',
@@ -198,13 +198,13 @@ class SeatController extends Controller
             return response()->json($data);
         } catch (ModelNotFoundException $e) {
             /* Return a 404 response if any model (SeatInfo, AssignedSeats, Role) is not found */
-            return response()->json(['success' => false, 'errors' => 'Seat Not Found'], 404);
+            return response()->json(['success' => false, 'error' => 'Seat Not Found'], 404);
         } catch (Exception $e) {
             /* Log the exception for debugging purposes */
             Log::error($e);
 
             /* Return a JSON response with the error message and a 404 status code */
-            return response()->json(['success' => false, 'errors' => 'Something went wrong'], 500);
+            return response()->json(['success' => false, 'error' => 'Something went wrong'], 500);
         }
     }
 
@@ -238,7 +238,7 @@ class SeatController extends Controller
 
                 /* If the user is not a member or doesn't have an assigned seat, deny access */
                 if (!$member || !Assigned_Seat::where('member_id', $member->id)->where('seat_id', $seat->id)->exists()) {
-                    return response()->json(['success' => false, 'errors' => 'You do not have access to this seat'], 403);
+                    return response()->json(['success' => false, 'error' => 'You do not have access to this seat'], 403);
                 }
 
                 /* Retrieve the assigned seat for the member */
@@ -274,20 +274,20 @@ class SeatController extends Controller
                 }
 
                 /* If saving fails, return an error response */
-                return response()->json(['success' => false, 'errors' => 'Seat Updation Failed'], 500);
+                return response()->json(['success' => false, 'error' => 'Seat Updation Failed'], 500);
             }
 
             /* If the user does not have permission to manage the seat, return a 403 error */
-            return response()->json(['success' => false, 'errors' => 'You do not have permission to manage this seat'], 403);
+            return response()->json(['success' => false, 'error' => 'You do not have permission to manage this seat'], 403);
         } catch (ModelNotFoundException $e) {
             /* Return a 404 response if any model (SeatInfo, AssignedSeats, Role) is not found */
-            return response()->json(['success' => false, 'errors' => 'Seat Not Found'], 404);
+            return response()->json(['success' => false, 'error' => 'Seat Not Found'], 404);
         } catch (Exception $e) {
             /* Log the exception for debugging purposes */
             Log::error($e);
 
             /* Return a JSON response with the error message and a 404 status code */
-            return response()->json(['success' => false, 'errors' => 'Something went wrong'], 500);
+            return response()->json(['success' => false, 'error' => 'Something went wrong'], 500);
         }
     }
 }

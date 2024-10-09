@@ -38,7 +38,7 @@ class SettingController extends Controller
             Log::error($e);
 
             /* Redirect to login with an error message if an exception occurs. */
-            return redirect()->route('dashboardPage', ['slug' => $slug])->withErrors(['error' => 'Something went wrong while viewing the global setting.']);
+            return redirect()->route('dashboardPage', ['slug' => $slug])->withErrors(['error' => 'Something went wrong']);
         }
     }
 
@@ -85,7 +85,7 @@ class SettingController extends Controller
             Log::error($e);
 
             /* Redirect to login with an error message if an exception occurs. */
-            return redirect()->route('dashboardPage', ['slug' => $slug])->withErrors(['error' => 'Something went wrong while updating the password.']);
+            return redirect()->route('dashboardPage', ['slug' => $slug])->withErrors(['error' => 'Something went wrong']);
         }
     }
 }

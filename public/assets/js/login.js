@@ -39,15 +39,7 @@ function credential_check() {
             }
         },
         error: function (xhr) {
-            let errorMessage = 'Something went wrong';
-            try {
-                const response = JSON.parse(xhr.responseText);
-                if (response.error) {
-                    errorMessage = response.error;
-                }
-            } catch (e) {
-                errorMessage = xhr.responseText;
-            }
+            const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
             $('#passwordError').html(errorMessage);
             $('#successMessage').html('');
             $('.login_btn').html('');

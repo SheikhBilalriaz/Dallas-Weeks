@@ -224,7 +224,7 @@ function deleteGlobalBlacklist() {
                 }
             },
             error: function (xhr, status, error) {
-                const errorMessage = xhr.responseJSON?.errors || 'Something went wrong.';
+                const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
                 toastr.error(errorMessage);
             }
         });
@@ -280,7 +280,7 @@ function deleteEmailBlacklist() {
                 }
             },
             error: function (xhr, status, error) {
-                const errorMessage = xhr.responseJSON?.errors || 'Something went wrong.';
+                const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
                 toastr.error(errorMessage);
             }
         });

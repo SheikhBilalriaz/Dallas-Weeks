@@ -156,7 +156,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="team_row">
-                                    <tr class="delete-team-member"
+                                    <tr class=""
                                         title="{{ session('email_verified') ? '' : 'Verify your email first to view team' }}"
                                         style="opacity: {{ !session('email_verified') ? 0.7 : 1 }};">
                                         <td>
@@ -258,9 +258,12 @@
                                                         </a>
                                                         @if (session('email_verified'))
                                                             <ul class="setting_list">
-                                                                <li class="edit"><a href="javascript:;">Edit</a></li>
-                                                                <li class="delete-team-member"><a
-                                                                        href="javascript:;">Delete</a></li>
+                                                                <li class="edit-team-member">
+                                                                    <a href="javascript:;">Edit</a>
+                                                                </li>
+                                                                <li class="delete-team-member">
+                                                                    <a href="javascript:;">Delete</a>
+                                                                </li>
                                                             </ul>
                                                         @endif
                                                     </td>
@@ -380,10 +383,102 @@
             </div>
         </div>
     @endif
+    @if (session('is_creator'))
+        <div class="modal fade create_sequence_modal invite_team_modal" id="edit_team_modal" tabindex="-1"
+            aria-labelledby="edit_team_modal" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="sequance_modal">Edit a team member</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="model_alert alert alert-danger alert-dismissible fade show input_errors"
+                            style="display: none;" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        @if ($errors->first())
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <a class="close" data-dismiss="alert" aria-label="Close">&times;</a>
+                                {{ $errors->first() }}
+                            </div>
+                        @endif
+                        <form class="invite_form" method="POST"
+                            action="{{ route('editTeamMember', ['slug' => $team->slug, 'id' => ':id']) }}">
+                            @csrf
+                            @method('PUT')
+                            <div class="row invite_modal_row">
+                                <div class="col-lg-6">
+                                    <label for="name">Name</label>
+                                    <input type="text" name="edit_member_name" id="edit_member_name"
+                                        placeholder="Enter team member's name" value="{{ old('edit_member_name') }}"
+                                        required>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label for="email">Email</label>
+                                    <input type="email" id="edit_invite_email" name="edit_invite_email"
+                                        placeholder="Enter team member's email" value="{{ old('edit_invite_email') }}"
+                                        required>
+                                </div>
+                                <span>Select one role for your team member</span>
+                                <div
+                                    class="col-lg-12 edit_able {{ !session()->has('edit_invite_error') ? 'disabled' : '' }}">
+                                    @if ($roles->isNotEmpty())
+                                        @foreach ($roles as $role)
+                                            <div class="checkboxes">
+                                                <div class="check">
+                                                    <input value="{{ 'role_' . $role->id }}" name="roles[]"
+                                                        type="checkbox">
+                                                    <label class="roles"
+                                                        for="{{ 'role_' . $role->id }}">{{ $role->name }}</label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @endif
+                                </div>
+                                <div
+                                    class="col-lg-6 edit_able {{ !session()->has('edit_invite_error') ? 'disabled' : '' }}">
+                                    <div class="border_box">
+                                        <h6>Manage payment system</h6>
+                                        <p>This is a global option that enables access to invoices and adding seats.</p>
+                                        <div class="switch_box"><input type="checkbox" name="edit_manage_payment_system"
+                                                class="switch" id="switch2"><label for="switch2">Toggle</label></div>
+                                    </div>
+                                </div>
+                                <div
+                                    class="col-lg-6 edit_able {{ !session()->has('edit_invite_error') ? 'disabled' : '' }}">
+                                    <div class="border_box">
+                                        <h6>Manage global blacklist</h6>
+                                        <p>This is a global option that enables managing the global blacklist on the team
+                                            level.
+                                        </p>
+                                        <div class="switch_box"><input type="checkbox"
+                                                name="edit_manage_global_blacklist" class="switch" id="switch3"><label
+                                                for="switch3">Toggle</label></div>
+                                    </div>
+                                </div>
+                                <button type="submit"
+                                    class="crt_btn edit_able_btn {{ !session()->has('edit_invite_error') ? 'disabled' : '' }} theme_btn manage_member mt-5">
+                                    Edit Team member <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
     <script>
         $(document).ready(function() {
             if ("{{ session()->has('invite_error') }}") {
                 $('#invite_team_modal').modal('show');
+            }
+            if ("{{ session()->has('edit_invite_error') }}") {
+                $('#edit_team_modal').modal('show');
             }
         });
     </script>
@@ -393,6 +488,7 @@
     @if (session('is_creator'))
         <script>
             var deleteTeamMemberRoute = "{{ route('deleteTeamMember', ['slug' => $team->slug, 'id' => ':id']) }}";
+            var getTeamMemberRoute = "{{ route('getTeamMember', ['slug' => $team->slug, 'id' => ':id']) }}"
         </script>
     @endif
 @endsection

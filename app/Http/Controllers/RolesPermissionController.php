@@ -285,17 +285,14 @@ class RolesPermissionController extends Controller
                     return response()->json(['success' => false, 'error' => 'Role not found'], 404);
                 }
 
-                /* Get the currently authenticated user */
-                $user = Auth::user();
-
                 /* Find the team member associated with the current user and team */
-                $member = Team_Member::where('user_id', $user->id)->where('team_id', $team->id)->first();
+                $members = Team_Member::where('team_id', $team->id)->get();
 
                 /* Check if the role is assigned to any member in the team */
-                $assignedSeat = Assigned_Seat::where('member_id', $member->id)->where('role_id', $role->id)->first();
+                $assignedSeats = Assigned_Seat::whereIn('member_id', $members->pluck('id')->toArray())->where('role_id', $role->id)->get();
 
                 /* If the role is already in use (assigned to a member), throw an exception */
-                if ($assignedSeat) {
+                if ($assignedSeats->isNotEmpty()) {
                     return response()->json(['success' => false, 'error' => 'Role is already in use'], 500);
                 }
 

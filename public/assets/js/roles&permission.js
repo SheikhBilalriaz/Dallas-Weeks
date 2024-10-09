@@ -50,12 +50,8 @@ function editRole(e) {
                 }
             },
             error: function (xhr, status, error) {
-                console.error(xhr.responseJSON);
-                if (xhr.responseJSON && xhr.responseJSON.error) {
-                    toastr.error(xhr.responseJSON.error);
-                } else {
-                    toastr.error('An unexpected error occurred.');
-                }
+                const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
+                toastr.error(errorMessage);
             },
             complete: function () {
                 editRoleAjax = null;
@@ -84,12 +80,8 @@ function deleteRole(e) {
                     }
                 },
                 error: function (xhr, status, error) {
-                    console.error(xhr.responseJSON);
-                    if (xhr.responseJSON && xhr.responseJSON.error) {
-                        toastr.error(xhr.responseJSON.error);
-                    } else {
-                        toastr.error('An unexpected error occurred.');
-                    }
+                    const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
+                    toastr.error(errorMessage);
                 },
                 complete: function () {
                     deleteRoleAjax = null;

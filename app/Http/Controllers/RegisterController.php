@@ -141,7 +141,7 @@ class RegisterController extends Controller
             Log::error($e);
 
             /* Redirect back with an error message */
-            return redirect()->back()->withErrors(['error' => 'Something went wrong register the user.'])->withInput();
+            return redirect()->back()->withErrors(['error' => 'Something went wrong'])->withInput();
         }
     }
 
@@ -215,7 +215,7 @@ class RegisterController extends Controller
             Log::error($e);
 
             /* Redirect to the login page with an error message indicating. */
-            return redirect()->route('loginPage')->withErrors(['error' => 'Something went wrong while verifying an email.']);
+            return redirect()->route('loginPage')->withErrors(['error' => 'Something went wrong']);
         }
     }
 

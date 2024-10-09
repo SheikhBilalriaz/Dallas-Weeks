@@ -1,5 +1,6 @@
-var customRoleAjax = null;
 var searchMemberAjax = null;
+var editMemberAjax = null;
+
 $(document).ready(function () {
     $(document).on('click', '.permission', function (e) {
         if ($(this).prop('checked')) {
@@ -28,9 +29,11 @@ $(document).ready(function () {
         }
     });
     $(document).on('input', '#invite_email', inviteEmail);
+    $(document).on('input', '#edit_invite_email', inviteEmail);
     $(document).on('click', '.roles', getRole);
     $(document).on('submit', '.invite_form', inviteMember);
     $(document).on('click', '.delete-team-member', deleteMember);
+    $(document).on('click', '.edit-team-member', editMember);
     $(document).on('input', '#search-team-member', searchMember);
     $(document).on('click', '.setting_btn', function () {
         var $currentList = $(this).siblings(".setting_list");
@@ -43,6 +46,48 @@ $(document).ready(function () {
         }
     });
 });
+
+function editMember(e) {
+    e.preventDefault();
+    var id = $(this).closest('tr').prop('id').replace('table_row_', '');
+
+    if (!editMemberAjax) {
+        editMemberAjax = $.ajax({
+            url: getTeamMemberRoute.replace(':id', id),
+            method: 'GET',
+            success: function (response) {
+                const $modal = $('#edit_team_modal');
+                $modal.find('#edit_member_name').val(response.user.name).prop('readonly', true);
+                $modal.find('#edit_invite_email').val(response.user.email).prop('readonly', true).trigger('input');
+                $modal.find('.invite_form').prop('id', 'edit_member_' + response.member.id);
+                response.assigned_seats.forEach(function (assigned_seat) {
+                    const $roleInput = $modal.find(`input[name="roles[]"][value="role_${assigned_seat.role_id}"]`);
+                    if (!$roleInput.prop('checked')) {
+                        $roleInput.siblings('.roles').trigger('click');
+                    }
+                    const $seatInput = $modal.find(`input[name="seats[role_${assigned_seat.role_id}][]"][value="${assigned_seat.seat_id}"]`);
+                    if (!$seatInput.prop('checked')) {
+                        $seatInput.siblings('.seats').trigger('click');
+                    }
+                });
+                response.global_permissions.forEach(function (permission) {
+                    $(`input[name="edit_${permission.slug}"]`).trigger('click');
+                });
+                $modal.modal('show');
+                var id = $modal.find('form.invite_form').attr('id').replace('edit_member_', '');
+                var action = $modal.find('form.invite_form').prop('action');
+                $modal.find('form.invite_form').prop('action', action.replace(':id', id));
+            },
+            error: function (xhr, status, error) {
+                const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
+                toastr.error(errorMessage);
+            },
+            complete: function () {
+                editMemberAjax = null;
+            }
+        });
+    }
+}
 
 function inviteMember(e) {
     e.preventDefault();
@@ -150,7 +195,7 @@ function searchMember(e) {
                         var settingList = ``;
                         if (emailVerified) {
                             settingList += `<ul class="setting_list">
-                                                <li class="edit"><a href="javascript:;">Edit</a></li>
+                                                <li class="edit-team-member"><a href="javascript:;">Edit</a></li>
                                                 <li class="delete-team-member"><a href="javascript:;">Delete</a></li>
                                             </ul>`;
                         }
@@ -228,7 +273,7 @@ function deleteMember() {
             success: function (response) {
                 toastr.success('Deleted succesfully');
                 $table_row.remove();
-                if ($('.delete-team-member').length == 0) {
+                if ($('#team_row').find('tr').length == 0) {
                     let html = ``;
                     html += `
                         <tr>
@@ -245,10 +290,10 @@ function deleteMember() {
                     `;
                     $('#team_row').html(html);
                 }
-                console.log(response);
             },
             error: function (xhr, status, error) {
-                toastr.error('Something went wrong while deleting the team member.');
+                const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
+                toastr.error(errorMessage);
             }
         });
     }
