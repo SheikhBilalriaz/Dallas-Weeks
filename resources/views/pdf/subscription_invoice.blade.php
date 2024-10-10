@@ -24,24 +24,56 @@
         .total-row {
             font-weight: bold;
         }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 2px solid #000;
+        }
+        .header img {
+            max-width: 75px;
+            height: auto;
+        }
+        .header h1 {
+            margin: 10px 0;
+            font-size: 24px;
+        }
+        .invoice-details {
+            margin: 20px;
+        }
+        .subscription-details {
+            margin: 20px;
+        }
     </style>
 </head>
 <body>
+    <div class="header row">
+        <img src="{{ asset('assets/images/logo.png') }}">
+        <h1>Networked</h1>
+    </div>
     <h1 class="invoice-header">Subscription Invoice</h1>
 
     <div class="invoice-details">
-        <p><strong>Invoice #: </strong>{{ $invoice->id }}</p>
-        <p><strong>Date: </strong>{{ $invoiceDate }}</p>
+        <p><strong>Invoice #: </strong>{{ $invoiceId }}</p>
+        <p><strong>Date of issue: </strong>{{ $invoiceDate }}</p>
         <p><strong>Due Date: </strong>{{ $dueDate }}</p>
-        <p><strong>Client Name: </strong>{{ $user->name }}</p>
+        <p><strong>Created by: </strong>{{ $user->name }}</p>
         <p><strong>Email: </strong>{{ $user->email }}</p>
     </div>
-
-    <h2>Subscription Details</h2>
-    <p><strong>Subscription Plan: </strong>{{ $subscription->plan->nickname }}</p>
-    <p><strong>Amount: </strong>${{ number_format($invoice->amount_due / 100, 2) }}</p>
-    <p><strong>Status: </strong>{{ ucfirst($invoice->status) }}</p>
-
+    <hr>
+    <div class="subscription-details">
+        <h2>Subscription Details</h2>
+        <p><strong>Seat: </strong>{{ $company_info->name }}</p>
+        <p><strong>Amount: </strong>${{ number_format($invoice->amount_due / 100, 2) }}</p>
+        <p><strong>Status: </strong>{{ ucfirst($invoice->status) }}</p>
+        <p><strong>Starting Month: </strong>{{ $billingStart }}</p>
+        <p><strong>Ending Month: </strong>{{ $billingEnd }}</p>
+    </div>
+    <hr>
     <table class="items-table">
         <thead>
             <tr>

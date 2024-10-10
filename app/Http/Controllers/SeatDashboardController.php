@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Seat;
+use App\Models\Seat_Time;
+use App\Models\Seat_Timezone;
 use App\Models\Team;
 use Exception;
+use DateTime;
+use DateTimeZone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -75,10 +79,27 @@ class SeatDashboardController extends Controller
         try {
             $team = Team::where('slug', $slug)->first();
             $seat = Seat::where('slug', $seat_slug)->first();
+            $time_zones = DateTimeZone::listIdentifiers(DateTimeZone::ALL);
+            $time_zones_with_offset = array_map(function($timezone) {
+                $datetime = new DateTime("now", new DateTimeZone($timezone));
+                $offset = $datetime->getOffset() / 3600;
+                $sign = ($offset >= 0) ? '+' : '-';
+                return [
+                    'timezone' => $timezone,
+                    'offset' => 'GMT' . $sign . abs($offset),
+                ];
+            }, $time_zones);
+            $start_time = Seat_Time::where('seat_id', $seat->id)->where('time_status', 'start')->first();
+            $end_time = Seat_Time::where('seat_id', $seat->id)->where('time_status', 'end')->first();
+            $seat_zone = Seat_Timezone::where('seat_id', $seat->id)->first();
             $data = [
                 'title' => 'Dashboard - Networked',
                 'team' => $team,
                 'seat' => $seat,
+                'time_zones' => $time_zones_with_offset,
+                'start_time' => $start_time,
+                'end_time' => $end_time,
+                'seat_zone' => $seat_zone,
                 'error' => session()->has('error') ? session('error')->first() : null,
             ];
             return view('back.setting', $data);

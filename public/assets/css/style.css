@@ -3861,6 +3861,7 @@ ul.webhook_check li:nth-child(5) {
     font-size: 16px;
     line-height: 1.9;
     color: lab(100 0 0 / 0.3);
+    padding-right: 10%;
 }
 
 .grey_box h4 {
@@ -3883,7 +3884,6 @@ ul.webhook_check li:nth-child(5) {
     justify-content: center;
     padding: 5px;
     position: relative;
-    margin-left: 150px;
     border-radius: 10px;
 }
 

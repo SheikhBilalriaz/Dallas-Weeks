@@ -1,5 +1,15 @@
 @extends('back/partials/header')
 @section('content')
+    <style>
+        .theme_btn {
+            margin-left: 0 !important;
+        }
+
+        input.error {
+            border: 1px solid red;
+            margin-bottom: 0 !important;
+        }
+    </style>
     <section class="main_dashboard blacklist  campaign_sec lead_sec setting_sec">
         <div class="container_fluid">
             <div class="row">
@@ -40,101 +50,273 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="comp_tabs setting_tabs">
+                                @php
+                                    $is_linkedin_settings =
+                                        session('manage_global_limits') == true ||
+                                        session('manage_global_limits') == 'view_only' ||
+                                        session('manage_linkedin_integrations') == true ||
+                                        session('manage_linkedin_integrations') == 'view_only' ||
+                                        session('manage_account_health') == true ||
+                                        session('manage_account_health') == 'view_only';
+                                @endphp
                                 <ul class="nav nav-tabs" role="tablist">
-                                    <li class="nav-item">
-                                        <a class="nav-link setting_tab active" data-toggle="tab" href="javascript;"
-                                            role="tab" data-bs-target="LinkedIn">
-                                            LinkedIn settings
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link setting_tab" data-toggle="tab" href="javascript;" role="tab"
-                                            data-bs-target="email_setting">
-                                            Email settings
-                                        </a>
-                                    </li>
+                                    @if ($is_linkedin_settings)
+                                        <li class="nav-item">
+                                            <a class="nav-link setting_tab active" data-toggle="tab"
+                                                href="javascript:void(0);" role="tab" data-bs-target="LinkedIn">
+                                                LinkedIn settings
+                                            </a>
+                                        </li>
+                                    @endif
+                                    @if (session('manage_email_settings') == true || session('manage_email_settings') == 'view_only')
+                                        <li class="nav-item">
+                                            <a class="nav-link setting_tab {{ $is_linkedin_settings ? '' : 'active' }}"
+                                                data-toggle="tab" href="javascript:void(0);" role="tab"
+                                                data-bs-target="email_setting">
+                                                Email settings
+                                            </a>
+                                        </li>
+                                    @endif
                                 </ul>
-                                {{-- <div class="tab-content border_box">
-                                    <!-- Leads Content -->
+                                <div class="tab-content border_box">
                                     <div class="tab-pane setting_pane active" id="LinkedIn" role="tabpanel">
                                         <ul class="nav nav-tabs" role="tablist">
-                                            @if ($manage_global_limits == true || $manage_global_limits == 'view_only')
+                                            @if (session('manage_global_limits') == true || session('manage_global_limits') == 'view_only')
                                                 <li class="nav-item">
-                                                    <a class="nav-link linkedin_setting 
-                                                {{ $manage_linkedin_integrations == true || $manage_linkedin_integrations == 'view_only' ? (session()->has('add_account') ? '' : 'active') : 'active' }}"
-                                                        data-bs-target="Global" data-toggle="tab" href="javascript;"
-                                                        role="tab">Global limits for
-                                                        campaigns</a>
+                                                    <a class="nav-link linkedin_setting active" data-bs-target="Global"
+                                                        data-toggle="tab" href="javascript:void(0);" role="tab">
+                                                        Global limits for campaigns
+                                                    </a>
                                                 </li>
                                             @endif
-                                            @if ($manage_account_health == true || $manage_account_health == 'view_only')
+                                            @if (session('manage_linkedin_integrations') == true || session('manage_linkedin_integrations') == 'view_only')
                                                 <li class="nav-item">
                                                     <a class="nav-link linkedin_setting" data-bs-target="health"
-                                                        data-toggle="tab" href="javascript;" role="tab">Account
-                                                        health</a>
+                                                        data-toggle="tab" href="javascript:void(0);" role="tab">
+                                                        Account health
+                                                    </a>
                                                 </li>
                                             @endif
-                                            @if ($manage_linkedin_integrations == true || $manage_linkedin_integrations == 'view_only')
+                                            @if (session('manage_account_health') == true || session('manage_account_health') == 'view_only')
                                                 <li class="nav-item">
                                                     <a class="nav-link linkedin_setting {{ session()->has('add_account') ? 'active' : '' }}"
-                                                        data-bs-target="integrations" data-toggle="tab" href="javascript;"
-                                                        role="tab">LinkedIn
-                                                        integrations</a>
+                                                        data-bs-target="integrations" data-toggle="tab"
+                                                        href="javascript:void(0);" role="tab">
+                                                        LinkedIn integration
+                                                    </a>
                                                 </li>
                                             @endif
                                         </ul>
                                         <div class="tab-content">
-                                            @if ($manage_global_limits == true)
-                                                <div class="tab-pane linkedin_pane global_tab {{ $manage_linkedin_integrations == true || $manage_linkedin_integrations == 'view_only' ? (session()->has('add_account') ? '' : 'active') : 'active' }}"
-                                                    id="Global" role="tabpanel">
+                                            @if (session('manage_global_limits') == true)
+                                                <div class="tab-pane linkedin_pane global_tab active" id="Global"
+                                                    role="tabpanel">
                                                     <h6>Time zone</h6>
-                                                    <form action="" method="" class="time_zone_form">
-                                                        <div class="input_fields">
-                                                            <label for="timezone">Your Time Zone:</label>
-                                                            <select name="timezone" id="timezone">
-                                                                <option value="GMT">(GMT - 01:00) Central European Time
-                                                                </option>
-                                                                <option value="EST">EST</option>
-                                                                <option value="PST">PST</option>
-                                                                <!-- Add more time zones as needed -->
-                                                            </select>
+                                                    <form
+                                                        action="{{ route('updatSeatLimit', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}"
+                                                        method="POST">
+                                                        @csrf
+                                                        @method('PUT')
+                                                        <div class="time_zone_form">
+                                                            <div class="input_fields">
+                                                                <label for="timezone">Your Time Zone:</label>
+                                                                <select name="timezone" id="timezone">
+                                                                    @foreach ($time_zones as $zone)
+                                                                        <option value="{{ $zone['timezone'] }}"
+                                                                            {{ $seat_zone->timezone == $zone['timezone'] ? 'selected' : '' }}>
+                                                                            {{ $zone['offset'] . ' - ' . $zone['timezone'] }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                            <div class="input_fields">
+                                                                <label for="start_time">Start Time:</label>
+                                                                <input type="time" name="start_time" id="start_time"
+                                                                    value="{{ old(
+                                                                        'start_time',
+                                                                        isset($start_time->time) ? \Carbon\Carbon::createFromFormat('H:i:s', $start_time->time)->format('H:i') : '09:00',
+                                                                    ) }}"
+                                                                    required
+                                                                    class="{{ $errors->has('start_time') ? 'error' : '' }}">
+                                                                @if ($errors->has('start_time'))
+                                                                    <span
+                                                                        class="text-danger">{{ $errors->first('start_time') }}</span>
+                                                                @endif
+                                                            </div>
+                                                            <div class="input_fields">
+                                                                <label for="end_time">End Time:</label>
+                                                                <input type="time" name="end_time" id="end_time"
+                                                                    value="{{ old(
+                                                                        'end_time',
+                                                                        isset($end_time->time) ? \Carbon\Carbon::createFromFormat('H:i:s', $end_time->time)->format('H:i') : '17:00',
+                                                                    ) }}"
+                                                                    required
+                                                                    class="{{ $errors->has('end_time') ? 'error' : '' }}">
+                                                                @if ($errors->has('end_time'))
+                                                                    <span
+                                                                        class="text-danger">{{ $errors->first('end_time') }}</span>
+                                                                @endif
+                                                            </div>
                                                         </div>
-                                                        <div class="input_fields">
-                                                            <label for="start_time">Start Time:</label>
-                                                            <input type="time" name="start_time" placeholder="10 : 00"
-                                                                id="start_time" required>
-                                                        </div>
-                                                        <div class="input_fields">
-                                                            <label for="end_time">End Time:</label>
-                                                            <input type="time" name="end_time" placeholder="23 : 00"
-                                                                id="end_time" required>
-                                                        </div>
-                                                    </form>
-                                                    <div class="globle_list">
-                                                        @for ($i = 0; $i < 6; $i++)
-                                                            <div class="grey_box d-flex align-items-center">
-                                                                <div class="eye_img">
+                                                        <div class="globle_list">
+                                                            <div class="row grey_box d-flex align-items-center">
+                                                                <div class="eye_img col-lg-1">
                                                                     <img src="{{ asset('assets/img/eye.png') }}"
                                                                         alt="">
                                                                 </div>
-                                                                <div class="cont">
+                                                                <div class="cont col-lg-7">
                                                                     <h4>Profile views</h4>
-                                                                    Sed ut perspiciatis unde omnis iste natus error sit
-                                                                    voluptatem accusantium doloremque laudantium, totam rem
-                                                                    aperiam, eaque ipsa quae ab illo inventore veritatis et
-                                                                    quasi architecto beatae vitae dicta sunt explicabo.
+                                                                    Change daily limit for viewing profiles. If your account
+                                                                    is new or haven't been active for some time we advice to
+                                                                    start with lower limits than maximum, otherwise set
+                                                                    limits at range 20 to 30.
                                                                 </div>
-                                                                <div class="slider">
+                                                                <div class="slider col-lg-4">
                                                                     <div class="cont">
                                                                         <span>50</span>
                                                                         <span>100</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        @endfor
-                                                    </div>
+                                                            <div class="row grey_box d-flex align-items-center">
+                                                                <div class="eye_img col-lg-1">
+                                                                    <img src="{{ asset('assets/img/eye.png') }}"
+                                                                        alt="">
+                                                                </div>
+                                                                <div class="cont col-lg-7">
+                                                                    <h4>Follows</h4>
+                                                                    Change daily limit for following profiles. If your
+                                                                    account is new or haven't been active for some time we
+                                                                    advice to start with lower limits than maximum,
+                                                                    otherwise set limits at range 20 to 30.
+                                                                </div>
+                                                                <div class="slider col-lg-4">
+                                                                    <div class="cont">
+                                                                        <span>50</span>
+                                                                        <span>100</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row grey_box d-flex align-items-center">
+                                                                <div class="eye_img col-lg-1">
+                                                                    <img src="{{ asset('assets/img/eye.png') }}"
+                                                                        alt="">
+                                                                </div>
+                                                                <div class="cont col-lg-7">
+                                                                    <h4>Connection invites</h4>
+                                                                    The daily limit for sending connection invites. We
+                                                                    recommend keeping your connect limits in the range
+                                                                    between 10 and 25 per day.
+                                                                </div>
+                                                                <div class="slider col-lg-4">
+                                                                    <div class="cont">
+                                                                        <span>50</span>
+                                                                        <span>100</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row grey_box d-flex align-items-center">
+                                                                <div class="eye_img col-lg-1">
+                                                                    <img src="{{ asset('assets/img/eye.png') }}"
+                                                                        alt="">
+                                                                </div>
+                                                                <div class="cont col-lg-7">
+                                                                    <h4>Messages</h4>
+                                                                    Change daily limit for sending messages. If your account
+                                                                    is new or haven't been active for some time we advice to
+                                                                    start with lower limits than maximum, otherwise set
+                                                                    limits at range 30 to 40.
+                                                                </div>
+                                                                <div class="slider col-lg-4">
+                                                                    <div class="cont">
+                                                                        <span>50</span>
+                                                                        <span>100</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row grey_box d-flex align-items-center">
+                                                                <div class="eye_img col-lg-1">
+                                                                    <img src="{{ asset('assets/img/eye.png') }}"
+                                                                        alt="">
+                                                                </div>
+                                                                <div class="cont col-lg-7">
+                                                                    <h4>InMail</h4>
+                                                                    Change daily limit for sending InMail messages. If your
+                                                                    account is new or haven't been active for some time we
+                                                                    advice to start with lower limits than maximum,
+                                                                    otherwise set limits at range 15 to 25.
+                                                                </div>
+                                                                <div class="slider col-lg-4">
+                                                                    <div class="cont">
+                                                                        <span>50</span>
+                                                                        <span>100</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row grey_box d-flex align-items-center">
+                                                                <div class="eye_img col-lg-1">
+                                                                    <img src="{{ asset('assets/img/eye.png') }}"
+                                                                        alt="">
+                                                                </div>
+                                                                <div class="cont col-lg-7">
+                                                                    <h4>Discover</h4>
+                                                                    Change the number of pages per day that the tool will
+                                                                    discover from the search results. Recommend range is
+                                                                    between 40 and 60
+                                                                </div>
+                                                                <div class="slider col-lg-4">
+                                                                    <div class="cont">
+                                                                        <span>50</span>
+                                                                        <span>100</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row grey_box d-flex align-items-center">
+                                                                <div class="eye_img col-lg-1">
+                                                                    <img src="{{ asset('assets/img/eye.png') }}"
+                                                                        alt="">
+                                                                </div>
+                                                                <div class="cont col-lg-7">
+                                                                    <h4>Email</h4>
+                                                                    Change daily limit for sending email messages. If your
+                                                                    account is new, or haven't been active for some time we
+                                                                    advise to start with lower limits than maximum,
+                                                                    otherwise set limits of 20 and 40.
+                                                                </div>
+                                                                <div class="slider col-lg-4">
+                                                                    <div class="cont">
+                                                                        <span>50</span>
+                                                                        <span>100</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row grey_box d-flex align-items-center">
+                                                                <div class="eye_img col-lg-1">
+                                                                    <img src="{{ asset('assets/img/eye.png') }}"
+                                                                        alt="">
+                                                                </div>
+                                                                <div class="cont col-lg-7">
+                                                                    <h4>Email delay</h4>
+                                                                    The minimum number of minutes between the emails are
+                                                                    being sent from the tool. For examle, if set to 5, the
+                                                                    email is going to be sent each 5 minutes from the tool.
+                                                                    The recommended value is 5 or more.
+                                                                </div>
+                                                                <div class="slider col-lg-4">
+                                                                    <div class="cont">
+                                                                        <span>50</span>
+                                                                        <span>100</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <button type="submit"
+                                                            class="text-left crt_btn edit_able_btn theme_btn manage_member mt-5">
+                                                            Save Changes
+                                                        </button>
+                                                    </form>
                                                 </div>
-                                            @elseif ($manage_global_limits == 'view_only')
+                                            @elseif (session('manage_global_limits') == 'view_only')
                                                 <div class="tab-pane linkedin_pane global_tab {{ $manage_linkedin_integrations == true || $manage_linkedin_integrations == 'view_only' ? (session()->has('add_account') ? '' : 'active') : 'active' }}"
                                                     id="Global" role="tabpanel">
                                                     <h6>Time zone</h6>
@@ -183,7 +365,7 @@
                                                     </div>
                                                 </div>
                                             @endif
-                                            @if ($manage_account_health == true)
+                                            {{-- @if ($manage_account_health == true)
                                                 <div class="tab-pane linkedin_pane health_tab" id="health"
                                                     role="tabpanel">
                                                     <div class="account_health">
@@ -393,12 +575,10 @@
                                                             Linked in</button>
                                                     @endif
                                                 </div>
-                                            @endif
+                                            @endif --}}
                                         </div>
-
                                     </div>
-                                    <!-- Step Content -->
-                                    @if ($manage_email_settings == true)
+                                    {{-- @if ($manage_email_settings == true)
                                         <div class="tab-pane setting_pane email_setting" id="email_setting"
                                             role="tabpanel">
                                             <div class="filtr_desc">
@@ -624,8 +804,8 @@
                                                 </tbody>
                                             </table>
                                         </div>
-                                    @endif
-                                </div> --}}
+                                    @endif --}}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -679,12 +859,11 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
     {{ session()->forget('add_account') }}
-    {{ session()->forget('delete_account') }} --}}
-    {{-- <script>
+    {{ session()->forget('delete_account') }}
+    <script>
         var addAccountAjax = null;
-        var deleteEmailRoute = "{{ route('delete_an_email_account', ':seat_email') }}";
         $(document).ready(function() {
             $(document).on("click", function(e) {
                 if (!$(e.target).closest(".setting").length) {
@@ -692,107 +871,107 @@
                 }
             });
 
-            $('.delete_an_email').on('click', function() {
-                var id = $(this).attr('id');
-                $.ajax({
-                    url: deleteEmailRoute.replace(':seat_email', id),
-                    type: "GET",
-                    success: function(response) {
-                        if (response.success) {
-                            $('#table_row_' + id).remove();
-                            if ($('.table_rows').length <= 0) {
-                                $('#email_setting').append(`
-                                    <div class="grey_box">
-                                        <div class="add_cont">
-                                            <p>No email account. Start by connecting your first email
-                                                account.</p>
-                                            <div class="add">
-                                                <a href="javascript:;" type="button" data-bs-toggle="modal"
-                                                    data-bs-target="#add_email"><i
-                                                        class="fa-solid fa-plus"></i></a>Add email account
-                                            </div>
-                                        </div>
-                                    </div>
-                                `);
-                            }
-                        } else {
-                            console.log(response);
-                        }
-                    },
-                    error: function(status, xhr, error) {
-                        console.error(error);
-                    }
-                });
-            });
+            // $('.delete_an_email').on('click', function() {
+            //     var id = $(this).attr('id');
+            //     $.ajax({
+            //         url: deleteEmailRoute.replace(':seat_email', id),
+            //         type: "GET",
+            //         success: function(response) {
+            //             if (response.success) {
+            //                 $('#table_row_' + id).remove();
+            //                 if ($('.table_rows').length <= 0) {
+            //                     $('#email_setting').append(`
+        //                         <div class="grey_box">
+        //                             <div class="add_cont">
+        //                                 <p>No email account. Start by connecting your first email
+        //                                     account.</p>
+        //                                 <div class="add">
+        //                                     <a href="javascript:;" type="button" data-bs-toggle="modal"
+        //                                         data-bs-target="#add_email"><i
+        //                                             class="fa-solid fa-plus"></i></a>Add email account
+        //                                 </div>
+        //                             </div>
+        //                         </div>
+        //                     `);
+            //                 }
+            //             } else {
+            //                 console.log(response);
+            //             }
+            //         },
+            //         error: function(status, xhr, error) {
+            //             console.error(error);
+            //         }
+            //     });
+            // });
 
-            $('.email_menu_btn').on('click', function(e) {
-                e.stopPropagation();
-                $(".setting_list").not($(this).siblings('.setting_list')).hide();
-                $(this).siblings('.setting_list').toggle();
-            });
+            // $('.email_menu_btn').on('click', function(e) {
+            //     e.stopPropagation();
+            //     $(".setting_list").not($(this).siblings('.setting_list')).hide();
+            //     $(this).siblings('.setting_list').toggle();
+            // });
 
-            $('#submit-btn').on('click', function() {
-                $.ajax({
-                    url: '/create-link-account',
-                    type: 'POST',
-                    headers: {
-                        "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-                    },
-                    data: {
-                        'email': $('#user_email').val()
-                    },
-                    success: function(response) {
-                        if (response.status === 'success' && response.data && response.data
-                            .url) {
-                            window.location = response.data.url;
-                        }
-                    },
-                    error: function(error) {
-                        console.error(error);
-                    }
-                });
-            });
+            // $('#submit-btn').on('click', function() {
+            //     $.ajax({
+            //         url: '/create-link-account',
+            //         type: 'POST',
+            //         headers: {
+            //             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+            //         },
+            //         data: {
+            //             'email': $('#user_email').val()
+            //         },
+            //         success: function(response) {
+            //             if (response.status === 'success' && response.data && response.data
+            //                 .url) {
+            //                 window.location = response.data.url;
+            //             }
+            //         },
+            //         error: function(error) {
+            //             console.error(error);
+            //         }
+            //     });
+            // });
 
-            $('.disconnect_account').on('click', function() {
-                $.ajax({
-                    url: '/delete_an_account',
-                    type: 'GET',
-                    success: function(response) {
-                        if (response.success) {
-                            window.location.reload();
-                        }
-                    },
-                    error: function(error) {
-                        console.error(error);
-                    }
-                });
-            });
+            // $('.disconnect_account').on('click', function() {
+            //     $.ajax({
+            //         url: '/delete_an_account',
+            //         type: 'GET',
+            //         success: function(response) {
+            //             if (response.success) {
+            //                 window.location.reload();
+            //             }
+            //         },
+            //         error: function(error) {
+            //             console.error(error);
+            //         }
+            //     });
+            // });
 
-            $('.add_an_email').on('click', function(e) {
-                if (addAccountAjax) return;
-                const $this = $(this);
-                addAccountAjax = $.ajax({
-                    url: '/add_email_account',
-                    type: 'POST',
-                    headers: {
-                        "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-                    },
-                    data: {
-                        'provider': $this.attr('data-provider')
-                    },
-                    success: function(response) {
-                        if (response.success && response.data && response.data.url) {
-                            window.location = response.data.url;
-                        }
-                    },
-                    error: function(error) {
-                        console.error(error);
-                    },
-                    complete: function() {
-                        addAccountAjax = null;
-                    }
-                });
-            });
+            // $('.add_an_email').on('click', function(e) {
+            //     if (addAccountAjax) return;
+            //     const $this = $(this);
+            //     addAccountAjax = $.ajax({
+            //         url: '/add_email_account',
+            //         type: 'POST',
+            //         headers: {
+            //             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+            //         },
+            //         data: {
+            //             'provider': $this.attr('data-provider')
+            //         },
+            //         success: function(response) {
+            //             if (response.success && response.data && response.data.url) {
+            //                 window.location = response.data.url;
+            //             }
+            //         },
+            //         error: function(error) {
+            //             console.error(error);
+            //         },
+            //         complete: function() {
+            //             addAccountAjax = null;
+            //         }
+            //     });
+            // });
         });
-    </script> --}}
+    </script>
 @endsection

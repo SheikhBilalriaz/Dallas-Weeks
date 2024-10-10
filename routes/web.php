@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BlacklistController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GlobalLimitController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LoginController;
@@ -65,6 +66,7 @@ Route::middleware(['userAuth'])->group(function () {
 
         Route::prefix('/seat/{seat_slug}')->middleware(['seatAccessChecker'])->group(function () {
             Route::get('/', [SeatDashboardController::class, 'seatDashboard'])->name('seatDashboardPage');
+            Route::put('/updat-seat-limit', [GlobalLimitController::class, 'updatSeatLimit'])->name('updatSeatLimit');
         });
 
         Route::prefix('seat')->group(function () {

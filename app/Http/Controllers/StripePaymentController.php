@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Exception;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -49,6 +50,9 @@ class StripePaymentController extends Controller
 
             $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
 
+            /* Get the current timezone from the configuration */
+            $currentTimezone = config('app.timezone');
+
             /* Create a Stripe customer */
             $customer = $stripe->customers->create([
                 'address' => [
@@ -78,6 +82,9 @@ class StripePaymentController extends Controller
                             'email' => $request->input('email'),
                             'phone_number' => $request->input('phone_number'),
                             'summary' => $request->input('summary') ?? null,
+                        ],
+                        'global_limit' => [
+                            'timezone' => $currentTimezone,
                         ],
                     ]),
                 ],

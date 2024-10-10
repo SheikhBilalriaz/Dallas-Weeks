@@ -13,6 +13,8 @@ use App\Models\Team;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SubscriptionSuccessMail;
 use App\Models\Invoice;
+use App\Models\Seat_Time;
+use App\Models\Seat_Timezone;
 use App\Models\User;
 use PDF;
 use Storage;
@@ -133,6 +135,7 @@ class StripeController extends Controller
         /* Extract company info and seat info from the seat metadata */
         $company_info = $seat->company_info;
         $seat_info = $seat->seat_info;
+        $global_limit = $seat->global_limit;
 
         /* Create a new company_info record in the database */
         $company_info = Company_Info::create([
@@ -162,6 +165,24 @@ class StripeController extends Controller
             'customer_id' => $stripeCustomer->id,
             'is_active' => 0,
             'is_connected' => 0,
+        ]);
+
+        /* Create a new seat time of start and end with default record in the database, linking all previously created records */
+        $seat_time['start'] = Seat_Time::create([
+            'seat_id' => $seat->id,
+            'time_status' => 'start',
+            'time' => '09:00:00',
+        ]);
+        $seat_time['end'] = Seat_Time::create([
+            'seat_id' => $seat->id,
+            'time_status' => 'end',
+            'time' => '17:00:00',
+        ]);
+
+        /* Create a new seat timezone with default record in the database, linking all previously created records */
+        $seat_timezone = Seat_Timezone::create([
+            'seat_id' => $seat->id,
+            'timezone' => $global_limit->timezone
         ]);
 
         /* Update the seat metadata in Stripe with the newly created seat ID */
