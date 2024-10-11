@@ -12,6 +12,7 @@ use App\Models\Seat_Info;
 use App\Models\Team;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SubscriptionSuccessMail;
+use App\Models\Account_Health;
 use App\Models\Invoice;
 use App\Models\Seat_Time;
 use App\Models\Seat_Timezone;
@@ -183,6 +184,20 @@ class StripeController extends Controller
         $seat_timezone = Seat_Timezone::create([
             'seat_id' => $seat->id,
             'timezone' => $global_limit->timezone
+        ]);
+
+        /* Create a new 'run_on_weekends' health check record for the seat */
+        $run_on_weekends = Account_Health::create([
+            'seat_id' => $seat->id,
+            'health_slug' => 'run_on_weekends',
+            'value' => 0,
+        ]);
+
+        /* Create a new 'oldest_pending_invitations' health check record for the seat */
+        $oldest_pending_invitations = Account_Health::create([
+            'seat_id' => $seat->id,
+            'health_slug' => 'oldest_pending_invitations',
+            'value' => 0,
         ]);
 
         /* Update the seat metadata in Stripe with the newly created seat ID */

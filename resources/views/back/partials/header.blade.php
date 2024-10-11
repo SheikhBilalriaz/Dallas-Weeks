@@ -34,7 +34,7 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
-    <script src="{{ asset('assets/js/chart_query.js') }}"></script>
+    {{-- <script src="{{ asset('assets/js/chart_query.js') }}"></script> --}}
     <title>{{ $title }}</title>
 </head>
 

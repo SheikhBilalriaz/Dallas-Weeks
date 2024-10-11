@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Account_Health;
 use App\Models\Seat;
 use App\Models\Seat_Time;
 use App\Models\Seat_Timezone;
@@ -80,7 +81,7 @@ class SeatDashboardController extends Controller
             $team = Team::where('slug', $slug)->first();
             $seat = Seat::where('slug', $seat_slug)->first();
             $time_zones = DateTimeZone::listIdentifiers(DateTimeZone::ALL);
-            $time_zones_with_offset = array_map(function($timezone) {
+            $time_zones_with_offset = array_map(function ($timezone) {
                 $datetime = new DateTime("now", new DateTimeZone($timezone));
                 $offset = $datetime->getOffset() / 3600;
                 $sign = ($offset >= 0) ? '+' : '-';
@@ -92,6 +93,8 @@ class SeatDashboardController extends Controller
             $start_time = Seat_Time::where('seat_id', $seat->id)->where('time_status', 'start')->first();
             $end_time = Seat_Time::where('seat_id', $seat->id)->where('time_status', 'end')->first();
             $seat_zone = Seat_Timezone::where('seat_id', $seat->id)->first();
+            $run_on_weekends = Account_Health::where('seat_id', $seat->id)->where('health_slug', 'run_on_weekends')->first();
+            $oldest_pending_invitations = Account_Health::where('seat_id', $seat->id)->where('health_slug', 'oldest_pending_invitations')->first();
             $data = [
                 'title' => 'Dashboard - Networked',
                 'team' => $team,
@@ -100,6 +103,8 @@ class SeatDashboardController extends Controller
                 'start_time' => $start_time,
                 'end_time' => $end_time,
                 'seat_zone' => $seat_zone,
+                'oldest_pending_invitations' => $oldest_pending_invitations,
+                'run_on_weekends' => $run_on_weekends,
                 'error' => session()->has('error') ? session('error')->first() : null,
             ];
             return view('back.setting', $data);

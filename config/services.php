@@ -38,4 +38,8 @@ return [
         'webhook_key' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
+    'unipile' => [
+        'key' => env('UNIPILE_API_KEY'),
+        'dsn' => env('UNIPILE_DSN'),
+    ],
 ];

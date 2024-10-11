@@ -2,9 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\UnipileController;
 use App\Models\Seat;
 use App\Models\Team_Member;
 use App\Models\Assigned_Seat;
+use App\Models\Linkedin_Integration;
 use App\Models\Permission;
 use App\Models\Role_Permission;
 use Closure;
@@ -110,6 +112,29 @@ class seatAccessCheckingMiddleware
                     }
                 }
             }
+        }
+
+        $linkedin_integrations = Linkedin_Integration::where('seat_id', $seat->id)->first();
+        if ($linkedin_integrations) {
+            /* Prepare the request data as an array */
+            $requestData = ['account_id' => $linkedin_integrations['account_id']];
+
+            /* Create a new Request object using the array of data */
+            $request = new \Illuminate\Http\Request();
+            $request->replace($requestData);
+
+            /* Initialize the UnipileController */
+            $uc = new UnipileController();
+
+            /* Call retrieve_an_account method with the properly formatted Request object */
+            $account = $uc->retrieve_an_account($request)->getData(true);
+
+            /* Call retrieve_own_profile method with the same Request object */
+            $account_profile = $uc->retrieve_own_profile($request)->getData(true);
+
+            /* Store the account and profile data in the session */
+            session(['seat_linkedin' => $account['account']]);
+            session(['linkedin_profile' => $account_profile['profile']]);
         }
 
         /* If the user is authorized, proceed to the next middleware or request handler */

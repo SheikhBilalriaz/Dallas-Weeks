@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\AccountHealthController;
 use App\Http\Controllers\BlacklistController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GlobalLimitController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\LinkedinIntegrationController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\RolesPermissionController;
@@ -14,6 +16,7 @@ use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\SeatController;
 use App\Http\Controllers\SeatDashboardController;
+use App\Http\Controllers\UnipileLinkedinController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,10 +30,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/test', function () {
-    return view('email.subscribe_success');
-});
 Route::post('/stripe/webhook', [StripeController::class, 'handleWebhook']);
+Route::post('/unipile/linkedin/webhook', [UnipileLinkedinController::class, 'handleWebhook']);
 
 /* These are home pages url which does not require any authentication */
 Route::get('/', [HomeController::class, 'home'])->name('homePage'); //Done
@@ -66,7 +67,10 @@ Route::middleware(['userAuth'])->group(function () {
 
         Route::prefix('/seat/{seat_slug}')->middleware(['seatAccessChecker'])->group(function () {
             Route::get('/', [SeatDashboardController::class, 'seatDashboard'])->name('seatDashboardPage');
-            Route::put('/updat-seat-limit', [GlobalLimitController::class, 'updatSeatLimit'])->name('updatSeatLimit');
+            Route::put('/update-seat-limit', [GlobalLimitController::class, 'updateSeatLimit'])->name('updateSeatLimit');
+            Route::put('/update-account-health', [AccountHealthController::class, 'updateAccountHealth'])->name('updateAccountHealth');
+            Route::post('/create-linkedin-account', [LinkedinIntegrationController::class, 'createLinkedinAccount'])->name('createLinkedinAccount');
+            Route::post('/disconnect-linkedin-account', [LinkedinIntegrationController::class, 'disconnectLinkedinAccount'])->name('disconnectLinkedinAccount');
         });
 
         Route::prefix('seat')->group(function () {
