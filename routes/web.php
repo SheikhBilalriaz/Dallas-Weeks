@@ -2,12 +2,15 @@
 
 use App\Http\Controllers\AccountHealthController;
 use App\Http\Controllers\BlacklistController;
+use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmailIntegrationController;
 use App\Http\Controllers\GlobalLimitController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LinkedinIntegrationController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\MessagingController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\RolesPermissionController;
 use App\Http\Controllers\TeamController;
@@ -16,6 +19,9 @@ use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\SeatController;
 use App\Http\Controllers\SeatDashboardController;
+use App\Http\Controllers\SeatMessageController;
+use App\Http\Controllers\SeatSettingController;
+use App\Http\Controllers\UnipileEmailController;
 use App\Http\Controllers\UnipileLinkedinController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +38,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/stripe/webhook', [StripeController::class, 'handleWebhook']);
 Route::post('/unipile/linkedin/webhook', [UnipileLinkedinController::class, 'handleWebhook']);
+Route::post('/unipile/email/webhook', [UnipileEmailController::class, 'handleWebhook']);
 
 /* These are home pages url which does not require any authentication */
 Route::get('/', [HomeController::class, 'home'])->name('homePage'); //Done
@@ -44,6 +51,7 @@ Route::get('/register', [RegisterController::class, 'register'])->name('register
 Route::post('/register-user', [RegisterController::class, 'registerUser'])->name('registerUser'); //Done
 Route::get('/verify-an-Email/{email}/{token}', [RegisterController::class, 'verifyAnEmail'])->name('verifyAnEmail'); //Done
 Route::post('/forgot-password', [LoginController::class, 'forgotPassword'])->name('forgotPassword');
+Route::post('/update-password', [LoginController::class, 'updatePassword'])->name('updatePassword');
 
 /* These are login url which does not require any authentication */
 Route::get('/login', [LoginController::class, 'login'])->name('loginPage'); //Done
@@ -67,11 +75,20 @@ Route::middleware(['userAuth'])->group(function () {
         Route::get('/seat-dashboard', [SeatDashboardController::class, 'toSeatDashboard'])->name('seatDashboard');
 
         Route::prefix('/seat/{seat_slug}')->middleware(['seatAccessChecker'])->group(function () {
-            Route::get('/', [SeatDashboardController::class, 'seatDashboard'])->name('seatDashboardPage');
+            Route::middleware(['linkedinAccountChecker'])->group(function () {
+                Route::get('/', [SeatDashboardController::class, 'seatDashboard'])->name('seatDashboardPage');
+                Route::get('/campaign', [CampaignController::class, 'campaign'])->name('campaignPage');
+                Route::post('/disconnect-linkedin-account', [LinkedinIntegrationController::class, 'disconnectLinkedinAccount'])->name('disconnectLinkedinAccount'); //Done
+                Route::get('/seat-messages', [SeatMessageController::class, 'seatMessageController'])->name('seatMessageController');
+                Route::get('/get-profile-and-latest-messages/{profile_id}/{chat_id}', [MessagingController::class, 'getProfileAndLatestMessage'])->name('getProfileAndLatestMessage'); //Done
+            });
+            Route::get('/seat-setting', [SeatSettingController::class, 'seatSetting'])->name('seatSettingPage');
             Route::put('/update-seat-limit', [GlobalLimitController::class, 'updateSeatLimit'])->name('updateSeatLimit');
             Route::put('/update-account-health', [AccountHealthController::class, 'updateAccountHealth'])->name('updateAccountHealth');
-            Route::post('/create-linkedin-account', [LinkedinIntegrationController::class, 'createLinkedinAccount'])->name('createLinkedinAccount');
-            Route::post('/disconnect-linkedin-account', [LinkedinIntegrationController::class, 'disconnectLinkedinAccount'])->name('disconnectLinkedinAccount');
+            Route::post('/create-linkedin-account', [LinkedinIntegrationController::class, 'createLinkedinAccount'])->name('createLinkedinAccount'); //Done
+            Route::post('/create-email-account', [EmailIntegrationController::class, 'createEmailAccount'])->name('createEmailAccount'); //Done
+            Route::post('/disconnect-email-account/{email_id}', [EmailIntegrationController::class, 'disconnectEmailAccount'])->name('disconnectEmailAccount'); //Done
+            Route::get('/search-email-account/{search}', [EmailIntegrationController::class, 'searchEmailAccount'])->name('searchEmailAccount'); //Done
         });
 
         Route::prefix('seat')->group(function () {

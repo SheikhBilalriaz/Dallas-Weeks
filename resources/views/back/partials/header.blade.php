@@ -34,7 +34,9 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
-    {{-- <script src="{{ asset('assets/js/chart_query.js') }}"></script> --}}
+    @if (request()->routeIs('seatDashboardPage'))
+        <script src="{{ asset('assets/js/chart_query.js') }}"></script>
+    @endif
     <title>{{ $title }}</title>
 </head>
 
@@ -51,7 +53,6 @@
             background: rgba(255, 255, 255, 0.7);
             z-index: 9999;
             display: none;
-            /* Initially hide the loader */
         }
 
         .loader-inner {
@@ -263,16 +264,6 @@
             </a>
             <div class="right_nav">
                 <ul class="d-flex list-unstyled">
-                    <li>
-                        <a href="#">
-                            <i class="fa-regular fa-envelope"></i>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#">
-                            <i class="fa-regular fa-bell"></i>
-                        </a>
-                    </li>
                     @php
                         $user = auth()->user();
                     @endphp
@@ -356,8 +347,6 @@
             <script src="{{ asset('assets/js/campaign.js') }}"></script>
         @elseif (Str::contains(request()->url(), URL('leads')))
             <script src="{{ asset('assets/js/leads.js') }}"></script>
-        @elseif (Str::contains(request()->url(), URL('setting')))
-            <script src="{{ asset('assets/js/setting.js') }}"></script>
         @endif
     </footer>
     <script>

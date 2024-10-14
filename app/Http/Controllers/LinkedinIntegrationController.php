@@ -71,34 +71,82 @@ class LinkedinIntegrationController extends Controller
 
             /* Redirect to the dashboard with a generic error message if an exception occurs */
             return redirect()->route('seatDashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 
     public function disconnectLinkedinAccount($slug, $seat_slug)
     {
         try {
+            /* Check if the user has permission to manage LinkedIn integrations */
+            if (session('manage_linkedin_integrations') !== true) {
+                return response()->json(['success' => false, 'error' => 'You do not have access to manage LinkedIn integrations'], 403);
+            }
+
+            /* Retrieve the seat by its slug */
             $seat = Seat::where('slug', $seat_slug)->first();
+
+            /* Retrieve the LinkedIn integration associated with the seat */
             $linkedin_integration = Linkedin_Integration::where('seat_id', $seat->id)->first();
-            if (!$linkedin_integration || empty($$linkedin_integration->account_id)) {
-                session(['add_account' => true]);
-                return redirect()->route('dash-settings');
+
+            /* If no LinkedIn account is associated, redirect to settings to add an account */
+            if (!$linkedin_integration || empty($linkedin_integration->account_id)) {
+                return redirect()->route('dashSettingsPage', ['slug' => $slug, 'seat_slug' => $seat_slug])->with(['add_account' => true]);
             }
+
+            /* Make object of an Unipile Controller */
             $uc = new UnipileController();
-            $request = ['account_id' => $seat['account_id']];
-            $account = $uc->delete_account(new \Illuminate\Http\Request($request));
-            if ($account instanceof JsonResponse) {
-                $account = $account->getData(true);
-                if (isset($account['error'])) {
-                    return response()->json(['success' => false, 'error' => $account['error']]);
-                }
-                $seat->update(['account_id' => null]);
-                session(['delete_account' => true]);
-                return response()->json(['success' => true]);
+
+            /* Prepare request data for UnipileController */
+            $requestData = ['account_id' => $linkedin_integration->account_id];
+
+            /* Create a new Request object and replace data */
+            $request = new \Illuminate\Http\Request();
+            $request->replace($requestData);
+
+            /* Call UnipileController's retrieve_an_account method */
+            $uc = new UnipileController();
+            $account = $uc->retrieve_an_account($request)->getData(true);
+
+            /* Check if there was an error in the Unipile API response */
+            if (isset($account['error'])) {
+                /* Log the error message for debugging */
+                Log::error($account['error']);
+
+                /* Redirect response with error message if any error occurs */
+                return response()->json(['success' => false, 'error' => 'Something went wrong']);
             }
-            return response()->json(['success' => false]);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+
+            $deleted_account = $uc->delete_account($request)->getData(true);
+
+            if (isset($deleted_account['error'])) {
+                /* Log the error message for debugging */
+                Log::error($deleted_account['error']);
+
+                /* Redirect response with error message if any error occurs */
+                return response()->json(['success' => false, 'error' => 'Something went wrong']);
+            }
+
+            /* Delete the LinkedIn integration */
+            $linkedin_integration->delete();
+
+            /* Remove specific session keys */
+            session()->forget('seat_linkedin');
+            session()->forget('linkedin_profile');
+
+            /* Update the seat */
+            $seat->is_connected = 0;
+            $seat->updated_at = now();
+            $seat->save();
+
+            /* return a success */
+            return response()->json(['success' => true, 'message' => 'Linkedin Disconnected succesfully']);
+        } catch (Exception $e) {
+            /* Log the exception */
+            Log::error($e);
+
+            /* return a 500 response with the error message */
+            return response()->json(['error' => 'Something went wrong'], 500);
         }
     }
 }

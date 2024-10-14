@@ -251,7 +251,7 @@ class RegisterController extends Controller
             Log::error($e);
 
             /* Redirect to login with an error message */
-            return redirect()->route('loginPage')->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+            return redirect()->route('loginPage')->withErrors(['error' => 'Something went wrong']);
         }
     }
 }

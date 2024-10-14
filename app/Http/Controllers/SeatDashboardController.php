@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account_Health;
+use App\Models\Campaign;
+use App\Models\Email_Integraion;
+use App\Models\Linkedin_Integration;
 use App\Models\Seat;
 use App\Models\Seat_Time;
 use App\Models\Seat_Timezone;
@@ -64,57 +67,63 @@ class SeatDashboardController extends Controller
 
             /* Redirect to the dashboard with a generic error message if an exception occurs */
             return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 
     /**
-     * Filter seats based on the search term and retrieve additional account information.
+     * Display the seat dashboard with seat details, time zones, and integrated emails.
      *
-     * @param string $slug
-     * @param string $search The search term to filter seat names.
-     * @return \Illuminate\Http\JsonResponse The JSON response with the filtered seats and their statuses.
+     * @param string $slug The team slug.
+     * @param string $seat_slug The seat slug.
+     * @return \Illuminate\Http\JsonResponse The JSON response with seat data and statuses.
      */
     public function seatDashboard($slug, $seat_slug)
     {
         try {
+            /* Retrieve the team and seat by their slugs */
             $team = Team::where('slug', $slug)->first();
             $seat = Seat::where('slug', $seat_slug)->first();
-            $time_zones = DateTimeZone::listIdentifiers(DateTimeZone::ALL);
-            $time_zones_with_offset = array_map(function ($timezone) {
-                $datetime = new DateTime("now", new DateTimeZone($timezone));
-                $offset = $datetime->getOffset() / 3600;
-                $sign = ($offset >= 0) ? '+' : '-';
-                return [
-                    'timezone' => $timezone,
-                    'offset' => 'GMT' . $sign . abs($offset),
-                ];
-            }, $time_zones);
-            $start_time = Seat_Time::where('seat_id', $seat->id)->where('time_status', 'start')->first();
-            $end_time = Seat_Time::where('seat_id', $seat->id)->where('time_status', 'end')->first();
-            $seat_zone = Seat_Timezone::where('seat_id', $seat->id)->first();
-            $run_on_weekends = Account_Health::where('seat_id', $seat->id)->where('health_slug', 'run_on_weekends')->first();
-            $oldest_pending_invitations = Account_Health::where('seat_id', $seat->id)->where('health_slug', 'oldest_pending_invitations')->first();
+            $linkedin_integrations = Linkedin_Integration::where('seat_id', $seat->id)->first();
+            $uc = new UnipileController();
+            $request = ['account_id' => $linkedin_integrations['account_id'], 'limit' => 10];
+            $chats = $uc->list_all_chats(new \Illuminate\Http\Request($request))->getData(true);
+            if (!isset($chats['error'])) {
+                $chats = $chats['chats']['items'];
+            } else {
+                $chats = array();
+            }
+            $request = ['account_id' => $linkedin_integrations['account_id'], 'limit' => 3];
+            $relations = $uc->list_all_relations(new \Illuminate\Http\Request($request))->getData(true);
+            if (!isset($relations['error'])) {
+                $relations = $relations['relations']['items'];
+            } else {
+                $relations = array();
+            }
+            $request = ['account_id' => $linkedin_integrations['account_id'], 'profile_url' => session('linkedin_profile')['provider_id'],];
+            $profile = $uc->view_profile(new \Illuminate\Http\Request($request))->getData(true);
+            $campaigns = Campaign::where('seat_id', $seat->id)->get();
+
+            /* Prepare data to pass to the view */
             $data = [
                 'title' => 'Dashboard - Networked',
                 'team' => $team,
                 'seat' => $seat,
-                'time_zones' => $time_zones_with_offset,
-                'start_time' => $start_time,
-                'end_time' => $end_time,
-                'seat_zone' => $seat_zone,
-                'oldest_pending_invitations' => $oldest_pending_invitations,
-                'run_on_weekends' => $run_on_weekends,
-                'error' => session()->has('error') ? session('error')->first() : null,
+                'profile' => $profile['user_profile'],
+                'campaigns' => $campaigns,
+                'chats' => $chats,
+                'relations' => $relations
             ];
-            return view('back.setting', $data);
+
+            /* Return the view with the seat data */
+            return view('back.main', $data);
         } catch (Exception $e) {
             /* Log the exception message for debugging */
             Log::error($e);
 
             /* Redirect to the dashboard with a generic error message if an exception occurs */
             return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 }

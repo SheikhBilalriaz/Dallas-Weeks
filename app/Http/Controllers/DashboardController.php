@@ -94,7 +94,7 @@ class DashboardController extends Controller
 
             /* Redirect to login with error message */
             return redirect()->route('dashboard')
-                ->withErrors(['error' => 'An unexpected error occurred. Please try again.'])
+                ->withErrors(['error' => 'Something went wrong'])
                 ->with('team_slug', $slug);
         }
     }

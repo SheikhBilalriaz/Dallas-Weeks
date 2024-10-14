@@ -54,7 +54,7 @@ class RolesPermissionController extends Controller
 
             /* Return a JSON response with the error message and a 404 status code */
             return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 
@@ -130,7 +130,7 @@ class RolesPermissionController extends Controller
             /* Return a JSON response with the error message */
             return redirect()
                 ->route('rolesPermissionPage', ['slug' => $team->slug])
-                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 
@@ -179,7 +179,7 @@ class RolesPermissionController extends Controller
             Log::error($e);
 
             /* Return a JSON response with the error message and failure status */
-            return response()->json(['success' => false, 'error' => 'An unexpected error occurred. Please try again.'], 500);
+            return response()->json(['success' => false, 'error' => 'Something went wrong'], 500);
         }
     }
 
@@ -258,7 +258,7 @@ class RolesPermissionController extends Controller
             /* Return a redirect with an error message */
             return redirect()
                 ->route('rolesPermissionPage', ['slug' => $team->slug])
-                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 
@@ -315,7 +315,7 @@ class RolesPermissionController extends Controller
             Log::error($e);
 
             /* Return a failure response with the exception message */
-            return response()->json(['success' => false, 'error' => 'An unexpected error occurred. Please try again.'], 500);
+            return response()->json(['success' => false, 'error' => 'Something went wrong'], 500);
         }
     }
 }

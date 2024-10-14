@@ -81,7 +81,7 @@ class TeamController extends Controller
 
             /* Return a JSON response with the error message and a 404 status code */
             return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 
@@ -576,7 +576,7 @@ class TeamController extends Controller
             /* Return a redirect with an error message */
             return redirect()
                 ->route('teamPage', ['slug' => $team->slug])
-                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 }

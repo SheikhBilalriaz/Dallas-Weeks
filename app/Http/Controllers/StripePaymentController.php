@@ -105,7 +105,7 @@ class StripePaymentController extends Controller
                 ->withInput();
         } catch (Exception $e) {
             Log::error('General Error: ' . $e);
-            return back()->withErrors(['payment_error' => 'An unexpected error occurred. Please try again.'])
+            return back()->withErrors(['payment_error' => 'Something went wrong'])
                 ->withInput();
         }
     }

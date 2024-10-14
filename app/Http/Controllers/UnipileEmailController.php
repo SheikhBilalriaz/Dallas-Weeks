@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Linkedin_Integration;
+use App\Models\Email_Integraion;
 use App\Models\Seat;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class UnipileLinkedinController extends Controller
+class UnipileEmailController extends Controller
 {
     public function handleWebhook(Request $request)
     {
@@ -17,6 +17,9 @@ class UnipileLinkedinController extends Controller
             $accound_id = $request->input('account_id');
             $status = $request->input('status');
             $name = $request->input('name');
+            Log::info($accound_id);
+            Log::info($status);
+            Log::info($name);
 
             /* If the status is not provided or false, return a failed response */
             if (!$status) {
@@ -31,16 +34,11 @@ class UnipileLinkedinController extends Controller
                 return response()->json(['status' => 'failed', 'message' => 'Seat not found'], 404);
             }
 
-            /* Create a Linkedin integration for the seat */
-            Linkedin_Integration::updateOrCreate(
-                ['seat_id' => $seat->id],
-                ['account_id' => $accound_id, 'updated_at' => now()]
-            );
-            
-            /* Update the seat */
-            $seat->is_connected = 1;
-            $seat->updated_at = now();
-            $seat->save();
+            /* Create a Email integration for the seat */
+            Email_Integraion::create([
+                'seat_id' => $seat->id,
+                'account_id' => $accound_id,
+            ]);
 
             /* Return a success response */
             return response()->json(['status' => 'success'], 200);

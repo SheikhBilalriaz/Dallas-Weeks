@@ -30,9 +30,6 @@
     <script src="{{ asset('assets/js/custom_dashboard.js') }}"></script>
     <script src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
     <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
-    @if (request()->is('accdashboard', 'report', 'leads'))
-        <script src="{{ asset('assets/js/chart_query.js') }}"></script>
-    @endif
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
 </head>
@@ -264,11 +261,6 @@
             </div>
             <div class="right_nav">
                 <ul class="d-flex list-unstyled">
-                    <li>
-                        <a>
-                            <i class="fa-solid fa-arrow-up-from-bracket"></i>
-                        </a>
-                    </li>
                     @php
                         $user = auth()->user();
                     @endphp

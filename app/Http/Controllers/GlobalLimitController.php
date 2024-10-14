@@ -91,7 +91,7 @@ class GlobalLimitController extends Controller
 
             /* Redirect to the dashboard with a generic error message if an exception occurs */
             return redirect()->route('seatDashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'An unexpected error occurred. Please try again.']);
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 }

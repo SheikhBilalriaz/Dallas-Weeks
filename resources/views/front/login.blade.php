@@ -173,7 +173,6 @@
                 </div>
             </div>
         </section>
-        {{-- TODO: Forgot Password --}}
         <div class="modal fade fotget_password_popup" id="forgetPassword" tabindex="-1" role="dialog"
             aria-labelledby="basicModal" aria-hidden="true">
             <div class="modal-dialog">
@@ -196,8 +195,39 @@
                 </div>
             </div>
         </div>
+        @if ($is_password)
+            <div class="modal fade fotget_password_popup" id="updatePassword" tabindex="-1" role="dialog"
+                aria-labelledby="basicModal" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-body text-center">
+                            <h3>Update password</h3>
+                            <form id="update_password" class="forget_pass">
+                                @csrf
+                                <input type="hidden" name="forgetEmail" value="{{ $forget_email }}">
+                                <input type="password" class="password" name="password" placeholder="Enter new password">
+                                <input type="password" class="password" name="confirm_password"
+                                    placeholder="Confirm password">
+                                <span class="text-danger emailError" id="inputPasswordError"></span>
+                                <button class="theme_btn">Update Password</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
     </body>
-
+    @if ($forget_email !== null)
+        <script>
+            $(document).ready(function() {
+                $('#updatePassword').modal({
+                    backdrop: 'static',
+                    keyboard: false,
+                });
+                $('#updatePassword').modal('show');
+            });
+        </script>
+    @endif
     <script>
         var checkCredientialRoute = "{{ route('checkCredentials') }}";
         var dashboardRoute = "{{ route('dashboard') }}";

@@ -20,15 +20,7 @@
                 <div class="col-lg-11 col-sm-12">
                     @if (session()->has('add_account'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <strong>Add Account! </strong> You should add linkedin account first.
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                    @endif
-                    @if (session()->has('delete_account'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <strong>Disconnected! </strong> Linkedin disconnected successfully.
+                            <strong>Add Account! </strong> You should integrate linkedin account first.
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
@@ -66,8 +58,8 @@
                                 <ul class="nav nav-tabs" role="tablist">
                                     @if ($is_linkedin_settings)
                                         <li class="nav-item">
-                                            <a class="nav-link setting_tab active" data-bs-toggle="tab"
-                                                href="#linkedin_setting" role="tab" aria-controls="linkedin_setting">
+                                            <a class="nav-link setting_tab active" data-bs-toggle="tab" href="#LinkedIn"
+                                                role="tab">
                                                 LinkedIn settings
                                             </a>
                                         </li>
@@ -75,8 +67,7 @@
                                     @if ($is_email_settings)
                                         <li class="nav-item">
                                             <a class="nav-link setting_tab {{ $is_linkedin_settings ? '' : 'active' }}"
-                                                data-bs-toggle="tab" href="#email_setting" role="tab"
-                                                aria-controls="email_setting">
+                                                data-bs-toggle="tab" href="#emailSetting" role="tab">
                                                 Email settings
                                             </a>
                                         </li>
@@ -812,14 +803,15 @@
                                     @if ($is_email_settings)
                                         @if (session('manage_email_settings') === 'view_only')
                                             <div class="tab-pane setting_pane email_setting {{ $is_linkedin_settings ? '' : 'active' }}"
-                                                id="email_setting" role="tabpanel">
+                                                id="emailSetting" role="tabpanel">
                                                 <div class="filtr_desc">
                                                     <div class="d-flex justify-content-end">
                                                         <strong></strong>
                                                         <div class="filter">
                                                             <div class="search-form">
                                                                 <input type="text" name="q"
-                                                                    placeholder="Search Campaig here...">
+                                                                    placeholder="Search Emails here..."
+                                                                    id="search_emails">
                                                                 <button type="submit">
                                                                     <i class="fa fa-search"></i>
                                                                 </button>
@@ -827,12 +819,16 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    {{-- <table class="data_table w-100">
+                                                    <table class="data_table w-100">
                                                         <thead>
                                                             <tr>
-                                                                <th width="30%" style="text-align: center">Name</th>
-                                                                <th width="30%" style="text-align: center">Email</th>
-                                                                <th width="30%" style="text-align: center">Status</th>
+                                                                <th width="20%" style="text-align: center">Name</th>
+                                                                <th width="20%" style="text-align: center">Email</th>
+                                                                <th width="20%" style="text-align: center">Daily Limits
+                                                                </th>
+                                                                <th width="20%" style="text-align: center">Email Delays
+                                                                </th>
+                                                                <th width="20%" style="text-align: center">Status</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -846,7 +842,7 @@
                                                                 @foreach ($emails as $email)
                                                                     <tr class="table_rows"
                                                                         id="{{ 'table_row_' . $email['id'] }}">
-                                                                        <td width="30%" style="text-align: center">
+                                                                        <td width="20%" style="text-align: center">
                                                                             @php
                                                                                 $name =
                                                                                     isset(
@@ -880,7 +876,7 @@
                                                                             @endphp
                                                                             {{ $name }}
                                                                         </td>
-                                                                        <td width="30%" style="text-align: center">
+                                                                        <td width="20%" style="text-align: center">
                                                                             <img src="{{ asset($logos[$email['profile']['provider']]) }}"
                                                                                 style="width: 25px; height: 25px; margin-right: 7px;"
                                                                                 alt="">
@@ -891,7 +887,13 @@
                                                                             @endphp
                                                                             {{ $user_email }}
                                                                         </td>
-                                                                        <td class="email_status" width="30%"
+                                                                        <td width="20%" style="text-align: center">
+                                                                            2
+                                                                        </td>
+                                                                        <td width="20%" style="text-align: center">
+                                                                            5
+                                                                        </td>
+                                                                        <td class="email_status" width="20%"
                                                                             style="text-align: center; position: relative; z-index: 1;">
                                                                             @php
                                                                                 $status =
@@ -903,58 +905,62 @@
                                                                                 class="{{ $status == 'OK' ? 'connected' : 'disconnected' }}">
                                                                                 {{ $status == 'OK' ? 'Connected' : 'Disconnected' }}
                                                                             </span>
-                                                                            <span class="email_menu_btn"
-                                                                                style="width: 20px; display: 
-                                                        inline-block; text-align: center;">
-                                                                                <i class="fa-solid fa-ellipsis-vertical"
-                                                                                    style="color: #ffffff;"></i>
-                                                                            </span>
-                                                                            <ul class="setting_list"
-                                                                                style="display: none; z-index: 2147483647; right: -5%; width: max-content;">
-                                                                                <li><a class="delete_an_email"
-                                                                                        id="{{ $email['id'] }}">Delete an
-                                                                                        account</a>
-                                                                                </li>
-                                                                            </ul>
                                                                         </td>
                                                                     </tr>
                                                                 @endforeach
+                                                            @else
+                                                                <td colspan="5">
+                                                                    <div class="grey_box d-flex align-items-center linked">
+                                                                        <div style="width: 50%; margin: 0 auto;"
+                                                                            class="empty_blacklist text-center">
+                                                                            <img style="margin-right: 0px; width: 50%; height: 50%; border-radius: 0;"
+                                                                                src="{{ asset('assets/img/empty.png') }}"
+                                                                                alt="">
+                                                                            <p style="margin-top: 25px; font-size: 18px;">
+                                                                                You can not integrate Email account
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
                                                             @endif
                                                         </tbody>
-                                                    </table> --}}
+                                                    </table>
                                                 </div>
                                             </div>
-                                        @endif
-                                        {{-- @if ($manage_email_settings == true)
-                                            <div class="tab-pane setting_pane email_setting" id="email_setting"
-                                                role="tabpanel">
+                                        @elseif (session('manage_email_settings') === true)
+                                            <div class="tab-pane setting_pane email_setting {{ $is_linkedin_settings ? '' : 'active' }}"
+                                                id="emailSetting" role="tabpanel">
                                                 <div class="filtr_desc">
                                                     <div class="d-flex justify-content-end">
                                                         <strong></strong>
                                                         <div class="filter">
-                                                            <form action="/search" method="get" class="search-form">
+                                                            <div class="search-form">
                                                                 <input type="text" name="q"
-                                                                    placeholder="Search Campaig here...">
+                                                                    placeholder="Search Emails here..."
+                                                                    id="search_emails">
                                                                 <button type="submit">
                                                                     <i class="fa fa-search"></i>
                                                                 </button>
-                                                            </form>
+                                                                </form>
+                                                            </div>
                                                             <div class="add_btn ">
                                                                 <a href="javascript:;" class="" type="button"
                                                                     data-bs-toggle="modal" data-bs-target="#add_email"><i
                                                                         class="fa-solid fa-plus"></i></a>Add email account
                                                             </div>
-
                                                         </div>
                                                     </div>
-
                                                 </div>
                                                 <table class="data_table w-100">
                                                     <thead>
                                                         <tr>
-                                                            <th width="30%" style="text-align: center">Name</th>
-                                                            <th width="30%" style="text-align: center">Email</th>
-                                                            <th width="30%" style="text-align: center">Status</th>
+                                                            <th width="20%" style="text-align: center">Name</th>
+                                                            <th width="20%" style="text-align: center">Email</th>
+                                                            <th width="20%" style="text-align: center">Daily Limits
+                                                            </th>
+                                                            <th width="20%" style="text-align: center">Email Delays
+                                                            </th>
+                                                            <th width="20%" style="text-align: center">Status</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -968,7 +974,7 @@
                                                             @foreach ($emails as $email)
                                                                 <tr class="table_rows"
                                                                     id="{{ 'table_row_' . $email['id'] }}">
-                                                                    <td width="30%" style="text-align: center">
+                                                                    <td width="20%" style="text-align: center">
                                                                         @php
                                                                             $name =
                                                                                 isset(
@@ -983,16 +989,22 @@
                                                                                         'display_name'
                                                                                     ]
                                                                                     : (isset(
-                                                                                        $email['profile']['display_name'],
+                                                                                        $email['profile'][
+                                                                                            'display_name'
+                                                                                        ],
                                                                                     ) &&
-                                                                                    $email['profile']['display_name'] !== ''
-                                                                                        ? $email['profile']['display_name']
+                                                                                    $email['profile'][
+                                                                                        'display_name'
+                                                                                    ] !== ''
+                                                                                        ? $email['profile'][
+                                                                                            'display_name'
+                                                                                        ]
                                                                                         : $email['profile']['email'] ??
                                                                                             $email['account']['name']);
                                                                         @endphp
                                                                         {{ $name }}
                                                                     </td>
-                                                                    <td width="30%" style="text-align: center">
+                                                                    <td width="20%" style="text-align: center">
                                                                         <img src="{{ asset($logos[$email['profile']['provider']]) }}"
                                                                             style="width: 25px; height: 25px; margin-right: 7px;"
                                                                             alt="">
@@ -1003,20 +1015,26 @@
                                                                         @endphp
                                                                         {{ $user_email }}
                                                                     </td>
-                                                                    <td class="email_status" width="30%"
+                                                                    <td width="20%" style="text-align: center">
+                                                                        2
+                                                                    </td>
+                                                                    <td width="20%" style="text-align: center">
+                                                                        5
+                                                                    </td>
+                                                                    <td class="email_status" width="20%"
                                                                         style="text-align: center; position: relative; z-index: 1;">
                                                                         @php
                                                                             $status =
-                                                                                $email['account']['sources'][0]['status'] ??
-                                                                                'Disconnected';
+                                                                                $email['account']['sources'][0][
+                                                                                    'status'
+                                                                                ] ?? 'Disconnected';
                                                                         @endphp
                                                                         <span style="margin-right: 20px;"
                                                                             class="{{ $status == 'OK' ? 'connected' : 'disconnected' }}">
                                                                             {{ $status == 'OK' ? 'Connected' : 'Disconnected' }}
                                                                         </span>
                                                                         <span class="email_menu_btn"
-                                                                            style="width: 20px; display: 
-                                                                        inline-block; text-align: center;">
+                                                                            style="width: 20px; display: inline-block; text-align: center;">
                                                                             <i class="fa-solid fa-ellipsis-vertical"
                                                                                 style="color: #ffffff;"></i>
                                                                         </span>
@@ -1030,128 +1048,28 @@
                                                                     </td>
                                                                 </tr>
                                                             @endforeach
-                                                        @endif
-                                                    </tbody>
-                                                </table>
-                                                @if (!$emails->isNotEmpty())
-                                                    <div class="grey_box">
-                                                        <div class="add_cont">
-                                                            <p>No email account. Start by connecting your first email
-                                                                account.</p>
-                                                            <div class="add">
-                                                                <a href="javascript:;" type="button" data-bs-toggle="modal"
-                                                                    data-bs-target="#add_email"><i
-                                                                        class="fa-solid fa-plus"></i></a>Add email account
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        @elseif ($manage_email_settings == 'view_only')
-                                            <div class="tab-pane setting_pane email_setting" id="email_setting"
-                                                role="tabpanel">
-                                                <div class="filtr_desc">
-                                                    <div class="d-flex justify-content-end">
-                                                        <strong></strong>
-                                                        <div class="filter">
-                                                            <form action="/search" method="get" class="search-form">
-                                                                <input type="text" name="q"
-                                                                    placeholder="Search Campaig here...">
-                                                                <button type="submit">
-                                                                    <i class="fa fa-search"></i>
-                                                                </button>
-                                                            </form>
-
-                                                        </div>
-                                                    </div>
-
-                                                </div>
-                                                <table class="data_table w-100">
-                                                    <thead>
-                                                        <tr>
-                                                            <th width="30%" style="text-align: center">Name</th>
-                                                            <th width="30%" style="text-align: center">Email</th>
-                                                            <th width="30%" style="text-align: center">Status</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @if ($emails->isNotEmpty())
-                                                            @php
-                                                                $logos = [
-                                                                    'OUTLOOK' => '/assets/img/outlook.png',
-                                                                    'GMAIL' => '/assets/img/gmail.png',
-                                                                ];
-                                                            @endphp
-                                                            @foreach ($emails as $email)
-                                                                <tr class="table_rows"
-                                                                    id="{{ 'table_row_' . $email['id'] }}">
-                                                                    <td width="30%" style="text-align: center">
-                                                                        @php
-                                                                            $name =
-                                                                                isset(
-                                                                                    $email['profile']['aliases'][0][
-                                                                                        'display_name'
-                                                                                    ],
-                                                                                ) &&
-                                                                                $email['profile']['aliases'][0][
-                                                                                    'display_name'
-                                                                                ] !== ''
-                                                                                    ? $email['profile']['aliases'][0][
-                                                                                        'display_name'
-                                                                                    ]
-                                                                                    : (isset(
-                                                                                        $email['profile']['display_name'],
-                                                                                    ) &&
-                                                                                    $email['profile']['display_name'] !== ''
-                                                                                        ? $email['profile']['display_name']
-                                                                                        : $email['profile']['email'] ??
-                                                                                            $email['account']['name']);
-                                                                        @endphp
-                                                                        {{ $name }}
-                                                                    </td>
-                                                                    <td width="30%" style="text-align: center">
-                                                                        <img src="{{ asset($logos[$email['profile']['provider']]) }}"
-                                                                            style="width: 25px; height: 25px; margin-right: 7px;"
-                                                                            alt="">
-                                                                        @php
-                                                                            $user_email =
-                                                                                $email['profile']['email'] ??
-                                                                                $email['account']['name'];
-                                                                        @endphp
-                                                                        {{ $user_email }}
-                                                                    </td>
-                                                                    <td class="email_status" width="30%"
-                                                                        style="text-align: center; position: relative; z-index: 1;">
-                                                                        @php
-                                                                            $status =
-                                                                                $email['account']['sources'][0]['status'] ??
-                                                                                'Disconnected';
-                                                                        @endphp
-                                                                        <span style="margin-right: 20px;"
-                                                                            class="{{ $status == 'OK' ? 'connected' : 'disconnected' }}">
-                                                                            {{ $status == 'OK' ? 'Connected' : 'Disconnected' }}
-                                                                        </span>
-                                                                        <span class="email_menu_btn"
-                                                                            style="width: 20px; display: 
-                                                                inline-block; text-align: center;">
-                                                                            <i class="fa-solid fa-ellipsis-vertical"
-                                                                                style="color: #ffffff;"></i>
-                                                                        </span>
-                                                                        <ul class="setting_list"
-                                                                            style="display: none; z-index: 2147483647; right: -5%; width: max-content;">
-                                                                            <li><a class="delete_an_email"
-                                                                                    id="{{ $email['id'] }}">Delete an
-                                                                                    account</a>
-                                                                            </li>
-                                                                        </ul>
-                                                                    </td>
-                                                                </tr>
-                                                            @endforeach
+                                                        @else
+                                                            <td colspan="5">
+                                                                <div class="grey_box">
+                                                                    <div class="add_cont">
+                                                                        <p>No email account. Start by connecting your first
+                                                                            email
+                                                                            account.</p>
+                                                                        <div class="add">
+                                                                            <a href="javascript:;" type="button"
+                                                                                data-bs-toggle="modal"
+                                                                                data-bs-target="#add_email"><i
+                                                                                    class="fa-solid fa-plus"></i></a>Add
+                                                                            email account
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
                                                         @endif
                                                     </tbody>
                                                 </table>
                                             </div>
-                                        @endif --}}
+                                        @endif
                                     @endif
                                 </div>
                             </div>
@@ -1161,60 +1079,61 @@
             </div>
         </div>
     </section>
-    {{-- <div class="modal fade create_sequence_modal add_email" id="add_email" tabindex="-1" aria-labelledby="add_email"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="sequance_modal">Add email account</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><i
-                            class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="modal-body">
-                    <form action="">
-                        <div class="row">
-                            <div class="col-12">
-                                <p>Select your email provider</p>
-                                <div class="row">
-                                    <div class="col-lg-4">
-                                        <div class="border_box">
-                                            <div class="email_box_img add_an_email" data-provider="GOOGLE">
-                                                <img src="{{ asset('assets/img/gmail.png') }}" alt="">
-                                                <span>Gmail</span>
+    @if (session('manage_email_settings') === true)
+        <div class="modal fade create_sequence_modal add_email" id="add_email" tabindex="-1"
+            aria-labelledby="add_email" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="sequance_modal">Add email account</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><i
+                                class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="">
+                            <div class="row">
+                                <div class="col-12">
+                                    <p>Select your email provider</p>
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="border_box">
+                                                <div class="email_box_img add_an_email" data-provider="GOOGLE">
+                                                    <img src="{{ asset('assets/img/gmail.png') }}" alt="">
+                                                    <span>Gmail</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <div class="border_box">
-                                            <div class="email_box_img add_an_email" data-provider="OUTLOOK">
-                                                <img src="{{ asset('assets/img/outlook.png') }}" alt="">
-                                                <span>Outlook</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <div class="border_box">
-                                            <div class="email_box_img" data-provider="smtp">
-                                                <img src="{{ asset('assets/img/web-browser.png') }}" alt="">
-                                                <span>Custom SMTP server</span>
+                                        <div class="col-lg-6">
+                                            <div class="border_box">
+                                                <div class="email_box_img add_an_email" data-provider="OUTLOOK">
+                                                    <img src="{{ asset('assets/img/outlook.png') }}" alt="">
+                                                    <span>Outlook</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div> --}}
+    @endif
     {{ session()->forget('add_account') }}
-    {{ session()->forget('delete_account') }}
     <script>
         var integrateLinkedinRoute =
             "{{ route('createLinkedinAccount', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}";
+        var integrateEmailroute =
+            "{{ route('createEmailAccount', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}";
         var disconnectLinkedinAccountRoute =
             "{{ route('disconnectLinkedinAccount', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}";
+        var disconnectEmailAccountRoute =
+            "{{ route('disconnectEmailAccount', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'email_id' => ':email_id']) }}";
+        var searchEmailAccountRoute =
+            "{{ route('searchEmailAccount', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'search' => ':search']) }}"
+        var emptyImage = "{{ asset('assets/img/empty.png') }}";
+        var manage_email_allowed = "{{ session('manage_email_settings') === true }}";
     </script>
     <script>
         var addAccountAjax = null;
@@ -1224,71 +1143,6 @@
                     $(".setting_list").hide();
                 }
             });
-
-            // $('.delete_an_email').on('click', function() {
-            //     var id = $(this).attr('id');
-            //     $.ajax({
-            //         url: deleteEmailRoute.replace(':seat_email', id),
-            //         type: "GET",
-            //         success: function(response) {
-            //             if (response.success) {
-            //                 $('#table_row_' + id).remove();
-            //                 if ($('.table_rows').length <= 0) {
-            //                     $('#email_setting').append(`
-        //                         <div class="grey_box">
-        //                             <div class="add_cont">
-        //                                 <p>No email account. Start by connecting your first email
-        //                                     account.</p>
-        //                                 <div class="add">
-        //                                     <a href="javascript:;" type="button" data-bs-toggle="modal"
-        //                                         data-bs-target="#add_email"><i
-        //                                             class="fa-solid fa-plus"></i></a>Add email account
-        //                                 </div>
-        //                             </div>
-        //                         </div>
-        //                     `);
-            //                 }
-            //             } else {
-            //                 console.log(response);
-            //             }
-            //         },
-            //         error: function(status, xhr, error) {
-            //             console.error(error);
-            //         }
-            //     });
-            // });
-
-            // $('.email_menu_btn').on('click', function(e) {
-            //     e.stopPropagation();
-            //     $(".setting_list").not($(this).siblings('.setting_list')).hide();
-            //     $(this).siblings('.setting_list').toggle();
-            // });
-
-            // $('.add_an_email').on('click', function(e) {
-            //     if (addAccountAjax) return;
-            //     const $this = $(this);
-            //     addAccountAjax = $.ajax({
-            //         url: '/add_email_account',
-            //         type: 'POST',
-            //         headers: {
-            //             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-            //         },
-            //         data: {
-            //             'provider': $this.attr('data-provider')
-            //         },
-            //         success: function(response) {
-            //             if (response.success && response.data && response.data.url) {
-            //                 window.location = response.data.url;
-            //             }
-            //         },
-            //         error: function(error) {
-            //             console.error(error);
-            //         },
-            //         complete: function() {
-            //             addAccountAjax = null;
-            //         }
-            //     });
-            // });
         });
     </script>
 @endsection

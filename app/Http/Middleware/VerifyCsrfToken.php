@@ -13,6 +13,7 @@ class VerifyCsrfToken extends Middleware
      */
     protected $except = [
         'stripe/webhook',
-        'unipile/linkedin/webhook'
+        'unipile/linkedin/webhook',
+        'unipile/email/webhook'
     ];
 }

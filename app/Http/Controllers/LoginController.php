@@ -18,13 +18,17 @@ class LoginController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function login()
+    public function login(Request $request)
     {
+        /* Retrieve 'isPassword' from the query parameters, defaulting to false if not provided */
+        $isPassword = $request->query('isPassword', false);
+        $email = $request->query('email', null);
+
         /* Prepare data to be passed to the view, including the page title */
         $data = ['title' => 'Login - Networked'];
 
         /* Return the 'Login' view with the prepared data */
-        return view('front.login', $data);
+        return view('front.login', $data)->with(['is_password' => $isPassword, 'forget_email' => $email]);
     }
 
     /**
@@ -71,7 +75,7 @@ class LoginController extends Controller
             /* Handle unexpected exceptions and return JSON response */
             return response()->json([
                 'success' => false,
-                'error' => 'An unexcepted error occured'
+                'error' => 'Something went wrong'
             ], 500);
         }
     }
@@ -118,7 +122,34 @@ class LoginController extends Controller
             /* Handle unexpected exceptions and return JSON response */
             return response()->json([
                 'success' => false,
-                'error' => 'An unexcepted error occured, please try again'
+                'error' => 'Something went wrong'
+            ], 500);
+        }
+    }
+
+    public function updatePassword(Request $request)
+    {
+        try {
+            /* Validate the incoming request data */
+            $validator = Validator::make($request->all(), [
+                'password' => 'required|confirm',
+            ]);
+
+            /* Check if validation fails and return a JSON response with the first error message */
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => $validator->errors()->first()
+                ]);
+            }
+        } catch (Exception $e) {
+            /* If an exception occurs, log the exception message for debugging purposes. */
+            Log::error($e);
+
+            /* Handle unexpected exceptions and return JSON response */
+            return response()->json([
+                'success' => false,
+                'error' => 'Something went wrong'
             ], 500);
         }
     }
