@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ForgotPasswordMail;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class LoginController extends Controller
 {
@@ -69,6 +72,53 @@ class LoginController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => 'An unexcepted error occured'
+            ], 500);
+        }
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        try {
+            /* Validate the incoming request data */
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|email',
+            ]);
+
+            /* Check if validation fails and return a JSON response with the first error message */
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => $validator->errors()->first()
+                ]);
+            }
+
+            /* Check if user exists or not */
+            if (!User::where('email', $request->input('email'))->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'User not found'
+                ]);
+            }
+
+            /* Retrieve the email from input */
+            $email = $request->input('email');
+
+            /* Send a welcome email to the newly registered user */
+            Mail::to($email)->send(new ForgotPasswordMail($email));
+
+            /* Handle unexpected exceptions and return JSON response */
+            return response()->json([
+                'success' => true,
+                'message' => 'Email sent successfully'
+            ]);
+        } catch (Exception $e) {
+            /* If an exception occurs, log the exception message for debugging purposes. */
+            Log::error($e);
+
+            /* Handle unexpected exceptions and return JSON response */
+            return response()->json([
+                'success' => false,
+                'error' => 'An unexcepted error occured, please try again'
             ], 500);
         }
     }

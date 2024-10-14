@@ -104,6 +104,17 @@
         #update_seat button#delete_seat_11 {
             margin-top: 30px;
         }
+
+        #forgot_password input.error {
+            border: 1px solid red;
+            margin-bottom: 0 !important;
+        }
+
+        .emailError {
+            width: 100%;
+            text-align: left;
+            display: inline-block;
+        }
     </style>
 
     <body>
@@ -144,9 +155,6 @@
                                 <span id="passwordError" style="color: red;"></span>
                                 <span id="successMessage" style="color: green;"></span>
                                 <span class="forg_pass">
-                                    {{-- TODO: Login with linkedin --}}
-                                    <a>Login Via LinkedIn</a>
-                                    {{-- TODO: Forgot Password --}}
                                     <a style="color: #16adcb;" data-bs-toggle="modal"
                                         data-bs-target="#forgetPassword">Forgot password?</a>
                                 </span>
@@ -178,8 +186,10 @@
                     <div class="modal-body text-center">
                         <h3>Forgot password</h3>
                         <p>Enter the email address you signed up with to receive a secure link.</p>
-                        <form action="" class="forget_pass">
-                            <input type="email" class="email" placeholder="Enter your email">
+                        <form id="forgot_password" class="forget_pass">
+                            @csrf
+                            <input type="email" class="email" name="email" placeholder="Enter your email">
+                            <span class="text-danger emailError" id="inputEmailError"></span>
                             <button class="theme_btn">Send link</button>
                         </form>
                     </div>
@@ -191,5 +201,6 @@
     <script>
         var checkCredientialRoute = "{{ route('checkCredentials') }}";
         var dashboardRoute = "{{ route('dashboard') }}";
+        var forgotPasswordRoute = "{{ route('forgotPassword') }}";
     </script>
 @endsection

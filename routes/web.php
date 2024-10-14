@@ -43,6 +43,7 @@ Route::get('/faq', [HomeController::class, 'faq'])->name('faqPage'); //Done
 Route::get('/register', [RegisterController::class, 'register'])->name('registerPage'); //Done
 Route::post('/register-user', [RegisterController::class, 'registerUser'])->name('registerUser'); //Done
 Route::get('/verify-an-Email/{email}/{token}', [RegisterController::class, 'verifyAnEmail'])->name('verifyAnEmail'); //Done
+Route::post('/forgot-password', [LoginController::class, 'forgotPassword'])->name('forgotPassword');
 
 /* These are login url which does not require any authentication */
 Route::get('/login', [LoginController::class, 'login'])->name('loginPage'); //Done
