@@ -70,5 +70,7 @@ class Kernel extends HttpKernel
         'invoiceAccessChecked' => \App\Http\Middleware\invoiceAccessCheckingMiddleware::class,
         'seatAccessChecker' => \App\Http\Middleware\seatAccessCheckingMiddleware::class,
         'linkedinAccountChecker' => \App\Http\Middleware\LinkedinAccountCheckingMiddleware::class,
+        'isChatAllowed' => \App\Http\Middleware\isChatAllowed::class,
+        'isCampaignAllowed' => \App\Http\Middleware\isCampaignAllowed::class,
     ];
 }

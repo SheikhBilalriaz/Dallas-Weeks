@@ -345,8 +345,6 @@
             <script src="{{ asset('assets/js/editCampaignSequence.js') }}"></script>
         @elseif (Str::contains(request()->url(), URL('campaign')))
             <script src="{{ asset('assets/js/campaign.js') }}"></script>
-        @elseif (Str::contains(request()->url(), URL('leads')))
-            <script src="{{ asset('assets/js/leads.js') }}"></script>
         @endif
     </footer>
     <script>

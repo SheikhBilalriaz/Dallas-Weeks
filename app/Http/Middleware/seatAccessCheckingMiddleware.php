@@ -135,9 +135,13 @@ class seatAccessCheckingMiddleware
                 /* Call retrieve_own_profile method with the same Request object */
                 $account_profile = $uc->retrieve_own_profile($request)->getData(true);
 
-                /* Store the account and profile data in the session */
-                session(['seat_linkedin' => $account['account']]);
-                session(['linkedin_profile' => $account_profile['profile']]);
+                if (!session()->has('seat_linkedin')) {
+                    session(['seat_linkedin' => $account['account']]);
+                }
+
+                if (!session()->has('linkedin_profile')) {
+                    session(['linkedin_profile' => $account_profile['profile']]);
+                }
             }
 
             /* If the user is authorized, proceed to the next middleware or request handler */

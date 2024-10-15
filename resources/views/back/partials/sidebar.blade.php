@@ -12,12 +12,12 @@
                 ],
                 [
                     'permission' => session('manage_campaigns') === true || session('manage_campaigns') === 'view_only',
-                    'route' => 'campaignPage',
+                    'route' => 'campaigns',
                     'label' => asset('assets/img/speaker.svg'),
                 ],
                 [
                     'permission' => session('manage_campaigns') === true || session('manage_campaigns') === 'view_only',
-                    'route' => 'globalInvoicePage',
+                    'route' => 'dash-leads',
                     'label' => asset('assets/img/leads.svg'),
                 ],
                 [
@@ -29,7 +29,7 @@
                 ],
                 [
                     'permission' => session('manage_chat') === true || session('manage_chat') === 'view_only',
-                    'route' => 'globalSetting',
+                    'route' => 'dash-messages',
                     'label' => asset('assets/img/message.svg'),
                 ],
                 [

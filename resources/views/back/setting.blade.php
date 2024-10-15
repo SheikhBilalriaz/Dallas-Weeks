@@ -822,13 +822,9 @@
                                                     <table class="data_table w-100">
                                                         <thead>
                                                             <tr>
-                                                                <th width="20%" style="text-align: center">Name</th>
-                                                                <th width="20%" style="text-align: center">Email</th>
-                                                                <th width="20%" style="text-align: center">Daily Limits
-                                                                </th>
-                                                                <th width="20%" style="text-align: center">Email Delays
-                                                                </th>
-                                                                <th width="20%" style="text-align: center">Status</th>
+                                                                <th width="33%" style="text-align: center">Name</th>
+                                                                <th width="33%" style="text-align: center">Email</th>
+                                                                <th width="33%" style="text-align: center">Status</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -842,7 +838,7 @@
                                                                 @foreach ($emails as $email)
                                                                     <tr class="table_rows"
                                                                         id="{{ 'table_row_' . $email['id'] }}">
-                                                                        <td width="20%" style="text-align: center">
+                                                                        <td width="33%" style="text-align: center">
                                                                             @php
                                                                                 $name =
                                                                                     isset(
@@ -876,7 +872,7 @@
                                                                             @endphp
                                                                             {{ $name }}
                                                                         </td>
-                                                                        <td width="20%" style="text-align: center">
+                                                                        <td width="33%" style="text-align: center">
                                                                             <img src="{{ asset($logos[$email['profile']['provider']]) }}"
                                                                                 style="width: 25px; height: 25px; margin-right: 7px;"
                                                                                 alt="">
@@ -887,13 +883,7 @@
                                                                             @endphp
                                                                             {{ $user_email }}
                                                                         </td>
-                                                                        <td width="20%" style="text-align: center">
-                                                                            2
-                                                                        </td>
-                                                                        <td width="20%" style="text-align: center">
-                                                                            5
-                                                                        </td>
-                                                                        <td class="email_status" width="20%"
+                                                                        <td class="email_status" width="33%"
                                                                             style="text-align: center; position: relative; z-index: 1;">
                                                                             @php
                                                                                 $status =
@@ -954,13 +944,9 @@
                                                 <table class="data_table w-100">
                                                     <thead>
                                                         <tr>
-                                                            <th width="20%" style="text-align: center">Name</th>
-                                                            <th width="20%" style="text-align: center">Email</th>
-                                                            <th width="20%" style="text-align: center">Daily Limits
-                                                            </th>
-                                                            <th width="20%" style="text-align: center">Email Delays
-                                                            </th>
-                                                            <th width="20%" style="text-align: center">Status</th>
+                                                            <th width="33%" style="text-align: center">Name</th>
+                                                            <th width="33%" style="text-align: center">Email</th>
+                                                            <th width="33%" style="text-align: center">Status</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -974,7 +960,7 @@
                                                             @foreach ($emails as $email)
                                                                 <tr class="table_rows"
                                                                     id="{{ 'table_row_' . $email['id'] }}">
-                                                                    <td width="20%" style="text-align: center">
+                                                                    <td width="33%" style="text-align: center">
                                                                         @php
                                                                             $name =
                                                                                 isset(
@@ -1004,7 +990,7 @@
                                                                         @endphp
                                                                         {{ $name }}
                                                                     </td>
-                                                                    <td width="20%" style="text-align: center">
+                                                                    <td width="33%" style="text-align: center">
                                                                         <img src="{{ asset($logos[$email['profile']['provider']]) }}"
                                                                             style="width: 25px; height: 25px; margin-right: 7px;"
                                                                             alt="">
@@ -1015,13 +1001,7 @@
                                                                         @endphp
                                                                         {{ $user_email }}
                                                                     </td>
-                                                                    <td width="20%" style="text-align: center">
-                                                                        2
-                                                                    </td>
-                                                                    <td width="20%" style="text-align: center">
-                                                                        5
-                                                                    </td>
-                                                                    <td class="email_status" width="20%"
+                                                                    <td class="email_status" width="33%"
                                                                         style="text-align: center; position: relative; z-index: 1;">
                                                                         @php
                                                                             $status =

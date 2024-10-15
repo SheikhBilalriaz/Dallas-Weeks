@@ -1,10 +1,11 @@
 @extends('back/partials/header')
 @section('content')
-    {{-- <section class="main_dashboard blacklist  campaign_sec lead_sec">
+    <script src="{{ asset('assets/js/webhook.js') }}"></script>
+    <section class="main_dashboard blacklist  campaign_sec lead_sec">
         <div class="container_fluid">
             <div class="row">
                 <div class="col-lg-1">
-                    @include('partials/dashboard_sidebar_menu')
+                    @include('back/partials/sidebar')
                 </div>
                 <div class="col-lg-11 col-sm-12">
                     <div class="row">
@@ -14,44 +15,13 @@
                                 <div class="filt_opt d-flex">
                                     <div class="filt_opt">
                                     </div>
-                                    <div class="add_btn ">
-                                        <a href="javascript:;" class="" type="button" data-bs-toggle="modal"
-                                            data-bs-target="#webhook_modal">
+                                    <div style="cursor: pointer;" class="add_btn " data-bs-toggle="modal"
+                                        data-bs-target="#webhook_modal">
+                                        <a href="javascript:;" class="" type="button">
                                             <i class="fa-solid fa-plus"></i>
                                         </a>Create new webhook
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-
-
-                    </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="filter_head_row d-flex">
-
-                            </div>
-                            <div class="filtr_desc">
-                                <div class="d-flex">
-                                    <strong>Integrations</strong>
-                                    <div class="filter">
-                                        <form action="/search" method="get" class="search-form">
-                                            <input type="text" name="q" placeholder="Search account here...">
-                                            <button type="submit">
-                                                <i class="fa fa-search"></i>
-                                            </button>
-                                        </form>
-                                        <div class="filt_opt">
-                                            <select name="num" id="num">
-                                                <option value="01">10</option>
-                                                <option value="02">20</option>
-                                                <option value="03">30</option>
-                                                <option value="04">40</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
                             </div>
                         </div>
                     </div>
@@ -63,55 +33,43 @@
                                         <table class="data_table w-100">
                                             <thead>
                                                 <tr>
-                                                    <th width="12%">All campaigns</th>
-                                                    <th width="25%">Invited to connect</th>
-                                                    <th width="5%">Connections</th>
-                                                    <th width="10%" class="">Contact replies</th>
-                                                    <th width="13%">Message received</th>
-                                                    <th width="10%">Chat label</th>
-                                                    <th width="20%">Webhook url</th>
-                                                    <th width="5%">Action</th>
+                                                    <th width="45%">Name</th>
+                                                    <th width="45%">Webhook url</th>
+                                                    <th width="10%">Action</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                @for ($i = 0; $i < 10; $i++)
+                                            <tbody id="webhook_row">
+                                                @if ($webhooks->isNotEmpty())
+                                                    @foreach ($webhooks as $webhook)
+                                                        <tr id="{{ 'webhook_' . $webhook->id }}">
+                                                            <td class="title_cont">{{ $webhook->name }}</td>
+                                                            <td>
+                                                                <a
+                                                                    href="{{ $webhook->webhook['request_url'] }}">{{ $webhook->webhook['request_url'] }}</a>
+                                                            </td>
+                                                            <td>
+                                                                <a href="javascript:;" class="delete-webhook"
+                                                                    data-id="{{ $webhook->id }}">
+                                                                    <i class="fa-solid fa-trash"></i>
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                @else
                                                     <tr>
-                                                        <td>
-                                                            Sed ut perspiciatis
-                                                        </td>
-                                                        <td class="title_cont">Sales manager @ perspiciatis unde</td>
-                                                        <td class="">
-                                                        </td>
-                                                        <td class="">
-                                                            <i class="fa-solid fa-check"></i>
-                                                        </td>
-                                                        <td></td>
-                                                        <td>
-
-                                                        </td>
-                                                        <td>
-                                                            <div class="web_hook">https//edut-perspiciatis/unde/</div>
-                                                        </td>
-                                                        <!-- <td><div class="per">23%</div> -->
-                                                        </td>
-                                                        <td class="setting">
-                                                            <a href="javascript:;" type="button"
-                                                                class="setting setting_btn" id=""><i
-                                                                    class="fa-solid fa-gear"></i></a>
-                                                            <ul class="setting_list">
-                                                                <li><a href="#">Edit</a></li>
-                                                                <li><a href="#">Delete</a></li>
-                                                            </ul>
+                                                        <td colspan="3">
+                                                            <div style="width: 50%; margin: 0 auto;"
+                                                                class="empty_blacklist text-center">
+                                                                <p>Sorry, no results for that query</p>
+                                                            </div>
                                                         </td>
                                                     </tr>
-                                                @endfor
+                                                @endif
                                             </tbody>
                                         </table>
                                     </div>
-
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -140,64 +98,45 @@
                                                 <input type="checkbox" id="status_Discovered" name="lead_status"
                                                     value="Discovered">
                                                 <label for="status_Discovered">
-                                                    When a contact is invited to connect</label>
-                                            </span><span class="test">test</span></li>
+                                                    When a contact is invited to connect
+                                                </label>
+                                        </li>
                                         <li><span>
                                                 <input type="checkbox" id="status_Connection_pending" name="lead_status"
                                                     value="Connection_pending">
                                                 <label for="status_Connection_pending">When a contact accepts connection
                                                 </label>
-                                            </span><span class="test">test</span></li>
+                                        </li>
                                         <li><span>
-                                                <input type="checkbox" id="status_Connected_not_replied"
-                                                    name="lead_status" value="Connected, not replied">
+                                                <input type="checkbox" id="status_Connected_not_replied" name="lead_status"
+                                                    value="Connected, not replied">
                                                 <label for="status_Connected_not_replied">When a contact replies
                                                 </label>
-                                            </span><span class="test">test</span></li>
+                                        </li>
                                         <li><span>
                                                 <input type="checkbox" id="status_Replied" name="lead_status"
                                                     value="Replied">
                                                 <label for="status_Replied"> When a message is received from contact
                                                 </label>
-                                            </span><span class="test">test</span></li>
+                                        </li>
                                         <li><span>
-                                                <input type="checkbox" id="status_Replied_not_connected"
-                                                    name="lead_status" value="Replied, not connected">
+                                                <input type="checkbox" id="status_Replied_not_connected" name="lead_status"
+                                                    value="Replied, not connected">
                                                 <label for="status_Replied_not_connected">
                                                     Send all connection requests
                                                 </label>
-                                            </span><span class="test">test</span></li>
+                                        </li>
                                         <li><span>
-                                                <input type="checkbox" id="status_Replied_not_connected"
-                                                    name="lead_status" value="Replied, not connected">
+                                                <input type="checkbox" id="status_Replied_not_connected" name="lead_status"
+                                                    value="Replied, not connected">
                                                 <label for="status_Replied_not_connected">
                                                     When a lead completed the campaign
                                                 </label>
-                                            </span><span class="test">test</span></li>
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
-                            <div class="radio_btns_div">
-                                <p>Choose which active campaigns to connect</p>
-                                <div class="radio_btns d-flex align-items-center">
-                                    <div class="radio">
-                                        <input type="radio" name="exampleRadios" id="exampleRadios1" value="option1"
-                                            checked>
-                                        <label for="exampleRadios">
-                                            Global Webhook
-                                        </label>
-                                    </div>
-                                    <div class="radio">
-                                        <input type="radio" name="exampleRadios" id="exampleRadios1" value="option1">
-                                        <label for="exampleRadios1">
-                                            Let me select individual campaigns
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
                             <div class="btn_row d-flex justify-content-center">
-                                <a href="javascript:;" class="crt_btn back"><i
-                                        class="fa-solid fa-arrow-left"></i>Back</a>
                                 <a href="javascript:;" class="crt_btn submit">Submit<i
                                         class="fa-solid fa-arrow-right"></i></a>
                             </div>
@@ -209,17 +148,7 @@
         </div>
     </div>
     <script>
-        $(document).ready(function() {
-            $(".setting_list").hide();
-            $(".setting_btn").on("click", function(e) {
-                $(".setting_list").not($(this).siblings(".setting_list")).hide();
-                $(this).siblings(".setting_list").toggle();
-            });
-            $(document).on("click", function(e) {
-                if (!$(event.target).closest(".setting").length) {
-                    $(".setting_list").hide();
-                }
-            });
-        });
-    </script> --}}
+        var deleteWebhookRoute =
+            "{{ route('deleteWebhook', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'id' => ':id']) }}";
+    </script>
 @endsection

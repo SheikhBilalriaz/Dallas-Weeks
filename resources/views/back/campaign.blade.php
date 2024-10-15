@@ -97,7 +97,7 @@
                                 <h3>Campaigns</h3>
                                 <div class="filt_opt d-flex">
                                     <div class="add_btn ">
-                                        <a href="/campaign/createcampaign" class=""><i
+                                        <a href="{{ route('campaigncreate', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}" class=""><i
                                                 class="fa-solid fa-plus"></i></a>Add Campaign
                                     </div>
                                 </div>

@@ -41,11 +41,9 @@ function searchEmailAccount() {
                     var status = email?.account?.sources?.[0]?.status === 'OK' ? 'Connected' : 'Disconnected';
                     html += `
                         <tr class="table_rows" id="table_row_${email.id}">
-                            <td width="20%" style="text-align: center">${displayName}</td>
-                            <td width="20%" style="text-align: center">${userEmail}</td>
-                            <td width="20%" style="text-align: center">2</td>
-                            <td width="20%" style="text-align: center">5</td>
-                            <td class="email_status" width="20%" style="text-align: center; position: relative;">
+                            <td width="33%" style="text-align: center">${displayName}</td>
+                            <td width="33%" style="text-align: center">${userEmail}</td>
+                            <td class="email_status" width="33%" style="text-align: center; position: relative;">
                                 <span style="margin-right: 20px;" class="${status === 'Connected' ? 'connected' : 'disconnected'}">
                                     ${status}
                                 </span>
