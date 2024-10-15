@@ -34,7 +34,7 @@
                 ],
                 [
                     'permission' => session('manage_webhooks') === true || session('manage_webhooks') === 'view_only',
-                    'route' => 'globalSetting',
+                    'route' => 'webhookPage',
                     'label' => asset('assets/img/clip.svg'),
                 ],
                 [

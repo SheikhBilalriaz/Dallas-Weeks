@@ -21,6 +21,7 @@ use App\Http\Controllers\SeatController;
 use App\Http\Controllers\SeatDashboardController;
 use App\Http\Controllers\SeatMessageController;
 use App\Http\Controllers\SeatSettingController;
+use App\Http\Controllers\SeatWebhookController;
 use App\Http\Controllers\UnipileEmailController;
 use App\Http\Controllers\UnipileLinkedinController;
 use Illuminate\Support\Facades\Route;
@@ -78,6 +79,7 @@ Route::middleware(['userAuth'])->group(function () {
             Route::middleware(['linkedinAccountChecker'])->group(function () {
                 Route::get('/', [SeatDashboardController::class, 'seatDashboard'])->name('seatDashboardPage');
                 Route::get('/campaign', [CampaignController::class, 'campaign'])->name('campaignPage');
+                Route::get('/webhook', [SeatWebhookController::class, 'webhook'])->name('webhookPage');
                 Route::post('/disconnect-linkedin-account', [LinkedinIntegrationController::class, 'disconnectLinkedinAccount'])->name('disconnectLinkedinAccount'); //Done
                 Route::get('/seat-messages', [SeatMessageController::class, 'seatMessageController'])->name('seatMessageController');
                 Route::get('/get-profile-and-latest-messages/{profile_id}/{chat_id}', [MessagingController::class, 'getProfileAndLatestMessage'])->name('getProfileAndLatestMessage'); //Done

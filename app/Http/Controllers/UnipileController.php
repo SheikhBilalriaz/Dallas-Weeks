@@ -26,7 +26,7 @@ class UnipileController extends Controller
             ]);
 
             /* Construct the API URL using the account_id and DSN from the config */
-            $url = config('services.unipile.dsn') . 'api/v1/accounts/' . $account_id;
+            $url = config('services.unipile.dsn') . '/api/v1/accounts/' . $account_id;
 
             /* Make the GET request to the Unipile API */
             $response = $client->request('GET', $url, [
@@ -68,7 +68,7 @@ class UnipileController extends Controller
             ]);
 
             /* Construct the API URL using the account_id and DSN from the config */
-            $url = config('services.unipile.dsn') . 'api/v1/users/me?account_id=' . $account_id;
+            $url = config('services.unipile.dsn') . '/api/v1/users/me?account_id=' . $account_id;
 
             /* Make the GET request to the Unipile API */
             $response = $client->request('GET', $url, [
@@ -110,7 +110,7 @@ class UnipileController extends Controller
             ]);
 
             /* Construct the API URL using the account_id and DSN from the config */
-            $url = config('services.unipile.dsn') . 'api/v1/accounts/' . $account_id;
+            $url = config('services.unipile.dsn') . '/api/v1/accounts/' . $account_id;
 
             /* Make the GET request to the Unipile API */
             $response = $client->request('DELETE', $url, [
@@ -152,7 +152,7 @@ class UnipileController extends Controller
             ]);
 
             /* Construct the API URL using the account_id and DSN from the config */
-            $url = config('services.unipile.dsn') . 'api/v1/chats?account_id=' . $account_id;
+            $url = config('services.unipile.dsn') . '/api/v1/chats?account_id=' . $account_id;
 
             if ($request->has('cursor')) {
                 $url .= '&' . 'cursor=' . $request->input('cursor');
@@ -214,14 +214,14 @@ class UnipileController extends Controller
             ]);
 
             if ($request->input('sales_navigator')) {
-                $url = config('services.unipile.dsn') . 'api/v1/users/' . $profile_url . '?linkedin_api=sales_navigator&linkedin_sections=%2A&notify=' . $notify . '&account_id=' . $account_id;
+                $url = config('services.unipile.dsn') . '/api/v1/users/' . $profile_url . '?linkedin_api=sales_navigator&linkedin_sections=%2A&notify=' . $notify . '&account_id=' . $account_id;
             } else {
                 if (strpos($profile_url, 'https://www.linkedin.com/company/') !== false) {
-                    $profile_url = str_replace('https://www.linkedin.com/company/', config('services.unipile.dsn') . 'api/v1/linkedin/company/', $profile_url);
+                    $profile_url = str_replace('https://www.linkedin.com/company/', config('services.unipile.dsn') . '/api/v1/linkedin/company/', $profile_url);
                 } else if (strpos($profile_url, 'https://www.linkedin.com/in/') !== false) {
-                    $profile_url = str_replace('https://www.linkedin.com/in/', config('services.unipile.dsn') . 'api/v1/users/', $profile_url);
+                    $profile_url = str_replace('https://www.linkedin.com/in/', config('services.unipile.dsn') . '/api/v1/users/', $profile_url);
                 } else {
-                    $profile_url =  config('services.unipile.dsn') . 'api/v1/users/' . $profile_url;
+                    $profile_url =  config('services.unipile.dsn') . '/api/v1/users/' . $profile_url;
                 }
                 $url = $profile_url . '?linkedin_sections=%2A&notify=' . $notify . '&account_id=' . $account_id;
             }
@@ -254,7 +254,7 @@ class UnipileController extends Controller
             $client = new \GuzzleHttp\Client([
                 'verify' => false,
             ]);
-            $url = config('services.unipile.dsn') . 'api/v1/chats/' . $chat_id . '/messages?';
+            $url = config('services.unipile.dsn') . '/api/v1/chats/' . $chat_id . '/messages?';
             if (isset($all['cursor'])) {
                 $url .= 'cursor=' . $all['cursor'] . '&';
             }
@@ -294,7 +294,7 @@ class UnipileController extends Controller
             $client = new \GuzzleHttp\Client([
                 'verify' => false,
             ]);
-            $url = config('services.unipile.dsn') . 'api/v1/users/relations' . '?account_id=' . $account_id . '&';
+            $url = config('services.unipile.dsn') . '/api/v1/users/relations' . '?account_id=' . $account_id . '&';
             if (isset($all['cursor'])) {
                 $url .= 'cursor=' . $all['cursor'] . '&';
             }

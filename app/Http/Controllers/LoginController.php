@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Exception;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -16,15 +17,18 @@ class LoginController extends Controller
     /**
      * Display the login page.
      *
+     * @param Request $request
      * @return \Illuminate\View\View
      */
     public function login(Request $request)
     {
-        /* Retrieve 'isPassword' from the query parameters, defaulting to false if not provided */
+        /* Retrieve 'isPassword' from query parameters, defaulting to false if not provided */
         $isPassword = $request->query('isPassword', false);
+
+        /* Retrieve 'email' from query parameters, null if not provided */
         $email = $request->query('email', null);
 
-        /* Prepare data to be passed to the view, including the page title */
+        /* Prepare data array to pass to the view with the page title */
         $data = ['title' => 'Login - Networked'];
 
         /* Return the 'Login' view with the prepared data */
@@ -46,7 +50,7 @@ class LoginController extends Controller
                 'password' => 'required',
             ]);
 
-            /* Check if validation fails and return a JSON response with the first error message */
+            /* If validation fails, return a JSON response with the first error message */
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
@@ -54,25 +58,25 @@ class LoginController extends Controller
                 ], 400);
             }
 
-            /* Attempt to authenticate the user with the provided email and password */
+            /* Attempt to authenticate the user with provided email and password */
             if (Auth::attempt($request->only('email', 'password'))) {
-                /* If authentication is successful, return a success response */
+                /* Authentication successful, return a success response */
                 return response()->json([
                     'success' => true,
                     'message' => 'User Authenticated Successfully.'
                 ], 200);
-            } else {
-                /* If authentication fails, return an error response */
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Invalid Username or Password.'
-                ], 401);
             }
+            
+            /* Authentication failed, return an error response for invalid credentials */
+            return response()->json([
+                'success' => false,
+                'error' => 'Invalid Username or Password.'
+            ], 401);
         } catch (Exception $e) {
-            /* If an exception occurs, log the exception message for debugging purposes. */
+            /* Log the exception message for debugging purposes */
             Log::error($e);
 
-            /* Handle unexpected exceptions and return JSON response */
+            /* Handle unexpected exceptions and return a generic error response */
             return response()->json([
                 'success' => false,
                 'error' => 'Something went wrong'
@@ -80,6 +84,13 @@ class LoginController extends Controller
         }
     }
 
+    /**
+     * Handle the forgot password request by validating the user's email 
+     * and sending a password reset email.
+     *
+     * @param \Illuminate\Http\Request $request The incoming request containing the user's email.
+     * @return \Illuminate\Http\JsonResponse Returns a JSON response indicating the result of the operation.
+     */
     public function forgotPassword(Request $request)
     {
         try {
@@ -88,7 +99,7 @@ class LoginController extends Controller
                 'email' => 'required|email',
             ]);
 
-            /* Check if validation fails and return a JSON response with the first error message */
+            /* If validation fails, return a JSON response with the first validation error */
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
@@ -96,30 +107,28 @@ class LoginController extends Controller
                 ]);
             }
 
-            /* Check if user exists or not */
-            if (!User::where('email', $request->input('email'))->exists()) {
+            /* Check if a user with the provided email exists in the database */
+            $email = $request->input('email');
+            if (!User::where('email', $email)->exists()) {
                 return response()->json([
                     'success' => false,
                     'error' => 'User not found'
                 ]);
             }
 
-            /* Retrieve the email from input */
-            $email = $request->input('email');
-
-            /* Send a welcome email to the newly registered user */
+            /* Send the forgot password email to the user */
             Mail::to($email)->send(new ForgotPasswordMail($email));
 
-            /* Handle unexpected exceptions and return JSON response */
+            /* Return a success response indicating that the email was sent */
             return response()->json([
                 'success' => true,
                 'message' => 'Email sent successfully'
             ]);
         } catch (Exception $e) {
-            /* If an exception occurs, log the exception message for debugging purposes. */
+            /* Log the exception message for debugging purposes */
             Log::error($e);
 
-            /* Handle unexpected exceptions and return JSON response */
+            /* Handle unexpected exceptions and return a generic error response */
             return response()->json([
                 'success' => false,
                 'error' => 'Something went wrong'
@@ -127,26 +136,53 @@ class LoginController extends Controller
         }
     }
 
+    /**
+     * Update the user's password.
+     *
+     * @param \Illuminate\Http\Request $request The incoming request containing the new password and email.
+     * @return \Illuminate\Http\JsonResponse Returns a JSON response indicating the result of the operation.
+     */
     public function updatePassword(Request $request)
     {
         try {
-            /* Validate the incoming request data */
+            /* Validate the request data for the new password */
             $validator = Validator::make($request->all(), [
-                'password' => 'required|confirm',
+                'new_password' => 'required|string|min:8|confirmed',
             ]);
 
-            /* Check if validation fails and return a JSON response with the first error message */
+            /* If validation fails, return a JSON response with the first validation error */
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
                     'error' => $validator->errors()->first()
                 ]);
             }
+
+            /* Check if a user with the provided email exists in the database */
+            $email = $request->input('forgetEmail');
+            if (!User::where('email', $email)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'User not found'
+                ]);
+            }
+
+            /* Retrieve the user instance by email */
+            $user = User::where('email', $email)->first();
+            $user->password = Hash::make($request->input('new_password'));
+            $user->updated_at = now();
+            $user->save();
+            
+            /* Return a success response indicating that the email was sent */
+            return response()->json([
+                'success' => true,
+                'message' => 'Password updated successfully'
+            ], 200);
         } catch (Exception $e) {
-            /* If an exception occurs, log the exception message for debugging purposes. */
+            /* Log the exception message for debugging purposes */
             Log::error($e);
 
-            /* Handle unexpected exceptions and return JSON response */
+            /* Handle unexpected exceptions and return a generic error response */
             return response()->json([
                 'success' => false,
                 'error' => 'Something went wrong'
@@ -164,11 +200,13 @@ class LoginController extends Controller
         /* Log out the currently authenticated user */
         Auth::logout();
 
-        /* Invalidate the session and regenerate CSRF token */
+        /* Invalidate the current session to prevent further use */
         session()->invalidate();
+
+        /* Regenerate the CSRF token to ensure session security for future requests */
         session()->regenerateToken();
 
-        /* Redirect the user to the homepage after logging out */
+        /* Redirect the user to the homepage after successful logout */
         return redirect()->route('homePage');
     }
 }

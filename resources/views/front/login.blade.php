@@ -110,6 +110,10 @@
             margin-bottom: 0 !important;
         }
 
+        #update_password input.error {
+            border: 1px solid red;
+        }
+
         .emailError {
             width: 100%;
             text-align: left;
@@ -205,8 +209,9 @@
                             <form id="update_password" class="forget_pass">
                                 @csrf
                                 <input type="hidden" name="forgetEmail" value="{{ $forget_email }}">
-                                <input type="password" class="password" name="password" placeholder="Enter new password">
-                                <input type="password" class="password" name="confirm_password"
+                                <input type="password" class="password" name="new_password"
+                                    placeholder="Enter new password">
+                                <input type="password" class="password" name="new_password_confirmation"
                                     placeholder="Confirm password">
                                 <span class="text-danger emailError" id="inputPasswordError"></span>
                                 <button class="theme_btn">Update Password</button>
@@ -232,5 +237,7 @@
         var checkCredientialRoute = "{{ route('checkCredentials') }}";
         var dashboardRoute = "{{ route('dashboard') }}";
         var forgotPasswordRoute = "{{ route('forgotPassword') }}";
+        var updatePasswordRoute = "{{ route('updatePassword') }}";
+        var loginRoute = "{{ route('loginPage') }}";
     </script>
 @endsection

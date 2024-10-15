@@ -3,7 +3,7 @@ var forgotPasswordAjax = null;
 var updatePasswordAjax = null;
 
 $(document).ready(function () {
-    $(document).on('input', '#password, #email', credential_check);
+    $(document).on('change', '#password, #email', credential_check);
     $(document).on('submit', '#forgot_password', forgot_password);
     $(document).on('submit', '#update_password', update_password);
 });
@@ -15,29 +15,27 @@ function update_password(e) {
     }
     var formData = $(this).serialize();
     updatePasswordAjax = $.ajax({
-        url: forgotPasswordRoute,
+        url: updatePasswordRoute,
         method: 'POST',
         data: formData,
         success: function (response) {
             if (response.success) {
                 toastr.success(response.message);
-                $('#forgetPassword').modal('hide');
-                $('#forgot_password').find('.email').removeClass('error');
-                $('#inputEmailError').html('');
+                $('#updatePassword').modal('hide');
+                setTimeout(() => {
+                    window.location = loginRoute;
+                }, 3000);
             } else {
-                $('#inputEmailError').html(response.error);
-                $('#forgot_password').find('.email').addClass('error');
+                $('#inputPasswordError').html(response.error);
+                $('#update_password').find('.password').addClass('error');
             }
         },
         error: function (xhr, status, error) {
             const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
             toastr.error(errorMessage);
-            $('#forgetPassword').modal('hide');
-            $('#forgot_password').find('.email').removeClass('error');
-            $('#inputEmailError').html('');
         },
         complete: function () {
-            forgotPasswordAjax = null;
+            updatePasswordAjax = null;
         },
     });
 }
