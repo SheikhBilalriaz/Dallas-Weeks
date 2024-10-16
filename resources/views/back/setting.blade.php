@@ -933,9 +933,9 @@
                                                                 </button>
                                                                 </form>
                                                             </div>
-                                                            <div class="add_btn ">
-                                                                <a href="javascript:;" class="" type="button"
-                                                                    data-bs-toggle="modal" data-bs-target="#add_email"><i
+                                                            <div style="cursor: pointer;" class="add_btn "
+                                                                    data-bs-toggle="modal" data-bs-target="#add_email">
+                                                                <a href="javascript:;" class="" type="button"><i
                                                                         class="fa-solid fa-plus"></i></a>Add email account
                                                             </div>
                                                         </div>

@@ -131,6 +131,11 @@ $(document).ready(function () {
                 $(this).attr("value", "false");
             }
         });
+        if ($('#schedule_name').val() == '') {
+            $('#schedule_name').addClass('error');
+            $('#schedule_name_error').html('Sequence name is required');
+            return;
+        }
         $("#loader").show();
         $.ajax({
             url: createSchedulePath,
@@ -152,12 +157,10 @@ $(document).ready(function () {
                             html += `checked `;
                         }
                         html += `value=` + schedule["id"] + `></div>`;
-                        html += `<div class="col-lg-1 schedule_avatar">S</div>`;
-                        html += `<div class="col-lg-3 schedule_name"><i class="fa-solid fa-circle-check"`;
-                        html += `style="color: #4bcea6;"></i>`;
+                        html += `<div class="col-lg-3 schedule_name">`;
                         html +=
                             `<span>` +
-                            schedule["schedule_name"] +
+                            schedule["name"] +
                             `</span></div>`;
                         html += `<div class="col-lg-6 schedule_days">`;
                         var schedule_days = schedule["Days"];
@@ -170,18 +173,14 @@ $(document).ready(function () {
                                 html += `selected_day`;
                             }
                             html += `">`;
-                            html += day["schedule_day"].toUpperCase() + `</li>`;
+                            html += day["day"].toUpperCase() + `</li>`;
                         }
-                        html += `<li class="schedule_time"><button href="javascript:;"`;
-                        html += `type="button" class="btn" data-bs-toggle="modal"`;
-                        html += `data-bs-target="#time_modal"><i class="fa-solid fa-globe"`;
-                        html += `style="color: #16adcb;"></i></button></li></ul>`;
-                        html += `</div><div class="col-lg-1 schedule_menu_btn">`;
-                        html += `<i class="fa-solid fa-ellipsis-vertical" style="color: #ffffff;"></i>`;
-                        html += `</div></div></li>`;
+                        html += `</ul>`;
+                        html += `</div>`;
+                        html += `</div></li>`;
                     }
-                    $("#schedule_list_1").html(html);
-                    $("#schedule_list_2").html(
+                    $(".schedule_list_1").html(html);
+                    $(".schedule_list_2").html(
                         html.replace(
                             "email_settings_schedule_id",
                             "global_settings_schedule_id"
@@ -194,6 +193,7 @@ $(document).ready(function () {
             },
             complete: function () {
                 $("#loader").hide();
+                $('#schedule_name').removeClass('error');
             }
         });
     });
@@ -217,16 +217,11 @@ $(document).ready(function () {
                         schedule = schedules[i];
                         html += `<li><div class="row schedule_list_item"><div class="col-lg-1 schedule_item">`;
                         html += `<input type="radio" name="email_settings_schedule_id" class="schedule_id"`;
-                        if (schedule["user_id"] == 0 || i == 0) {
-                            html += `checked `;
-                        }
                         html += `value=` + schedule["id"] + `></div>`;
-                        html += `<div class="col-lg-1 schedule_avatar">S</div>`;
-                        html += `<div class="col-lg-3 schedule_name"><i class="fa-solid fa-circle-check"`;
-                        html += `style="color: #4bcea6;"></i>`;
+                        html += `<div class="col-lg-3 schedule_name">`;
                         html +=
                             `<span>` +
-                            schedule["schedule_name"] +
+                            schedule["name"] +
                             `</span></div>`;
                         html += `<div class="col-lg-6 schedule_days">`;
                         var schedule_days = schedule["Days"];
@@ -239,40 +234,106 @@ $(document).ready(function () {
                                 html += `selected_day`;
                             }
                             html += `">`;
-                            html += day["schedule_day"].toUpperCase() + `</li>`;
+                            html += day["day"].toUpperCase() + `</li>`;
                         }
-                        html += `<li class="schedule_time"><button href="javascript:;"`;
-                        html += `type="button" class="btn" data-bs-toggle="modal"`;
-                        html += `data-bs-target="#time_modal"><i class="fa-solid fa-globe"`;
-                        html += `style="color: #16adcb;"></i></button></li></ul>`;
-                        html += `</div><div class="col-lg-1 schedule_menu_btn">`;
-                        html += `<i class="fa-solid fa-ellipsis-vertical" style="color: #ffffff;"></i>`;
-                        html += `</div></div></li>`;
+                        html += `</li></ul>`;
+                        html += `</div>`;
+                        html += `</div></li>`;
                     }
                     if (schedule_list.attr("id") == "schedule_list_2") {
                         html = html.replace(
                             "email_settings_schedule_id",
                             "global_settings_schedule_id"
                         );
-                        $("#schedule_list_2").html(html);
+                        $('#my_campaign_schedule').find('#schedule_list_2').html(html);
                     } else {
-                        $("#schedule_list_1").html(html);
+                        $('#my_email_schedule').find("#schedule_list_1").html(html);
                     }
-                }
-            },
-            error: function (xhr, status, error) {
-                if (xhr.status == 404) {
+                } else {
                     var schedule_list = $(schedule_input)
                         .parent()
                         .next(".schedule_list");
                     html = ``;
-                    html += `<li><div class="text-center text-danger">Not Found!</div></li>`;
+                    html += `<li><div class="text-center text-danger" style="font-size: 19px;">Not Found!</div></li>`;
                     if (schedule_list.attr("id") == "schedule_list_2") {
-                        $("#schedule_list_2").html(html);
+                        $('#my_campaign_schedule').find('#schedule_list_2').html(html);
                     } else {
-                        $("#schedule_list_1").html(html);
+                        $('#my_email_schedule').find("#schedule_list_1").html(html);
                     }
                 }
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
+            },
+        });
+    });
+    $(".team_search_schedule").on("input", function (e) {
+        var schedule_input = $(this);
+        var search = $(this).val();
+        if (search === "") {
+            search = "null";
+        }
+        $.ajax({
+            url: filterTeamSchedulePath.replace(":search", search),
+            method: "GET",
+            success: function (response) {
+                if (response.success) {
+                    schedules = response.schedules;
+                    var schedule_list = $(schedule_input)
+                        .parent()
+                        .next(".schedule_list");
+                    html = ``;
+                    for (var i = 0; i < schedules.length; i++) {
+                        schedule = schedules[i];
+                        html += `<li><div class="row schedule_list_item"><div class="col-lg-1 schedule_item">`;
+                        html += `<input type="radio" name="email_settings_schedule_id" class="schedule_id"`;
+                        html += `value=` + schedule["id"] + `></div>`;
+                        html += `<div class="col-lg-3 schedule_name">`;
+                        html +=
+                            `<span>` +
+                            schedule["name"] +
+                            `</span></div>`;
+                        html += `<div class="col-lg-6 schedule_days">`;
+                        var schedule_days = schedule["Days"];
+                        html += `<ul class="schedule_day_list">`;
+                        for (var j = 0; j < schedule_days.length; j++) {
+                            html += `<li `;
+                            html += `class="schedule_day `;
+                            day = schedule_days[j];
+                            if (day["is_active"] == "1") {
+                                html += `selected_day`;
+                            }
+                            html += `">`;
+                            html += day["day"].toUpperCase() + `</li>`;
+                        }
+                        html += `</li></ul>`;
+                        html += `</div>`;
+                        html += `</div></li>`;
+                    }
+                    if (schedule_list.attr("id") == "schedule_list_2") {
+                        html = html.replace(
+                            "email_settings_schedule_id",
+                            "global_settings_schedule_id"
+                        );
+                        $('#team_campaign_schedule').find('#schedule_list_2').html(html);
+                    } else {
+                        $('#team_email_schedule').find("#schedule_list_1").html(html);
+                    }
+                } else {
+                    var schedule_list = $(schedule_input)
+                        .parent()
+                        .next(".schedule_list");
+                    html = ``;
+                    html += `<li><div class="text-center text-danger" style="font-size: 19px;">Not Found!</div></li>`;
+                    if (schedule_list.attr("id") == "schedule_list_2") {
+                        $('#team_campaign_schedule').find('#schedule_list_2').html(html);
+                    } else {
+                        $('#team_email_schedule').find("#schedule_list_1").html(html);
+                    }
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
             },
         });
     });

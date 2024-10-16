@@ -1,7 +1,7 @@
 $(document).ready(function () {
     sessionStorage.removeItem("settings");
     sessionStorage.removeItem("elements_array");
-    sessionStorage.removeItem("elements_data_array");
+    sessionStorage.removeItem("elements_data_array")
 
     $(document).on("change", "#campaign_url", function (e) {
         var file = e.target.files[0];
@@ -271,35 +271,18 @@ $(document).ready(function () {
                         );
                         $("#sequance_modal").modal("show");
                     } else {
-                        toastr.options = {
-                            closeButton: true,
-                            debug: false,
-                            newestOnTop: false,
-                            progressBar: true,
-                            positionClass: "toast-bottom-rightghtghtghtght",
-                            preventDuplicates: false,
-                            onclick: null,
-                            showDuration: "300",
-                            hideDuration: "1000",
-                            timeOut: "5000",
-                            extendedTimeOut: "1000",
-                            showEasing: "swing",
-                            hideEasing: "linear",
-                            showMethod: "fadeIn",
-                            hideMethod: "fadeOut",
-                        };
-                        toastr.error(response.message);
+                        form.find("span.campaign_url").text(error);
+                        form.find(".import_field").css({
+                            border: "1px solid red",
+                            "margin-bottom": "7px !important",
+                        });
+                        form.find(".file-input__label").css({
+                            "background-color": "red",
+                        });
                     }
                 },
                 error: function (xhr, status, error) {
-                    form.find("span.campaign_url").text(error);
-                    form.find(".import_field").css({
-                        border: "1px solid red",
-                        "margin-bottom": "7px !important",
-                    });
-                    form.find(".file-input__label").css({
-                        "background-color": "red",
-                    });
+                    toastr.error('Something went wrong');
                 },
                 complete: function () {
                     $("#loader").hide();

@@ -83,7 +83,7 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        @if (!empty($leads))
+                                                        @if ($leads->isNotEmpty())
                                                             @foreach ($leads as $lead)
                                                                 <tr>
                                                                     <td>
@@ -198,23 +198,129 @@
                                                             <div id="collapseOne" class="accordion-collapse collapse"
                                                                 aria-labelledby="headingOne" data-bs-parent="#accordion">
                                                                 <div class="accordion-body">
-                                                                    <strong>This is the second item's accordion
-                                                                        body.</strong> It is
-                                                                    hidden by default, until the collapse plugin adds the
-                                                                    appropriate
-                                                                    classes that we use to style each element. These classes
-                                                                    control
-                                                                    the
-                                                                    overall appearance, as well as the showing and hiding
-                                                                    via CSS
-                                                                    transitions. You can modify any of this with custom CSS
-                                                                    or
-                                                                    overriding our default variables. It's also worth noting
-                                                                    that
-                                                                    just
-                                                                    about any HTML can go within the
-                                                                    <code>.accordion-body</code>,
-                                                                    though the transition does limit overflow.
+                                                                    @if ($emails->isNotEmpty())
+                                                                        @php
+                                                                            $logos = [
+                                                                                'OUTLOOK' => '/assets/img/outlook.png',
+                                                                                'GMAIL' => '/assets/img/gmail.png',
+                                                                            ];
+                                                                        @endphp
+                                                                        <ul class="email_list">
+                                                                            @foreach ($emails as $email)
+                                                                                <li>
+                                                                                    <div class="row email_list">
+                                                                                        <div
+                                                                                            class="col-lg-1 schedule_item">
+                                                                                            <input type="radio"
+                                                                                                name="email_settings_email_id"
+                                                                                                class="email_id"
+                                                                                                value="{{ $email['id'] }}">
+                                                                                        </div>
+                                                                                        <div
+                                                                                            class="col-lg-3 schedule_name">
+                                                                                            @php
+                                                                                                $name =
+                                                                                                    isset(
+                                                                                                        $email[
+                                                                                                            'profile'
+                                                                                                        ]['aliases'][0][
+                                                                                                            'display_name'
+                                                                                                        ],
+                                                                                                    ) &&
+                                                                                                    $email['profile'][
+                                                                                                        'aliases'
+                                                                                                    ][0][
+                                                                                                        'display_name'
+                                                                                                    ] !== ''
+                                                                                                        ? $email[
+                                                                                                            'profile'
+                                                                                                        ]['aliases'][0][
+                                                                                                            'display_name'
+                                                                                                        ]
+                                                                                                        : (isset(
+                                                                                                            $email[
+                                                                                                                'profile'
+                                                                                                            ][
+                                                                                                                'display_name'
+                                                                                                            ],
+                                                                                                        ) &&
+                                                                                                        $email[
+                                                                                                            'profile'
+                                                                                                        ][
+                                                                                                            'display_name'
+                                                                                                        ] !== ''
+                                                                                                            ? $email[
+                                                                                                                'profile'
+                                                                                                            ][
+                                                                                                                'display_name'
+                                                                                                            ]
+                                                                                                            : $email[
+                                                                                                                    'profile'
+                                                                                                                ][
+                                                                                                                    'email'
+                                                                                                                ] ??
+                                                                                                                $email[
+                                                                                                                    'account'
+                                                                                                                ][
+                                                                                                                    'name'
+                                                                                                                ]);
+                                                                                            @endphp
+                                                                                            <span>{{ $name }}</span>
+                                                                                        </div>
+                                                                                        <div class="col-lg-5">
+                                                                                            <img src="{{ asset($logos[$email['profile']['provider']]) }}"
+                                                                                                style="width: 25px; height: 25px; margin-right: 7px;"
+                                                                                                alt="">
+                                                                                            @php
+                                                                                                $user_email =
+                                                                                                    $email['profile'][
+                                                                                                        'email'
+                                                                                                    ] ??
+                                                                                                    $email['account'][
+                                                                                                        'name'
+                                                                                                    ];
+                                                                                            @endphp
+                                                                                            {{ $user_email }}
+                                                                                        </div>
+                                                                                        @php
+                                                                                            $status =
+                                                                                                $email['account'][
+                                                                                                    'sources'
+                                                                                                ][0]['status'] ??
+                                                                                                'Disconnected';
+                                                                                        @endphp
+                                                                                        <div class="col-lg-3 email_status">
+                                                                                            <div
+                                                                                                class="{{ $status == 'OK' ? 'connected' : 'disconnected' }}">
+                                                                                                {{ $status == 'OK' ? 'Connected' : 'Disconnected' }}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </li>
+                                                                            @endforeach
+                                                                        </ul>
+                                                                    @else
+                                                                        <div class="email_setting">
+                                                                            <div class="grey_box">
+                                                                                <div class="add_cont">
+                                                                                    <p>No email account. Start by connecting
+                                                                                        your
+                                                                                        first
+                                                                                        email
+                                                                                        account.</p>
+                                                                                    @if (session('manage_email_settings') === true)
+                                                                                        <div class="add">
+                                                                                            <a href="{{ route('seatSettingPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}"
+                                                                                                type="button">
+                                                                                                <i
+                                                                                                    class="fa-solid fa-plus"></i>
+                                                                                            </a> Add email account
+                                                                                        </div>
+                                                                                    @endif
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    @endif
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -242,34 +348,28 @@
                                                                     </div>
                                                                     <div class="active schedule-content"
                                                                         id="my_email_schedule">
-                                                                        {{-- @if (!empty($campaign_schedule->first()))
-                                                                            <ul class="schedule_list"
+                                                                        @if ($schedules->isNotEmpty())
+                                                                            <ul class="schedule_list schedule_list_1"
                                                                                 id="schedule_list_1">
-                                                                                @foreach ($campaign_schedule as $schedule)
+                                                                                @foreach ($schedules as $schedule)
                                                                                     <li>
                                                                                         <div
                                                                                             class="row schedule_list_item">
                                                                                             <div
-                                                                                                class="col-lg-2 schedule_item">
+                                                                                                class="col-lg-1 schedule_item">
                                                                                                 <input type="radio"
-                                                                                                    class="schedule_id email_settings_schedule_id"
-                                                                                                    value="{{ $schedule['id'] }}"
-                                                                                                    {{ $schedule['user_id'] == '0' ? 'checked' : '' }}>
+                                                                                                    name="email_settings_schedule_id"
+                                                                                                    class="schedule_id"
+                                                                                                    value="{{ $schedule['id'] }}">
                                                                                             </div>
                                                                                             <div
-                                                                                                class="col-lg-2 schedule_avatar">
-                                                                                                S
-                                                                                            </div>
-                                                                                            <div
-                                                                                                class="col-lg-2 schedule_name">
-                                                                                                <i class="fa-solid fa-circle-check"
-                                                                                                    style="color: #4bcea6;"></i>
-                                                                                                <span>{{ $schedule['schedule_name'] }}</span>
+                                                                                                class="col-lg-3 schedule_name">
+                                                                                                <span>{{ $schedule['name'] }}</span>
                                                                                             </div>
                                                                                             <div
                                                                                                 class="col-lg-6 schedule_days">
                                                                                                 @php
-                                                                                                    $schedule_days = App\Models\ScheduleDays::where(
+                                                                                                    $schedule_days = App\Models\Schedule_Day::where(
                                                                                                         'schedule_id',
                                                                                                         $schedule['id'],
                                                                                                     )
@@ -281,30 +381,76 @@
                                                                                                     @foreach ($schedule_days as $day)
                                                                                                         <li
                                                                                                             class="schedule_day {{ $day['is_active'] == '1' ? 'selected_day' : '' }}">
-                                                                                                            {{ ucfirst($day['schedule_day']) }}
+                                                                                                            {{ ucfirst($day['day']) }}
                                                                                                         </li>
                                                                                                     @endforeach
-                                                                                                    <li
-                                                                                                        class="schedule_time">
-                                                                                                        <button
-                                                                                                            href="javascript:;"
-                                                                                                            type="button"
-                                                                                                            class="btn"
-                                                                                                            data-bs-toggle="modal"
-                                                                                                            data-bs-target="#time_modal"><i
-                                                                                                                class="fa-solid fa-globe"
-                                                                                                                style="color: #16adcb;"></i></button>
-                                                                                                    </li>
                                                                                                 </ul>
                                                                                             </div>
                                                                                         </div>
                                                                                     </li>
                                                                                 @endforeach
                                                                             </ul>
-                                                                        @endif --}}
+                                                                        @else
+                                                                            <ul class="schedule_list schedule_list_1"
+                                                                                id="schedule_list_1">
+                                                                                <li class="text-center">
+                                                                                    No Schedule Listed
+                                                                                </li>
+                                                                            </ul>
+                                                                        @endif
                                                                     </div>
                                                                     <div class=" schedule-content"
-                                                                        id="team_email_schedule">Hello
+                                                                        id="team_email_schedule">
+                                                                        @if ($team_schedules->isNotEmpty())
+                                                                            <ul class="schedule_list schedule_list_1"
+                                                                                id="schedule_list_1">
+                                                                                @foreach ($team_schedules as $schedule)
+                                                                                    <li>
+                                                                                        <div
+                                                                                            class="row schedule_list_item">
+                                                                                            <div
+                                                                                                class="col-lg-1 schedule_item">
+                                                                                                <input type="radio"
+                                                                                                    name="email_settings_schedule_id"
+                                                                                                    class="schedule_id"
+                                                                                                    value="{{ $schedule['id'] }}">
+                                                                                            </div>
+                                                                                            <div
+                                                                                                class="col-lg-3 schedule_name">
+                                                                                                <span>{{ $schedule['name'] }}</span>
+                                                                                            </div>
+                                                                                            <div
+                                                                                                class="col-lg-6 schedule_days">
+                                                                                                @php
+                                                                                                    $schedule_days = App\Models\Schedule_Day::where(
+                                                                                                        'schedule_id',
+                                                                                                        $schedule['id'],
+                                                                                                    )
+                                                                                                        ->orderBy('id')
+                                                                                                        ->get();
+                                                                                                @endphp
+                                                                                                <ul
+                                                                                                    class="schedule_day_list">
+                                                                                                    @foreach ($schedule_days as $day)
+                                                                                                        <li
+                                                                                                            class="schedule_day {{ $day['is_active'] == '1' ? 'selected_day' : '' }}">
+                                                                                                            {{ ucfirst($day['day']) }}
+                                                                                                        </li>
+                                                                                                    @endforeach
+                                                                                                </ul>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </li>
+                                                                                @endforeach
+                                                                            </ul>
+                                                                        @else
+                                                                            <ul class="schedule_list schedule_list_1"
+                                                                                id="schedule_list_1">
+                                                                                <li class="text-center">
+                                                                                    No Schedule Listed
+                                                                                </li>
+                                                                            </ul>
+                                                                        @endif
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -423,14 +569,19 @@
                                                                                 for="global_settings_include_leads_that_replied_to_your_messages">Toggle</label>
                                                                         </div>
                                                                     </div>
-                                                                    <!-- <div class="linked_set d-flex justify-content-between">
-                                                                                <p> Include leads also found in campaigns across your team
-                                                                                    seats
-                                                                                    <span>!</span>
-                                                                                </p>
-                                                                                <div class="switch_box"><input type="checkbox" class="switch setting_switch" id="global_settings_include_leads_also_found_in_campaigns_across_your_team_seats" disabled><label for="global_settings_include_leads_also_found_in_campaigns_across_your_team_seats">Toggle</label>
-                                                                                </div>
-                                                                            </div> -->
+                                                                    <div class="linked_set d-flex justify-content-between">
+                                                                        <p> Include leads also found in campaigns across
+                                                                            your team
+                                                                            seats
+                                                                            <span>!</span>
+                                                                        </p>
+                                                                        <div class="switch_box"><input type="checkbox"
+                                                                                class="switch setting_switch"
+                                                                                id="global_settings_include_leads_also_found_in_campaigns_across_your_team_seats"
+                                                                                disabled><label
+                                                                                for="global_settings_include_leads_also_found_in_campaigns_across_your_team_seats">Toggle</label>
+                                                                        </div>
+                                                                    </div>
                                                                     <div class="linked_set d-flex justify-content-between">
                                                                         <p> Discover new leads only <span
                                                                                 title="Leads that exist in other campaigns in your seat will not be discovered">!</span>
@@ -468,34 +619,28 @@
                                                                     </div>
                                                                     <div class="active schedule-content"
                                                                         id="my_campaign_schedule">
-                                                                        {{-- @if (!empty($campaign_schedule->first()))
-                                                                            <ul class="schedule_list"
+                                                                        @if ($schedules->isNotEmpty())
+                                                                            <ul class="schedule_list schedule_list_2"
                                                                                 id="schedule_list_2">
-                                                                                @foreach ($campaign_schedule as $schedule)
+                                                                                @foreach ($schedules as $schedule)
                                                                                     <li>
                                                                                         <div
                                                                                             class="row schedule_list_item">
                                                                                             <div
-                                                                                                class="col-lg-2 schedule_item">
+                                                                                                class="col-lg-1 schedule_item">
                                                                                                 <input type="radio"
-                                                                                                    class="schedule_id global_settings_schedule_id"
-                                                                                                    value="{{ $schedule['id'] }}"
-                                                                                                    {{ $schedule['user_id'] == '0' ? 'checked' : '' }}>
+                                                                                                    name="global_settings_schedule_id"
+                                                                                                    class="schedule_id"
+                                                                                                    value="{{ $schedule['id'] }}">
                                                                                             </div>
                                                                                             <div
-                                                                                                class="col-lg-2 schedule_avatar">
-                                                                                                S
-                                                                                            </div>
-                                                                                            <div
-                                                                                                class="col-lg-2 schedule_name">
-                                                                                                <i class="fa-solid fa-circle-check"
-                                                                                                    style="color: #4bcea6;"></i>
-                                                                                                <span>{{ $schedule['schedule_name'] }}</span>
+                                                                                                class="col-lg-3 schedule_name">
+                                                                                                <span>{{ $schedule['name'] }}</span>
                                                                                             </div>
                                                                                             <div
                                                                                                 class="col-lg-6 schedule_days">
                                                                                                 @php
-                                                                                                    $schedule_days = App\Models\ScheduleDays::where(
+                                                                                                    $schedule_days = App\Models\Schedule_Day::where(
                                                                                                         'schedule_id',
                                                                                                         $schedule['id'],
                                                                                                     )
@@ -507,27 +652,23 @@
                                                                                                     @foreach ($schedule_days as $day)
                                                                                                         <li
                                                                                                             class="schedule_day {{ $day['is_active'] == '1' ? 'selected_day' : '' }}">
-                                                                                                            {{ ucfirst($day['schedule_day']) }}
+                                                                                                            {{ ucfirst($day['day']) }}
                                                                                                         </li>
                                                                                                     @endforeach
-                                                                                                    <li
-                                                                                                        class="schedule_time">
-                                                                                                        <button
-                                                                                                            href="javascript:;"
-                                                                                                            type="button"
-                                                                                                            class="btn"
-                                                                                                            data-bs-toggle="modal"
-                                                                                                            data-bs-target="#time_modal"><i
-                                                                                                                class="fa-solid fa-globe"
-                                                                                                                style="color: #16adcb;"></i></button>
-                                                                                                    </li>
                                                                                                 </ul>
                                                                                             </div>
                                                                                         </div>
                                                                                     </li>
                                                                                 @endforeach
                                                                             </ul>
-                                                                        @endif --}}
+                                                                        @else
+                                                                            <ul class="schedule_list schedule_list_2"
+                                                                                id="schedule_list_2">
+                                                                                <li class="text-center">
+                                                                                    No Schedule Listed
+                                                                                </li>
+                                                                            </ul>
+                                                                        @endif
                                                                     </div>
                                                                     <div class=" schedule-content"
                                                                         id="team_campaign_schedule">

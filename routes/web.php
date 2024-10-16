@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountHealthController;
 use App\Http\Controllers\BlacklistController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CampaignElementController;
+use App\Http\Controllers\CsvController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmailIntegrationController;
 use App\Http\Controllers\GlobalLimitController;
@@ -86,33 +87,36 @@ Route::middleware(['userAuth'])->group(function () {
                 Route::get('/', [SeatDashboardController::class, 'seatDashboard'])->name('seatDashboardPage');
                 Route::middleware(['isCampaignAllowed'])->group(function () {
                     Route::prefix('campaign')->group(function () {
-                        Route::get('/', [CampaignController::class, 'campaign'])->name('campaigns');
-                        Route::get('/createcampaign', [CampaignController::class, 'campaigncreate'])->name('campaigncreate');
-                        // Route::post('/campaigninfo', [CampaignController::class, 'campaigninfo'])->name('campaigninfo');
-                        // Route::post('/createcampaignfromscratch', [CampaignController::class, 'fromscratch'])->name('createcampaignfromscratch');
-                        // Route::get('/campaignDetails/{campaign_id}', [CampaignController::class, 'getCampaignDetails'])->name('campaignDetails');
-                        // Route::get('/changeCampaignStatus/{campaign_id}', [CampaignController::class, 'changeCampaignStatus'])->name('changeCampaignStatus');
-                        // Route::get('/{campaign_id}', [CampaignController::class, 'deleteCampaign'])->name('deleteCampaign');
-                        // Route::get('/archive/{campaign_id}', [CampaignController::class, 'archiveCampaign'])->name('archiveCampaign');
-                        // Route::get('/getcampaignelementbyslug/{slug}', [CampaignElementController::class, 'campaignElement'])->name('getcampaignelementbyslug');
-                        // Route::post('/createCampaign', [CampaignElementController::class, 'createCampaign'])->name('createCampaign');
-                        // Route::get('/getPropertyDatatype/{id}/{element_slug}', [PropertiesController::class, 'getPropertyDatatype'])->name('getPropertyDatatype');
-                        // Route::get('/editcampaign/{campaign_id}', [CampaignController::class, 'editCampaign'])->name('editCampaign');
+                        Route::get('/', [CampaignController::class, 'campaign'])->name('campaignPage'); //Done
+                        Route::middleware('isManageCampaignAllowed')->group(function () {
+                            Route::get('/create-campaign', [CampaignController::class, 'createCampaign'])->name('createCampaignPage'); //Done
+                            Route::post('/campaign-info', [CampaignController::class, 'campaignInfo'])->name('campaignInfoPage'); //Done
+                            Route::post('/campaign-from-scratch', [CampaignController::class, 'fromscratch'])->name('campaignFromScratchPage'); //Done
+                            Route::post('/create-schedule', [ScheduleController::class, 'createSchedule'])->name('createSchedule'); //Done
+                            Route::get('/get-campaign-element-by-slug/{element_slug}', [CampaignElementController::class, 'campaignElement'])->name('getCampaignElementBySlug'); //Done
+                            Route::get('/get-property-datatype/{id}/{element_slug}', [PropertiesController::class, 'getPropertyDatatype'])->name('getPropertyDatatype'); //Done
+                            Route::get('/get-property-required/{id}', [PropertiesController::class, 'getPropertyRequired'])->name('getPropertyRequired'); //Done
+                            Route::post('/post-campaign', [CampaignElementController::class, 'createCampaign'])->name('postCampaign'); //Done
+                            Route::get('/campaign-details/{campaign_id}', [CampaignController::class, 'getCampaignDetails'])->name('campaignDetailsPage'); //Done
+                            Route::get('/edit-campaign/{campaign_id}', [CampaignController::class, 'editCampaign'])->name('editCampaign');
+                            Route::get('delete-campaign/{campaign_id}', [CampaignController::class, 'deleteCampaign'])->name('deleteCampaign'); //Done
+                            Route::get('/change-campaign-status/{campaign_id}', [CampaignController::class, 'changeCampaignStatus'])->name('changeCampaignStatus'); //Done
+                            Route::get('/archive/{campaign_id}', [CampaignController::class, 'archiveCampaign'])->name('archiveCampaign'); //Done
+                        });
                         // Route::post('/editCampaignInfo/{campaign_id}', [CampaignController::class, 'editCampaignInfo'])->name('editCampaignInfo');
                         // Route::post('/editCampaignSequence/{campaign_id}', [CampaignController::class, 'editCampaignSequence'])->name('editCampaignSequence');
-                        // Route::get('/getcampaignelementbyid/{element_id}', [CampaignElementController::class, 'getcampaignelementbyid'])->name('getcampaignelementbyid');
+                        Route::get('/get-campaign-element-by-id/{element_id}', [CampaignElementController::class, 'getcampaignelementbyid'])->name('getcampaignelementbyid');
                         // Route::post('/updateCampaign/{campaign_id}', [CampaignController::class, 'updateCampaign'])->name('updateCampaign');
-                        // Route::get('/getPropertyRequired/{id}', [PropertiesController::class, 'getPropertyRequired'])->name('getPropertyRequired');
                     });
                     Route::prefix('leads')->group(function () {
                         Route::get('/', [LeadsController::class, 'leads'])->name('dash-leads');
                         Route::get('/getLeadsByCampaign/{id}/{search}', [LeadsController::class, 'getLeadsByCampaign'])->name('getLeadsByCampaign');
                         Route::post('/sendLeadsToEmail', [LeadsController::class, 'sendLeadsToEmail'])->name('sendLeadsToEmail');
                     });
-                    // Route::get('/filterCampaign/{filter}/{search}', [CampaignController::class, 'filterCampaign'])->name('filterCampaign');
-                    // Route::post('/createSchedule', [ScheduleController::class, 'createSchedule'])->name('createSchedule');
-                    // Route::get('/filterSchedule/{search}', [ScheduleController::class, 'filterSchedule'])->name('filterSchedule');
-                    // Route::get('/getElements/{campaign_id}', [CampaignElementController::class, 'getElements'])->name('getElements');
+                    Route::get('/filter-campaign/{filter}/{search}', [CampaignController::class, 'filterCampaign'])->name('filterCampaign'); //Done
+                    Route::get('/filter-schedule/{search}', [ScheduleController::class, 'filterSchedule'])->name('filterSchedule'); //Done
+                    Route::get('/filter-team-schedule/{search}', [ScheduleController::class, 'filterTeamSchedule'])->name('filterTeamSchedule'); //Done
+                    Route::get('/get-elements/{campaign_id}', [CampaignElementController::class, 'getElements'])->name('getElements');
                 });
                 Route::prefix('webhook')->group(function () {
                     Route::get('/', [SeatWebhookController::class, 'webhook'])->name('webhookPage');
@@ -137,6 +141,7 @@ Route::middleware(['userAuth'])->group(function () {
                         Route::post('/retrieve/message/attachment', [UnipileController::class, 'retrieve_an_attachment_from_a_message'])->name('retrieve_an_attachment_from_a_message'); //Done
                     });
                 });
+                Route::post('/import-csv', [CsvController::class, 'import_csv'])->name('importCsv');
                 Route::post('/disconnect-linkedin-account', [LinkedinIntegrationController::class, 'disconnectLinkedinAccount'])->name('disconnectLinkedinAccount'); //Done
                 Route::get('/seat-messages', [SeatMessageController::class, 'seatMessageController'])->name('seatMessageController');
                 Route::get('/get-profile-and-latest-messages/{profile_id}/{chat_id}', [MessagingController::class, 'getProfileAndLatestMessage'])->name('getProfileAndLatestMessage'); //Done

@@ -329,13 +329,7 @@
             <div class="loader-inner"></div>
         </div>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-        @if (Str::contains(request()->url(), URL('campaign/createcampaignfromscratch')))
-            <script src="{{ asset('assets/js/createCampaignFromScratch.js') }}"></script>
-        @elseif (Str::contains(request()->url(), URL('campaign/createcampaign')))
-            <script src="{{ asset('assets/js/createCampaign.js') }}"></script>
-        @elseif (Str::contains(request()->url(), URL('campaign/campaigninfo')))
-            <script src="{{ asset('assets/js/campaignInfo.js') }}"></script>
-        @elseif (Str::contains(request()->url(), URL('campaign/campaignDetails')))
+        @if (Str::contains(request()->url(), URL('campaign/campaignDetails')))
             <script src="{{ asset('assets/js/campaignDetails.js') }}"></script>
         @elseif (Str::contains(request()->url(), URL('campaign/editcampaign')))
             <script src="{{ asset('assets/js/editcampaign.js') }}"></script>
@@ -343,8 +337,6 @@
             <script src="{{ asset('assets/js/editCampaignInfo.js') }}"></script>
         @elseif (Str::contains(request()->url(), URL('campaign/editCampaignSequence')))
             <script src="{{ asset('assets/js/editCampaignSequence.js') }}"></script>
-        @elseif (Str::contains(request()->url(), URL('campaign')))
-            <script src="{{ asset('assets/js/campaign.js') }}"></script>
         @endif
     </footer>
     <script>

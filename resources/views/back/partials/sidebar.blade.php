@@ -12,7 +12,7 @@
                 ],
                 [
                     'permission' => session('manage_campaigns') === true || session('manage_campaigns') === 'view_only',
-                    'route' => 'campaigns',
+                    'route' => 'campaignPage',
                     'label' => asset('assets/img/speaker.svg'),
                 ],
                 [

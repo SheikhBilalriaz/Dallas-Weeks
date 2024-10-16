@@ -34,7 +34,7 @@ class isCampaignAllowed
             }
 
             /* Redirect to the dashboard with a generic error message if an exception occurs */
-            return redirect()->route('dashboardPage', ['slug' => $slug])
+            return redirect()->route('seatDashboardPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
                 ->withErrors(['error' => 'You can not access campaigns or leads']);
         } catch (Exception $e) {
             /* Log the exception message for debugging */

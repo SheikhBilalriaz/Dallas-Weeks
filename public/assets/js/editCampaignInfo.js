@@ -122,7 +122,7 @@ $(document).ready(function () {
                         html += `style="color: #4bcea6;"></i>`;
                         html +=
                             `<span>` +
-                            schedule["schedule_name"] +
+                            schedule["name"] +
                             `</span></div>`;
                         html += `<div class="col-lg-6 schedule_days">`;
                         var schedule_days = schedule["Days"];
@@ -135,7 +135,7 @@ $(document).ready(function () {
                                 html += `selected_day`;
                             }
                             html += `">`;
-                            html += day["schedule_day"].toUpperCase() + `</li>`;
+                            html += day["day"].toUpperCase() + `</li>`;
                         }
                         html += `<li class="schedule_time"><button href="javascript:;"`;
                         html += `type="button" class="btn" data-bs-toggle="modal"`;
@@ -193,7 +193,7 @@ $(document).ready(function () {
                         html += `style="color: #4bcea6;"></i>`;
                         html +=
                             `<span>` +
-                            schedule["schedule_name"] +
+                            schedule["name"] +
                             `</span></div>`;
                         html += `<div class="col-lg-6 schedule_days">`;
                         var schedule_days = schedule["Days"];
@@ -206,7 +206,7 @@ $(document).ready(function () {
                                 html += `selected_day`;
                             }
                             html += `">`;
-                            html += day["schedule_day"].toUpperCase() + `</li>`;
+                            html += day["day"].toUpperCase() + `</li>`;
                         }
                         html += `<li class="schedule_time"><button href="javascript:;"`;
                         html += `type="button" class="btn" data-bs-toggle="modal"`;

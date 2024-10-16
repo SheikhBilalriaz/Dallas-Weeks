@@ -96,7 +96,9 @@
                                                 </li>
                                             </ul>
                                         @endforeach
-                                        <a class="get_more_label" href="{{ route('campaigns') }}" bis_skin_checked="1">
+                                        <a class="get_more_label"
+                                            href="{{ route('campaignPage', ['slug' => $team->slug, 'seat_slug', $seat->slug]) }}"
+                                            bis_skin_checked="1">
                                             More Campaigns<i class="fa-solid fa-arrow-right"></i>
                                         </a>
                                     @else

@@ -3,7 +3,7 @@ var forgotPasswordAjax = null;
 var updatePasswordAjax = null;
 
 $(document).ready(function () {
-    $(document).on('change', '#password, #email', credential_check);
+    $(document).on('input', '#password, #email', credential_check);
     $(document).on('submit', '#forgot_password', forgot_password);
     $(document).on('submit', '#update_password', update_password);
 });

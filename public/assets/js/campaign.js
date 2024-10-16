@@ -205,38 +205,36 @@ $(document).ready(function () {
                                 campaign["id"] +
                                 `">Toggle</label></div></td>`;
                             html +=
-                                `<td>` + campaign["campaign_name"] + `</td>`;
+                                `<td>` + campaign["name"] + `</td>`;
                             html += `<td id="lead_count_${campaign["id"]}">` + campaign["lead_count"] + `</td>`;
                             html += `<td id="sent_message_count_${campaign["id"]}">` + campaign['message_count'] + `</td>`;
                             html += `<td class="stats"><ul class="status_list d-flex align-items-center list-unstyled p-0 m-0">`;
                             html += `<li><span><img src="/assets/img/eye.svg" alt=""><span id="view_profile_count_${campaign["id"]}">` + campaign['view_action_count'] + `</span></span></li>`;
                             html += `<li><span><img src="/assets/img/request.svg" alt=""><span id="invite_to_connect_count_${campaign["id"]}">` + campaign['invite_action_count'] + `</span></span></li>`;
                             html += `<li><span><img src="/assets/img/mailmsg.svg" alt=""><span id="email_message_count_${campaign['id']}">` + campaign['email_action_count'] + `</span></span></li>`;
-                            // html += `<li><span><img src="/assets/img/mailopen.svg" alt="">16</span></li></ul></td>`;
-                            html += `<td><div class="per up">34%</div></td>`;
-                            html += `<td><div class="per down">23%</div></td>`;
-                            html += `<td><a type="button" class="setting setting_btn" id=""><i class="fa-solid fa-gear"></i></a>`;
-                            html += `<ul class="setting_list" style="display: none;">`;
-                            html +=
-                                `<li><a href="/campaign/campaignDetails/` +
-                                campaign["id"] +
-                                `">Check campaign details</a></li>`;
-                            html +=
-                                `<li><a href="/campaign/editcampaign/` +
-                                campaign["id"] +
-                                `">Edit campaign</a></li>`;
-                            // html += '<li><a href="#">Duplicate campaign steps</a></li>';
-                            // html += '<li><a href="javascript:;" data-bs-toggle="modal" data-bs-target="#add_new_leads_modal">Add new leads</a></li>';
-                            // html += '<li><a href="#">Export data</a></li>';
-                            html +=
-                                `<li><a class="archive_campaign" id="archive` +
-                                campaign["id"] +
-                                `">Archive campaign</a></li>`;
-                            html +=
-                                `<li><a class="delete_campaign" id="delete` +
-                                campaign["id"] +
-                                `">Delete campaign</a></li>`;
-                            html += `</ul></td></tr>`;
+                            html += `</td>`;
+                            if (is_manage_allowed) {
+                                html += `<td><a type="button" class="setting setting_btn" id=""><i class="fa-solid fa-gear"></i></a>`;
+                                html += `<ul class="setting_list" style="display: none;">`;
+                                html +=
+                                    `<li><a href="/campaign/campaignDetails/` +
+                                    campaign["id"] +
+                                    `">Check campaign details</a></li>`;
+                                html +=
+                                    `<li><a href="/campaign/editcampaign/` +
+                                    campaign["id"] +
+                                    `">Edit campaign</a></li>`;
+                                html +=
+                                    `<li><a class="archive_campaign" id="archive` +
+                                    campaign["id"] +
+                                    `">Archive campaign</a></li>`;
+                                html +=
+                                    `<li><a class="delete_campaign" id="delete` +
+                                    campaign["id"] +
+                                    `">Delete campaign</a></li>`;
+                                html += `</ul></td>`;
+                            }
+                            html += `</tr>`;
                         }
                     }
                     $("#campaign_table_body").html(html);

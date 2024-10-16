@@ -129,17 +129,15 @@ class seatAccessCheckingMiddleware
                 /* Initialize the UnipileController */
                 $uc = new UnipileController();
 
-                /* Call retrieve_an_account method with the properly formatted Request object */
-                $account = $uc->retrieve_an_account($request)->getData(true);
-
-                /* Call retrieve_own_profile method with the same Request object */
-                $account_profile = $uc->retrieve_own_profile($request)->getData(true);
-
                 if (!session()->has('seat_linkedin')) {
+                    /* Call retrieve_an_account method with the properly formatted Request object */
+                    $account = $uc->retrieve_an_account($request)->getData(true);
                     session(['seat_linkedin' => $account['account']]);
                 }
 
                 if (!session()->has('linkedin_profile')) {
+                    /* Call retrieve_own_profile method with the same Request object */
+                    $account_profile = $uc->retrieve_own_profile($request)->getData(true);
                     session(['linkedin_profile' => $account_profile['profile']]);
                 }
             }

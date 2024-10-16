@@ -72,5 +72,6 @@ class Kernel extends HttpKernel
         'linkedinAccountChecker' => \App\Http\Middleware\LinkedinAccountCheckingMiddleware::class,
         'isChatAllowed' => \App\Http\Middleware\isChatAllowed::class,
         'isCampaignAllowed' => \App\Http\Middleware\isCampaignAllowed::class,
+        'isManageCampaignAllowed' => \App\Http\Middleware\isManageCampaignAllowed::class,
     ];
 }
