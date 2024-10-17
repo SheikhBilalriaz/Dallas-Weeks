@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account_Health;
+use App\Models\Account_Health_Limit;
 use App\Models\Email_Integraion;
+use App\Models\Global_Limit;
 use App\Models\Seat;
 use App\Models\Seat_Time;
 use App\Models\Seat_Timezone;
@@ -44,6 +46,9 @@ class SeatSettingController extends Controller
             $seat_zone = Seat_Timezone::where('seat_id', $seat->id)->first();
             $run_on_weekends = Account_Health::where('seat_id', $seat->id)->where('health_slug', 'run_on_weekends')->first();
             $oldest_pending_invitations = Account_Health::where('seat_id', $seat->id)->where('health_slug', 'oldest_pending_invitations')->first();
+            $pending_connections = Account_Health_Limit::where('seat_id', $seat->id)->where('health_slug', 'pending_connections')->first();
+            $profile_views = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'profile_views')->first();
+            $follows = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'follows')->first();
 
             /* Retrieve all email integrations for the seat */
             $integrated_emails = Email_Integraion::where('seat_id', $seat->id)->get();
@@ -96,6 +101,9 @@ class SeatSettingController extends Controller
                 'run_on_weekends' => $run_on_weekends,
                 'emails' => $integrated_emails,
                 'error' => session()->has('error') ? session('error')->first() : null,
+                'pending_connections' => $pending_connections,
+                'profile_views' => $profile_views,
+                'follows' => $follows,
             ];
 
             /* Return the view with the seat data */

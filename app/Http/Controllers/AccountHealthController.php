@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account_Health;
+use App\Models\Account_Health_Limit;
 use App\Models\Seat;
 use Illuminate\Http\Request;
 use Exception;
@@ -31,6 +32,21 @@ class AccountHealthController extends Controller
 
             /* Retrieve the seat by slug */
             $seat = Seat::where('slug', $seat_slug)->first();
+
+            $pendingConnections = Account_Health_Limit::firstOrNew(
+                [
+                    'seat_id' => $seat->id,
+                    'health_slug' => 'pending_connections',
+                ],
+                [
+                    'value' => 0,
+                ]
+            );
+
+            /* Update the value based on request input */
+            $pendingConnections->value = $request->input('pending_connections') ?? 0;
+            $pendingConnections->updated_at = now();
+            $pendingConnections->save();
 
             /* Retrieve or create the account health record */
             $oldestPendingInvitations = Account_Health::firstOrNew(
@@ -64,7 +80,7 @@ class AccountHealthController extends Controller
             $run_on_weekends->save();
 
             /* Redirect to the seat dashboard page with a success message */
-            return redirect()->route('seatDashboardPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
+            return redirect()->route('seatSettingPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
                 ->with(['success' => 'Account Health updated successfully']);
         } catch (Exception $e) {
             /* Log the exception message for debugging */

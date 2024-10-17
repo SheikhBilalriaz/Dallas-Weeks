@@ -15,7 +15,34 @@ $(document).ready(function () {
         $(".setting_list").not($(this).siblings('.setting_list')).hide();
         $(this).siblings('.setting_list').toggle();
     });
+    $(document).on('input', '#pending_connections', pending_connections);
+    $(document).on('input', '.global_limit_ranges', global_limit_ranges);
+
+    const slider_input = document.getElementById('slider_input'),
+        slider_thumb = document.getElementById('slider_thumb'),
+        slider_line = document.getElementById('slider_line');
+
+    function showSliderValue() {
+        slider_thumb.innerHTML = slider_input.value;
+        const bulletPosition = (slider_input.value / slider_input.max),
+            space = slider_input.offsetWidth - slider_thumb.offsetWidth;
+
+        slider_thumb.style.left = (bulletPosition * space) + 'px';
+        slider_line.style.width = slider_input.value + '%';
+    }
+
+    showSliderValue();
+    window.addEventListener("resize", showSliderValue);
+    slider_input.addEventListener('input', showSliderValue, false);
 });
+
+function global_limit_ranges() {
+    $('#' + $(this).data('span')).text($(this).val());
+}
+
+function pending_connections() {
+    $('#pending_connection_val').text($(this).val());
+}
 
 function searchEmailAccount() {
     if (searchEmailAccountAjax) {
