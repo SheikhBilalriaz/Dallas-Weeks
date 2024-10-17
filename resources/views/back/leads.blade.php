@@ -18,7 +18,7 @@
                                             <select name="campaign" id="campaign">
                                                 <option value="all">All Campaigns</option>
                                                 @foreach ($campaigns as $campaign)
-                                                    <option value="{{ $campaign->id }}">{{ $campaign->campaign_name }}
+                                                    <option value="{{ $campaign->id }}">{{ $campaign->name }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -38,7 +38,20 @@
                         <div class="col-12">
                             <div class="filter_head_row d-flex">
                             </div>
-                            <div class="filtr_desc">
+                            <div class="filtr_desc" bis_skin_checked="1">
+                                <div class="d-flex" bis_skin_checked="1">
+                                    <strong>Leads</strong>
+                                    <div class="filter" bis_skin_checked="1">
+                                        <form action="/search" method="get" class="search-form">
+                                            @csrf
+                                            <input type="text" name="q" placeholder="Search Leads here..."
+                                                id="search_lead">
+                                            <button type="submit">
+                                                <i class="fa fa-search"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -57,11 +70,6 @@
                                     <li class="nav-item">
                                         <a class="nav-link lead_tab" data-toggle="tab" href="javascript:;" role="tab"
                                             data-bs-target="Stats">Stats</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link lead_tab" data-toggle="tab" href="javascript:;" role="tab"
-                                            data-bs-target="integration">Campaign
-                                            integration</a>
                                     </li>
                                 </ul><!-- Tab panes -->
                                 <div class="tab-content">
@@ -131,16 +139,11 @@
                                                                             days ago
                                                                         </div>
                                                                     </td>
-                                                                    <!-- <td><div class="per">23%</div> -->
                                                                     </td>
                                                                     <td>
                                                                         <a href="javascript:;" type="button"
                                                                             class="setting setting_btn" id=""><i
                                                                                 class="fa-solid fa-gear"></i></a>
-                                                                        <!--<ul class="setting_list" style="display: block;">-->
-                                                                        <!--    <li><a href="#">Edit</a></li>-->
-                                                                        <!--    <li><a href="#">Delete</a></li>-->
-                                                                        <!--</ul>-->
                                                                     </td>
                                                                 </tr>
                                                             @endforeach
@@ -168,18 +171,18 @@
                                                             <label for="campaign-name">Campaign Name:</label>
                                                             <input type="text" id="campaign-name" name="campaign-name"
                                                                 placeholder="Campaign name ex. Los angeles lead"
-                                                                required="">
-                                                            <!-- <span>Characters 24 / 250</span> -->
+                                                                required="" readonly>
                                                         </div>
                                                         <div class="comp_url">
-                                                            <label for="linkedin-url">LinkedIn URL:</label>
+                                                            <label for="linkedin-url">Campaign URL:</label>
                                                             <input type="url" id="linkedin-url" name="linkedin-url"
-                                                                placeholder="LinkedIn search URL" required="">
+                                                                placeholder="LinkedIn search URL" required="" readonly>
                                                         </div>
                                                     </div>
                                                 </form>
                                                 <div class="date" id="created_at">
-                                                    <i class="fa-solid fa-calendar-days"></i>Created at: 2023-10-05 16:48
+                                                    <i class="fa-solid fa-calendar-days"></i>Created at:
+                                                    {{ now() }}
                                                 </div>
                                             </div>
                                             <div class="email_setting">
@@ -213,8 +216,9 @@
                                                                                             class="col-lg-1 schedule_item">
                                                                                             <input type="radio"
                                                                                                 name="email_settings_email_id"
-                                                                                                class="email_id"
-                                                                                                value="{{ $email['id'] }}">
+                                                                                                class="email_id email_settings_email_id"
+                                                                                                value="{{ $email['id'] }}"
+                                                                                                readonly>
                                                                                         </div>
                                                                                         <div
                                                                                             class="col-lg-3 schedule_name">
@@ -359,8 +363,9 @@
                                                                                                 class="col-lg-1 schedule_item">
                                                                                                 <input type="radio"
                                                                                                     name="email_settings_schedule_id"
-                                                                                                    class="schedule_id"
-                                                                                                    value="{{ $schedule['id'] }}">
+                                                                                                    class="schedule_id email_settings_schedule_id"
+                                                                                                    value="{{ $schedule['id'] }}"
+                                                                                                    readonly>
                                                                                             </div>
                                                                                             <div
                                                                                                 class="col-lg-3 schedule_name">
@@ -412,8 +417,9 @@
                                                                                                 class="col-lg-1 schedule_item">
                                                                                                 <input type="radio"
                                                                                                     name="email_settings_schedule_id"
-                                                                                                    class="schedule_id"
-                                                                                                    value="{{ $schedule['id'] }}">
+                                                                                                    class="schedule_id email_settings_schedule_id"
+                                                                                                    value="{{ $schedule['id'] }}"
+                                                                                                    readonly>
                                                                                             </div>
                                                                                             <div
                                                                                                 class="col-lg-3 schedule_name">
@@ -630,8 +636,9 @@
                                                                                                 class="col-lg-1 schedule_item">
                                                                                                 <input type="radio"
                                                                                                     name="global_settings_schedule_id"
-                                                                                                    class="schedule_id"
-                                                                                                    value="{{ $schedule['id'] }}">
+                                                                                                    class="schedule_id global_settings_schedule_id"
+                                                                                                    value="{{ $schedule['id'] }}"
+                                                                                                    readonly>
                                                                                             </div>
                                                                                             <div
                                                                                                 class="col-lg-3 schedule_name">
@@ -687,34 +694,11 @@
                                             <div class="border_box">
                                                 <div class="chart_filter d-flex justify-content-between">
                                                     <div class="select d-flex">
-                                                        <select name="timezone">
-                                                            <option value="GMT+01:00">Central European Time (CET) -
-                                                                GMT+01:00</option>
-                                                            <option value="GMT+01:01">Central European Time (CET) -
-                                                                GMT+01:01</option>
-                                                            <option value="GMT+01:02">Central European Time (CET) -
-                                                                GMT+01:02</option>
-                                                            <!-- Add more timezone options here if needed -->
-                                                        </select>
-                                                        <select name="post-sales-tips">
-                                                            <option value="01.09. Post-Sales Tips">01.09. Post-Sales Tips
-                                                            </option>
-                                                            <option value="01.10. Post-Sales Tips">01.10. Post-Sales Tips
-                                                            </option>
-                                                            <option value="01.11. Post-Sales Tips">01.11. Post-Sales Tips
-                                                            </option>
-                                                            <!-- Add more post-sales tips options here if needed -->
-                                                        </select>
-                                                    </div>
-                                                    <div class="btn_box d-flex">
-                                                        <a href="#" class="theme_btn">Export PDF</a>
-                                                        <a href="#" class="theme_btn">Export CSV</a>
                                                     </div>
                                                 </div>
                                                 <div class="chart_canvas_report">
                                                     <div id="chartContainer" style="height: 388px; width: 100%;"></div>
                                                 </div>
-                                                <!-- <img src="{{ asset('assets/img/chart.png') }}" alt=""> -->
                                                 <ul class="chart_status d-flex justify-content-between list-unstyled p-0">
                                                     <li><span></span>Views</li>
                                                     <li><span></span>Follows</li>
@@ -726,16 +710,6 @@
                                                     <li><span></span>Connections accepted</li>
                                                     <li><span></span>Replies Received</li>
                                                 </ul>
-                                                <ul class="chart_status d-flex list-unstyled p-0">
-                                                    <li><span></span>Response rate</li>
-                                                    <li><span></span>Acceptance rate</li>
-                                                    <li><span></span>Email opened</li>
-                                                    <li><span></span>Email clicked</li>
-                                                    <li><span></span>Email open rate</li>
-                                                    <li><span></span>Emails click rate</li>
-                                                    <li><span></span>Email verified</li>
-                                                    <li><span></span>Bounce rate</li>
-                                                </ul>
                                             </div>
                                         </div>
                                         <div class="chart_data_list">
@@ -746,46 +720,56 @@
                                                             <tr>
                                                                 <th width="15%">Date</th>
                                                                 <th width="20%">Views</th>
-                                                                <th width="30%">Invite via email sent</th>
+                                                                <th width="30%">Email sent</th>
                                                                 <th width="20%" class="">Follows</th>
                                                                 <th width="15%">Connections sent</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            @for ($i = 0; $i <= 7; $i++)
+                                                            @php
+                                                                $total_view = 0;
+                                                                $total_email = 0;
+                                                                $total_follow = 0;
+                                                                $total_invite = 0;
+                                                            @endphp
+                                                            @if (!empty($reports))
+                                                                @foreach ($reports as $date => $counts)
+                                                                    @php
+                                                                        $total_view += $counts['view_count'];
+                                                                        $total_email += $counts['email_count'];
+                                                                        $total_follow += $counts['follow_count'];
+                                                                        $total_invite += $counts['invite_count'];
+                                                                    @endphp
+                                                                    <tr>
+                                                                        <td>{{ $date }}</td>
+                                                                        <td>{{ $counts['view_count'] ?? 0 }}</td>
+                                                                        <td>{{ $counts['email_count'] ?? 0 }}</td>
+                                                                        <td>{{ $counts['follow_count'] ?? 0 }}</td>
+                                                                        <td>{{ $counts['invite_count'] ?? 0 }}</td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            @else
                                                                 <tr>
-                                                                    <td>2023-10-01</td>
-                                                                    <td>25</td>
-                                                                    <td>14</td>
-                                                                    <td>22</td>
-                                                                    <td>19</td>
+                                                                    <td>{{ now()->format('Y-m-d') }}</td>
+                                                                    <td>0</td>
+                                                                    <td>0</td>
+                                                                    <td>0</td>
+                                                                    <td>0</td>
                                                                 </tr>
-                                                            @endfor
+                                                            @endif
                                                         </tbody>
-                                                        <tfoot>
+                                                        <tfoot id="report_totals">
                                                             <tr>
                                                                 <td>Total</td>
-                                                                <td>406</td>
-                                                                <td>156</td>
-                                                                <td>63</td>
-                                                                <td>268</td>
+                                                                <td>{{ $total_view }}</td>
+                                                                <td>{{ $total_email }}</td>
+                                                                <td>{{ $total_follow }}</td>
+                                                                <td>{{ $total_invite }}</td>
                                                             </tr>
                                                         </tfoot>
                                                     </table>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="chart_last_box">
-                                            <div class="border_box">
-                                                <img src="{{ asset('assets/img/temp.png') }}" alt="">
-                                                <p class="text-center">you need to choose some campaign to check out
-                                                    statistics by step.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Campaign Integration Content -->
-                                    <div class="tab-pane lead_pane" id="integration" role="tabpanel">
-                                        <div class="leads_int">
                                         </div>
                                     </div>
                                 </div>

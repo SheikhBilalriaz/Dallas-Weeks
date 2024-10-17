@@ -1,12 +1,12 @@
 $(document).ready(function () {
     var edit_campaign_details = campaign;
-    if (edit_campaign_details["campaign_type"] == undefined) {
-        edit_campaign_details["campaign_type"] = "linkedin";
+    if (edit_campaign_details["type"] == undefined) {
+        edit_campaign_details["type"] = "linkedin";
     }
     var campaign_pane = $(".campaign_pane");
     for (var i = 0; i < campaign_pane.length; i++) {
         var campaignType = $(campaign_pane[i]).find("#campaign_type").val();
-        if (campaignType == edit_campaign_details["campaign_type"]) {
+        if (campaignType == edit_campaign_details["type"]) {
             $(campaign_pane[i]).addClass("active");
             $(
                 '[data-bs-target="' + $(campaign_pane[i]).attr("id") + '"]'
@@ -17,17 +17,17 @@ $(document).ready(function () {
         });
     }
     if (
-        edit_campaign_details["campaign_name"] == undefined ||
-        edit_campaign_details["campaign_url"] == undefined ||
-        edit_campaign_details["campaign_connection"] == undefined
+        edit_campaign_details["name"] == undefined ||
+        edit_campaign_details["url"] == undefined ||
+        edit_campaign_details["connection"] == undefined
     ) {
-        edit_campaign_details["campaign_name"] = "";
-        edit_campaign_details["campaign_url"] = "";
-        edit_campaign_details["campaign_connection"] = "";
+        edit_campaign_details["name"] = "";
+        edit_campaign_details["url"] = "";
+        edit_campaign_details["connection"] = "";
         $(".campaign_pane.active")
             .find("form")
             .find("#campaign_name")
-            .val(edit_campaign_details["campaign_name"]);
+            .val(edit_campaign_details["name"]);
         if (
             $(".campaign_pane.active").find("form").attr("id") !=
             "campaign_form_4"
@@ -35,28 +35,28 @@ $(document).ready(function () {
             $(".campaign_pane.active")
                 .find("form")
                 .find("#campaign_url")
-                .val(edit_campaign_details["campaign_url"]);
+                .val(edit_campaign_details["url"]);
         }
         if (
             $(".campaign_pane.active").find("form").attr("id") !=
-                "campaign_form_4" &&
+            "campaign_form_4" &&
             $(".campaign_pane.active").find("form").attr("id") !=
-                "campaign_form_3"
+            "campaign_form_3"
         ) {
             $(".campaign_pane.active")
                 .find("form")
                 .find("#connections")
-                .val(edit_campaign_details["campaign_connection"]);
+                .val(edit_campaign_details["connection"]);
         }
     } else {
         var active_form = $(".campaign_pane.active").find("form");
         active_form
             .find("#campaign_name")
-            .val(edit_campaign_details["campaign_name"]);
+            .val(edit_campaign_details["name"]);
         if (active_form.attr("id") != "campaign_form_4") {
             active_form
                 .find("#campaign_url")
-                .val(edit_campaign_details["campaign_url"]);
+                .val(edit_campaign_details["url"]);
         }
         if (
             active_form.attr("id") != "campaign_form_4" &&
@@ -64,25 +64,25 @@ $(document).ready(function () {
         ) {
             active_form
                 .find("#connections")
-                .val(edit_campaign_details["campaign_connection"]);
+                .val(edit_campaign_details["connection"]);
         }
     }
     $(".campaign_name").on("change", function (e) {
-        edit_campaign_details["campaign_name"] = $(this).val();
+        edit_campaign_details["name"] = $(this).val();
         sessionStorage.setItem(
             "edit_campaign_details",
             JSON.stringify(edit_campaign_details)
         );
     });
     $(".campaign_url").on("change", function (e) {
-        edit_campaign_details["campaign_url"] = $(this).val();
+        edit_campaign_details["url"] = $(this).val();
         sessionStorage.setItem(
             "edit_campaign_details",
             JSON.stringify(edit_campaign_details)
         );
     });
     $(".connections").on("change", function (e) {
-        edit_campaign_details["campaign_connection"] = $(this).val();
+        edit_campaign_details["connection"] = $(this).val();
         sessionStorage.setItem(
             "edit_campaign_details",
             JSON.stringify(edit_campaign_details)
@@ -102,7 +102,7 @@ $(document).ready(function () {
             "background-color": "#16adcb",
         });
         var new_form = $("#" + id).find("form");
-        edit_campaign_details["campaign_type"] = new_form
+        edit_campaign_details["type"] = new_form
             .find("#campaign_type")
             .val();
         sessionStorage.setItem(
@@ -111,11 +111,11 @@ $(document).ready(function () {
         );
         new_form
             .find("#campaign_name")
-            .val(edit_campaign_details["campaign_name"]);
+            .val(edit_campaign_details["name"]);
         if (new_form.attr("id") != "campaign_form_4") {
             new_form
                 .find("#campaign_url")
-                .val(edit_campaign_details["campaign_url"]);
+                .val(edit_campaign_details["url"]);
         }
         if (
             new_form.attr("id") != "campaign_form_4" &&
@@ -123,7 +123,7 @@ $(document).ready(function () {
         ) {
             new_form
                 .find("#connections")
-                .val(edit_campaign_details["campaign_connection"]);
+                .val(edit_campaign_details["connection"]);
         }
     });
     $(".nxt_btn").on("click", function (e) {

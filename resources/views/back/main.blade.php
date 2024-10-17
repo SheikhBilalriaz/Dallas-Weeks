@@ -1,5 +1,6 @@
 @extends('back/partials/header')
 @section('content')
+    <script src="{{ asset('assets/js/chart_query.js') }}"></script>
     <section class="main_dashboard">
         <div class="container_fluid">
             <div class="row">
@@ -12,9 +13,6 @@
                             <strong>{{ $profile['connections_count'] ?? 0 }}</strong>
                             <div class="cont">
                                 <span>Total connections</span>
-                                <div class="gray_back d-flex">
-                                    <i class="fa-solid fa-arrow-up"></i>2%<span>Today</span>
-                                </div>
                             </div>
                         </div>
                         <div class="darkgrey_div">
@@ -30,7 +28,6 @@
                                         @endforeach
                                     @endif
                                 </div>
-                                <div class="cont">Manage Connections<i class="fa-solid fa-arrow-right"></i></div>
                             </div>
                         </div>
                     </div>
@@ -44,26 +41,35 @@
                             </div>
                         </div>
                         <div class="invite_date_box">
-                            @for ($i = 0; $i <= 3; $i++)
-                                <ul class="date d-flex list-unstyle">
-                                    <li>
-                                        <span>Date</span>
-                                        2023-01-16
-                                    </li>
-                                    <li>
-                                        <span>Views</span>
-                                        25
-                                    </li>
-                                    <li class="invites">
-                                        <span>Invites</span>
-                                        2
-                                    </li>
-                                    <li>
-                                        <span>Follows</span>
-                                        15
-                                    </li>
+                            @if (!empty($reports))
+                                @foreach ($reports as $date => $counts)
+                                    <ul class="date d-flex list-unstyle">
+                                        <li>
+                                            <span>Date</span>
+                                            {{ $date }}
+                                        </li>
+                                        <li>
+                                            <span>Views</span>
+                                            {{ $counts['view_count'] ?? 0 }}
+                                        </li>
+                                        <li class="invites">
+                                            <span>Invites</span>
+                                            {{ $counts['invite_count'] ?? 0 }}
+                                        </li>
+                                        <li>
+                                            <span>Follows</span>
+                                            {{ $counts['follow_count'] ?? 0 }}
+                                        </li>
+                                    </ul>
+                                @endforeach
+                            @else
+                                <ul>
+                                    <li>{{ now()->format('Y-m-d') }}</li>
+                                    <li>0</li>
+                                    <li>0</li>
+                                    <li>0</li>
                                 </ul>
-                            @endfor
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -71,17 +77,15 @@
                     <div class="border_box">
                         <div class="campaign_box">
                             <div class="d-flex justify-content-between">
-                                <span>Campaign stats</span>
+                                <span>Seat Campaigns</span>
                             </div>
                             <div class="campaign_data">
                                 @if (session('manage_campaigns') == true || session('manage_campaigns') == 'view_only')
                                     @if ($campaigns->isNotEmpty())
                                         @foreach ($campaigns as $campaign)
                                             <ul class="campaign_list" id="{{ 'campaign_list_' . $campaign['id'] }}">
-                                                <li>{{ $campaign['campaign_name'] }}</li>
-                                                <li>{{ $campaign['lead_count'] }}</li>
-                                                <li><a href="javascript:;" class="campaign_stat">48%</a></li>
-                                                <li><a href="javascript:;" class="campaign_stat down">23%</a></li>
+                                                <li>{{ $campaign['name'] }}</li>
+                                                <li>Lead count: {{ $campaign['lead_count'] }}</li>
                                                 <li>
                                                     <div class="switch_box">
                                                         @if ($campaign['is_active'] == 1)

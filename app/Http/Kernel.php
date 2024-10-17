@@ -73,5 +73,8 @@ class Kernel extends HttpKernel
         'isChatAllowed' => \App\Http\Middleware\isChatAllowed::class,
         'isCampaignAllowed' => \App\Http\Middleware\isCampaignAllowed::class,
         'isManageCampaignAllowed' => \App\Http\Middleware\isManageCampaignAllowed::class,
+        'isReportAllowed' => \App\Http\Middleware\isReportAllowed::class,
+        'isManageWebhookAllowed' => \App\Http\Middleware\isManageWebhookAllowed::class,
+        'isWebhookAllowed' => \App\Http\Middleware\isWebhookAllowed::class,
     ];
 }

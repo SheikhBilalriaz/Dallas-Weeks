@@ -17,6 +17,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\MessagingController;
 use App\Http\Controllers\PropertiesController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RolesPermissionController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\TeamController;
@@ -45,8 +46,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('/stripe/webhook', [StripeController::class, 'handleWebhook']);
-Route::post('/unipile/linkedin/webhook', [UnipileLinkedinController::class, 'handleWebhook']);
-Route::post('/unipile/email/webhook', [UnipileEmailController::class, 'handleWebhook']);
+Route::post('/unipile/linkedin/webhook', [UnipileLinkedinController::class, 'handleWebhook']); //Done
+Route::post('/unipile/email/webhook', [UnipileEmailController::class, 'handleWebhook']); //Done
 
 /* These are home pages url which does not require any authentication */
 Route::get('/', [HomeController::class, 'home'])->name('homePage'); //Done
@@ -58,8 +59,8 @@ Route::get('/faq', [HomeController::class, 'faq'])->name('faqPage'); //Done
 Route::get('/register', [RegisterController::class, 'register'])->name('registerPage'); //Done
 Route::post('/register-user', [RegisterController::class, 'registerUser'])->name('registerUser'); //Done
 Route::get('/verify-an-Email/{email}/{token}', [RegisterController::class, 'verifyAnEmail'])->name('verifyAnEmail'); //Done
-Route::post('/forgot-password', [LoginController::class, 'forgotPassword'])->name('forgotPassword');
-Route::post('/update-password', [LoginController::class, 'updatePassword'])->name('updatePassword');
+Route::post('/forgot-password', [LoginController::class, 'forgotPassword'])->name('forgotPassword'); //Done
+Route::post('/update-password', [LoginController::class, 'updatePassword'])->name('updatePassword'); //Done
 
 /* These are login url which does not require any authentication */
 Route::get('/login', [LoginController::class, 'login'])->name('loginPage'); //Done
@@ -80,11 +81,12 @@ Route::middleware(['userAuth'])->group(function () {
     Route::prefix('/team/{slug}')->middleware(['teamChecker'])->group(function () {
         Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboardPage');
 
-        Route::get('/seat-dashboard', [SeatDashboardController::class, 'toSeatDashboard'])->name('seatDashboard');
+        Route::get('/seat-dashboard', [SeatDashboardController::class, 'toSeatDashboard'])->name('seatDashboard'); //Done
 
         Route::prefix('/seat/{seat_slug}')->middleware(['seatAccessChecker'])->group(function () {
             Route::middleware(['linkedinAccountChecker'])->group(function () {
                 Route::get('/', [SeatDashboardController::class, 'seatDashboard'])->name('seatDashboardPage');
+
                 Route::middleware(['isCampaignAllowed'])->group(function () {
                     Route::prefix('campaign')->group(function () {
                         Route::get('/', [CampaignController::class, 'campaign'])->name('campaignPage'); //Done
@@ -98,15 +100,14 @@ Route::middleware(['userAuth'])->group(function () {
                             Route::get('/get-property-required/{id}', [PropertiesController::class, 'getPropertyRequired'])->name('getPropertyRequired'); //Done
                             Route::post('/post-campaign', [CampaignElementController::class, 'createCampaign'])->name('postCampaign'); //Done
                             Route::get('/campaign-details/{campaign_id}', [CampaignController::class, 'getCampaignDetails'])->name('campaignDetailsPage'); //Done
-                            Route::get('/edit-campaign/{campaign_id}', [CampaignController::class, 'editCampaign'])->name('editCampaign');
+                            Route::get('/edit-campaign/{campaign_id}', [CampaignController::class, 'editCampaign'])->name('editCampaign'); //Done
+                            Route::post('/edit-campaign-Info/{campaign_id}', [CampaignController::class, 'editCampaignInfo'])->name('editCampaignInfo'); //Done
                             Route::get('delete-campaign/{campaign_id}', [CampaignController::class, 'deleteCampaign'])->name('deleteCampaign'); //Done
                             Route::get('/change-campaign-status/{campaign_id}', [CampaignController::class, 'changeCampaignStatus'])->name('changeCampaignStatus'); //Done
                             Route::get('/archive/{campaign_id}', [CampaignController::class, 'archiveCampaign'])->name('archiveCampaign'); //Done
+                            Route::post('/update-campaign/{campaign_id}', [CampaignController::class, 'updateCampaign'])->name('updateCampaign'); //Done
                         });
-                        // Route::post('/editCampaignInfo/{campaign_id}', [CampaignController::class, 'editCampaignInfo'])->name('editCampaignInfo');
-                        // Route::post('/editCampaignSequence/{campaign_id}', [CampaignController::class, 'editCampaignSequence'])->name('editCampaignSequence');
                         Route::get('/get-campaign-element-by-id/{element_id}', [CampaignElementController::class, 'getcampaignelementbyid'])->name('getcampaignelementbyid');
-                        // Route::post('/updateCampaign/{campaign_id}', [CampaignController::class, 'updateCampaign'])->name('updateCampaign');
                     });
                     Route::prefix('leads')->group(function () {
                         Route::get('/', [LeadsController::class, 'leads'])->name('dash-leads');
@@ -118,9 +119,12 @@ Route::middleware(['userAuth'])->group(function () {
                     Route::get('/filter-team-schedule/{search}', [ScheduleController::class, 'filterTeamSchedule'])->name('filterTeamSchedule'); //Done
                     Route::get('/get-elements/{campaign_id}', [CampaignElementController::class, 'getElements'])->name('getElements');
                 });
-                Route::prefix('webhook')->group(function () {
-                    Route::get('/', [SeatWebhookController::class, 'webhook'])->name('webhookPage');
-                    Route::delete('/delete-webhook/{id}', [SeatWebhookController::class, 'deleteWebhook'])->name('deleteWebhook'); //Done
+                Route::prefix('webhook')->middleware(['isWebhookAllowed'])->group(function () {
+                    Route::get('/', [SeatWebhookController::class, 'webhook'])->name('webhookPage'); //Done
+                    Route::middleware(['isManageWebhookAllowed'])->group(function () {
+                        Route::delete('/delete-webhook/{id}', [SeatWebhookController::class, 'deleteWebhook'])->name('deleteWebhook'); //Done
+                        Route::post('/create-webhook', [SeatWebhookController::class, 'createWebhook'])->name('createWebhook'); //Done
+                    });
                 });
                 Route::middleware(['isChatAllowed'])->group(function () {
                     Route::prefix('message')->group(function () {
@@ -141,9 +145,12 @@ Route::middleware(['userAuth'])->group(function () {
                         Route::post('/retrieve/message/attachment', [UnipileController::class, 'retrieve_an_attachment_from_a_message'])->name('retrieve_an_attachment_from_a_message'); //Done
                     });
                 });
-                Route::post('/import-csv', [CsvController::class, 'import_csv'])->name('importCsv');
+                Route::middleware(['isReportAllowed'])->group(function () {
+                    Route::get('/report', [ReportController::class, 'report'])->name('reportPage');
+                });
+                Route::post('/import-csv', [CsvController::class, 'import_csv'])->name('importCsv'); //Done
                 Route::post('/disconnect-linkedin-account', [LinkedinIntegrationController::class, 'disconnectLinkedinAccount'])->name('disconnectLinkedinAccount'); //Done
-                Route::get('/seat-messages', [SeatMessageController::class, 'seatMessageController'])->name('seatMessageController');
+                Route::get('/seat-messages', [SeatMessageController::class, 'seatMessageController'])->name('seatMessageController'); //Done
                 Route::get('/get-profile-and-latest-messages/{profile_id}/{chat_id}', [MessagingController::class, 'getProfileAndLatestMessage'])->name('getProfileAndLatestMessage'); //Done
             });
             Route::get('/seat-setting', [SeatSettingController::class, 'seatSetting'])->name('seatSettingPage');

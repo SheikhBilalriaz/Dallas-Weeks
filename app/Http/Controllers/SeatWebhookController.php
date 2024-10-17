@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Email_Integraion;
+use App\Models\Linkedin_Integration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Team;
@@ -11,6 +13,7 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Validator;
 
 class SeatWebhookController extends Controller
 {
@@ -34,6 +37,40 @@ class SeatWebhookController extends Controller
                 }
             } while (isset($webhooks['cursor']) && $webhooks['cursor'] !== null);
             $final_webhooks = $seat_webhook_map->values();
+            /* Retrieve all email integrations for the seat */
+            $integrated_emails = Email_Integraion::where('seat_id', $seat->id)->get();
+
+            /* Loop through each integrated email and retrieve account & profile details */
+            foreach ($integrated_emails as $key => $email) {
+                /* Prepare the request data for Unipile API */
+                $requestData = ['account_id' => $email['account_id']];
+                $request = new \Illuminate\Http\Request();
+                $request->replace($requestData);
+
+                /* Retrieve the account details using Unipile API */
+                $account = $uc->retrieve_an_account($request)->getData(true);
+
+                /* If there is an error, remove this email from the list */
+                if (isset($account['error'])) {
+                    unset($integrated_emails[$key]);
+                    continue;
+                }
+
+                /* Attach account information to the integrated email */
+                $integrated_emails[$key]['account'] = $account['account'];
+
+                /* Retrieve the profile details using Unipile API */
+                $profile = $uc->retrieve_own_profile($request)->getData(true);
+
+                /* If there is an error, remove this email from the list */
+                if (isset($profile['error'])) {
+                    unset($integrated_emails[$key]);
+                    continue;
+                }
+
+                /* Attach profile information to the integrated email */
+                $integrated_emails[$key]['profile'] = $profile['profile'];
+            }
 
             /* Prepare data to pass to the view */
             $data = [
@@ -41,6 +78,7 @@ class SeatWebhookController extends Controller
                 'team' => $team,
                 'seat' => $seat,
                 'webhooks' => $final_webhooks,
+                'emails' => $integrated_emails,
             ];
 
             /* Return the view with the seat data */
@@ -93,6 +131,77 @@ class SeatWebhookController extends Controller
 
             /* Return a generic error response */
             return response()->json(['success' => false, 'message' => 'Something went wrong'], 500);
+        }
+    }
+
+    public function createWebhook($slug, $seat_slug, Request $request)
+    {
+
+        try {
+            $seat = Seat::where('slug', $seat_slug)->first();
+            $validator = Validator::make($request->all(), [
+                'call_back' => 'required',
+                'name' => 'required|max:191',
+                'desc' => 'required|max:191',
+                'webhook_selection' => 'required|max:191',
+            ]);
+            if ($validator->fails()) {
+                return back()->withErrors($validator)->withInput()->with(['webhook_model' => true]);
+            }
+            if ($request->input('webhook_selection') !== 'messaging' && !$request->has('accounts')) {
+                return back()->withErrors(['webhook_selection' => 'Required accounts selection if webhook is for email'])
+                    ->withInput()
+                    ->with(['webhook_model' => true]);
+            }
+            $uc = new UnipileController();
+            $webhook_response = null;
+            switch ($request->input('webhook_selection')) {
+                case 'messaging':
+                    $linkedin_integration = Linkedin_Integration::where('seat_id', $seat->id)->first();
+                    $webhook_request['account_id'] = $linkedin_integration['account_id'];
+                    $webhook_request['request_url'] = $request->input('call_back');
+                    $webhook_request['name'] = $request->input('name');
+                    $webhook_response = $uc->create_messaging_webhook(new \Illuminate\Http\Request($webhook_request))->getData(true);
+                    break;
+                case 'mailing':
+                    $email_integartion = Email_Integraion::where('seat_id', $seat->id)
+                        ->whereIn('id', $request->input('accounts'))
+                        ->get();
+                    $webhook_request['account_id'] = $email_integartion->pluck('account_id')->toArray();
+                    $webhook_request['request_url'] = $request->input('call_back');
+                    $webhook_request['name'] = $request->input('name');
+                    $webhook_response = $uc->create_email_webhook(new \Illuminate\Http\Request($webhook_request))->getData(true);
+                    break;
+                case 'mail_tracking':
+                    $email_integartion = Email_Integraion::where('seat_id', $seat->id)
+                        ->whereIn('id', $request->input('accounts'))
+                        ->get();
+                    $webhook_request['account_id'] = $email_integartion->pluck('account_id')->toArray();
+                    $webhook_request['request_url'] = $request->input('call_back');
+                    $webhook_request['name'] = $request->input('name');
+                    $webhook_response = $uc->create_tracking_webhook(new \Illuminate\Http\Request($webhook_request))->getData(true);
+                    break;
+            }
+            if (!isset($webhook_response['error'])) {
+                Webhook::create([
+                    'creator_id' => Auth::user()->id,
+                    'seat_id' => $seat->id,
+                    'name' => $request->input('name'),
+                    'reason' => $request->input('desc'),
+                    'webhook_id' => $webhook_response['webhook']['webhook_id']
+                ]);
+                return redirect()->route('webhookPage', ['slug' => $slug, 'seat_slug' => $seat_slug])->with(['success', 'Webhook created successfully']);
+            }
+            return redirect()->route('webhookPage', ['slug' => $slug, 'seat_slug' => $seat_slug])->with(['error', 'Something went wrong']);
+        } catch (Exception $e) {
+            /* Rollback the transaction if something went wrong */
+            DB::rollBack();
+
+            /* Log the exception message for debugging purposes */
+            Log::error($e);
+
+            /* Return a generic error response */
+            return redirect()->route('webhookPage', ['slug' => $slug, 'seat_slug' => $seat_slug])->with(['error', 'Something went wrong']);
         }
     }
 }

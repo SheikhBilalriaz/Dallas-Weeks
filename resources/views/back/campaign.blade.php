@@ -106,15 +106,22 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="col-lg-4">
+                        <div class="col-lg-6">
                             <div class="border_box dashboard_box">
                                 <div class="count_div">
                                     <strong>{{ $profile['connections_count'] ?? 0 }}</strong>
                                     <div class="cont">
                                         <span>Total connections</span>
-                                        <div class="gray_back d-flex">
-                                            <i class="fa-solid fa-arrow-up"></i>2%<span>Today</span>
-                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="border_box dashboard_box">
+                                <div class="count_div">
+                                    <strong>{{ $total_profile_views }}</strong>
+                                    <div class="cont">
+                                        <span>Total profile views</span>
                                     </div>
                                 </div>
                             </div>

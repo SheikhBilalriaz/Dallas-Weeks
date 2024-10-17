@@ -34,9 +34,6 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
-    @if (request()->routeIs('seatDashboardPage'))
-        <script src="{{ asset('assets/js/chart_query.js') }}"></script>
-    @endif
     <title>{{ $title }}</title>
 </head>
 
@@ -329,15 +326,6 @@
             <div class="loader-inner"></div>
         </div>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-        @if (Str::contains(request()->url(), URL('campaign/campaignDetails')))
-            <script src="{{ asset('assets/js/campaignDetails.js') }}"></script>
-        @elseif (Str::contains(request()->url(), URL('campaign/editcampaign')))
-            <script src="{{ asset('assets/js/editcampaign.js') }}"></script>
-        @elseif (Str::contains(request()->url(), URL('campaign/editCampaignInfo')))
-            <script src="{{ asset('assets/js/editCampaignInfo.js') }}"></script>
-        @elseif (Str::contains(request()->url(), URL('campaign/editCampaignSequence')))
-            <script src="{{ asset('assets/js/editCampaignSequence.js') }}"></script>
-        @endif
     </footer>
     <script>
         $(".user_toggle").on("click", function(e) {

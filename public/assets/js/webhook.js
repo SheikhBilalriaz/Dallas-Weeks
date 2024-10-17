@@ -1,5 +1,11 @@
 $(document).ready(function () {
     $(document).on('click', '.delete-webhook', deleteWebhook);
+    $(document).on('click', '.email_options', email_options);
+    $(document).on('click', '.account_options', account_options);
+    $(document).on('click', '#submit_webhook', function(e) {
+        e.preventDefault();
+        $(this).closest('form').submit();
+    })
 });
 
 function deleteWebhook() {
@@ -33,4 +39,28 @@ function deleteWebhook() {
             }
         });
     }
+}
+
+function account_options() {
+    $('#emails_div').html(``);
+    $('.email_options').prop('checked', false);
+}
+
+function email_options() {
+    var html = ``;
+    if (emails.length > 0) {
+        const seatCheckboxes = emails.map(email => `
+            <li style="margin-bottom: 17px;">
+                <input value="${email.id}" name="accounts[]" data-role="${$(this).attr('for')}" 
+                    type="checkbox" id="email-${email.id}"> 
+                <label for="email-${email.id}">${email.profile?.email}</label>
+            </li>
+        `).join('');
+        html += seatCheckboxes;
+    } else {
+        html += `<p>You don't have any email to manage. To continue add new seats.</p>`;
+        $('#submit_webhook').addClass('disabled');
+    }
+    $('#emails_div').html(html);
+    $('.account_options').prop('checked', false);
 }

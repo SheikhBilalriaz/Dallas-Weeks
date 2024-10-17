@@ -103,10 +103,57 @@ $(document).ready(function () {
                     html += ` font-style: italic;">Not Found!</div></td></tr>`;
                     $(".leads_list table tbody").html(html);
                 }
+                var reports = response.reports;
+                const tableBody = $('#report_data');
+                const tfoot = $('#report_totals');
+                tableBody.empty();
+                let totalView = 0;
+                let totalEmail = 0;
+                let totalFollow = 0;
+                let totalInvite = 0;
+                if (Object.keys(reports).length > 0) {
+                    for (const [date, counts] of Object.entries(reports)) {
+                        totalView += counts.view_count ?? 0;
+                        totalEmail += counts.email_count ?? 0;
+                        totalFollow += counts.follow_count ?? 0;
+                        totalInvite += counts.invite_count ?? 0;
+                        const row = `
+                            <tr>
+                                <td>${date}</td>
+                                <td>${counts.view_count ?? 0}</td>
+                                <td>${counts.email_count ?? 0}</td>
+                                <td>${counts.follow_count ?? 0}</td>
+                                <td>${counts.invite_count ?? 0}</td>
+                            </tr>
+                        `;
+                        tableBody.append(row);
+                    }
+                } else {
+                    const currentDate = new Date().toISOString().split('T')[0];
+                    const emptyRow = `
+                        <tr>
+                            <td>${currentDate}</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                    `;
+                    tableBody.append(emptyRow);
+                }
+                tfoot.html(`
+                    <tr>
+                        <td>Total</td>
+                        <td>${totalView}</td>
+                        <td>${totalEmail}</td>
+                        <td>${totalFollow}</td>
+                        <td>${totalInvite}</td>
+                    </tr>
+                `);
                 if (response.campaign != null) {
                     var campaign = response.campaign;
-                    $("#campaign-name").val(campaign["campaign_name"]);
-                    $("#linkedin-url").val(campaign["campaign_url"]);
+                    $("#campaign-name").val(campaign["name"]);
+                    $("#linkedin-url").val(campaign["url"]);
                     const timestamp = campaign["created_at"];
                     const formattedTimestamp = new Date(timestamp)
                         .toISOString()
@@ -137,6 +184,7 @@ $(document).ready(function () {
                             schedule.each(function () {
                                 if (element['value'] == $(this).val()) {
                                     $(this).prop('checked', true);
+                                    return;
                                 } else {
                                     $(this).prop('checked', false);
                                 }
@@ -150,11 +198,22 @@ $(document).ready(function () {
                             field.prop('checked', true);
                         } else if (element['value'] === 'no') {
                             field.prop('checked', false);
+                        } else if (element['setting_slug'].includes('email_id')) {
+                            var email = $('.' + element['setting_slug']);
+                            email.each(function () {
+                                if (element['value'] == $(this).val()) {
+                                    $(this).prop('checked', true);
+                                    return;
+                                } else {
+                                    $(this).prop('checked', false);
+                                }
+                            });
                         } else {
                             var schedule = $('.' + element['setting_slug']);
                             schedule.each(function () {
                                 if (element['value'] == $(this).val()) {
                                     $(this).prop('checked', true);
+                                    return;
                                 } else {
                                     $(this).prop('checked', false);
                                 }

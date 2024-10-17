@@ -24,7 +24,7 @@
                     'permission' =>
                         session('manage_campaign_details_and_reports') === true ||
                         session('manage_campaign_details_and_reports') === 'view_only',
-                    'route' => 'globalSetting',
+                    'route' => 'reportPage',
                     'label' => asset('assets/img/stat.svg'),
                 ],
                 [

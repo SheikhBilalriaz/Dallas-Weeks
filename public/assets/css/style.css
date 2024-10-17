@@ -148,7 +148,7 @@ section.login .form_col {
 }
 
 .data_table tbody tr td:last-child {
-    z-index: 99999999;
+    z-index: 999;
 }
 
 body input {
@@ -3683,6 +3683,20 @@ header nav.navbar .right_nav ul .acc {
     visibility: hidden;
 }
 
+.webhook_check li input {
+    visibility: hidden;
+    height: 40px;
+    width: 40px;
+    margin-bottom: 0 !important;
+}
+
+.webhook_check li span {
+    display: flex;
+    width: 100%;
+    justify-content: start;
+    align-items: center;
+}
+
 .webhook_check label {
     margin: 0;
 }
@@ -5254,8 +5268,8 @@ div#chartContainer {
 }
 
 .main_dashboard .border_box .invite_date_box {
-    height: 300px;
-    overflow-y: scroll;
+    height: fit-content;
+    overflow-y: auto;
 }
 
 .messages_box button {
@@ -6889,8 +6903,8 @@ body.light-mode .lead_sec .filt_opt>.filt_opt select {
 }
 
 .conditional_elements ul.drop-list li:nth-child(1),
+.conditional_elements ul.drop-list li:nth-child(2),
 .conditional_elements ul.drop-list li:nth-child(3),
-.conditional_elements ul.drop-list li:nth-child(4),
 .conditional_elements ul.drop-list li:nth-child(5),
 .conditional_elements ul.drop-list li:nth-child(6) {
     display: none !important;

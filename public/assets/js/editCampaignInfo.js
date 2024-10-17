@@ -21,7 +21,7 @@ $(document).ready(function () {
             .val(campaign_details["campaign_url"])
     );
 
-    if (campaign_details["campaign_connection"] != undefined) {
+    if (campaign_details["connection"] != undefined) {
         form.append(
             $("<input>")
                 .attr("type", "hidden")
@@ -113,13 +113,8 @@ $(document).ready(function () {
                         schedule = schedules[i];
                         html += `<li><div class="row schedule_list_item"><div class="col-lg-1 schedule_item">`;
                         html += `<input type="radio" name="email_settings_schedule_id" class="schedule_id"`;
-                        if (schedule["user_id"] == 0) {
-                            html += `checked `;
-                        }
                         html += `value=` + schedule["id"] + `></div>`;
-                        html += `<div class="col-lg-1 schedule_avatar">S</div>`;
-                        html += `<div class="col-lg-3 schedule_name"><i class="fa-solid fa-circle-check"`;
-                        html += `style="color: #4bcea6;"></i>`;
+                        html += `<div class="col-lg-3 schedule_name">`;
                         html +=
                             `<span>` +
                             schedule["name"] +
@@ -137,13 +132,9 @@ $(document).ready(function () {
                             html += `">`;
                             html += day["day"].toUpperCase() + `</li>`;
                         }
-                        html += `<li class="schedule_time"><button href="javascript:;"`;
-                        html += `type="button" class="btn" data-bs-toggle="modal"`;
-                        html += `data-bs-target="#time_modal"><i class="fa-solid fa-globe"`;
-                        html += `style="color: #16adcb;"></i></button></li></ul>`;
-                        html += `</div><div class="col-lg-1 schedule_menu_btn">`;
-                        html += `<i class="fa-solid fa-ellipsis-vertical" style="color: #ffffff;"></i>`;
-                        html += `</div></div></li>`;
+                        html += `</ul>`;
+                        html += `</div>`;
+                        html += `</div></li>`;
                     }
                     $("#schedule_list_1").html(html);
                     $("#schedule_list_2").html(
@@ -184,13 +175,8 @@ $(document).ready(function () {
                         schedule = schedules[i];
                         html += `<li><div class="row schedule_list_item"><div class="col-lg-1 schedule_item">`;
                         html += `<input type="radio" name="email_settings_schedule_id" class="schedule_id"`;
-                        if (schedule["user_id"] == 0 || i == 0) {
-                            html += `checked `;
-                        }
                         html += `value=` + schedule["id"] + `></div>`;
-                        html += `<div class="col-lg-1 schedule_avatar">S</div>`;
-                        html += `<div class="col-lg-3 schedule_name"><i class="fa-solid fa-circle-check"`;
-                        html += `style="color: #4bcea6;"></i>`;
+                        html += `<div class="col-lg-3 schedule_name">`;
                         html +=
                             `<span>` +
                             schedule["name"] +
@@ -208,13 +194,9 @@ $(document).ready(function () {
                             html += `">`;
                             html += day["day"].toUpperCase() + `</li>`;
                         }
-                        html += `<li class="schedule_time"><button href="javascript:;"`;
-                        html += `type="button" class="btn" data-bs-toggle="modal"`;
-                        html += `data-bs-target="#time_modal"><i class="fa-solid fa-globe"`;
-                        html += `style="color: #16adcb;"></i></button></li></ul>`;
-                        html += `</div><div class="col-lg-1 schedule_menu_btn">`;
-                        html += `<i class="fa-solid fa-ellipsis-vertical" style="color: #ffffff;"></i>`;
-                        html += `</div></div></li>`;
+                        html += `</ul>`;
+                        html += `</div>`;
+                        html += `</div></li>`;
                     }
                     if (schedule_list.attr("id") == "schedule_list_2") {
                         html = html.replace(

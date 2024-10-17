@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Account_Health;
 use App\Models\Campaign;
+use App\Models\Campaign_Element;
 use App\Models\Email_Integraion;
+use App\Models\Lead_Action;
 use App\Models\Linkedin_Integration;
 use App\Models\Seat;
 use App\Models\Seat_Time;
@@ -100,10 +102,55 @@ class SeatDashboardController extends Controller
             } else {
                 $relations = array();
             }
+            $lc = new LeadsController();
             $request = ['account_id' => $linkedin_integrations['account_id'], 'profile_url' => session('linkedin_profile')['provider_id'],];
             $profile = $uc->view_profile(new \Illuminate\Http\Request($request))->getData(true);
             $campaigns = Campaign::where('seat_id', $seat->id)->get();
-
+            foreach ($campaigns as $campaign) {
+                $campaign['lead_count'] = $lc->getLeadsCountByCampaign($campaign->id);
+                $campaign['view_action_count'] = $lc->getViewProfileByCampaign($campaign->id);
+                $campaign['invite_action_count'] = $lc->getInviteToConnectByCampaign($campaign->id);
+                $campaign['message_count'] = $lc->getSentMessageByCampaign($campaign->id);
+                $campaign['email_action_count'] = $lc->getSentEmailByCampaign($campaign->id);
+            }
+            $campaigns = $campaigns->values();
+            $campaignIds = Campaign::where('seat_id', $seat->id)->pluck('id')->toArray();
+            $campaignElements = Campaign_Element::whereIn('campaign_id', $campaignIds)
+                ->where(function ($query) {
+                    $query->where('slug', 'like', 'view_profile%')
+                        ->orWhere('slug', 'like', 'invite_to_connect%')
+                        ->orWhere('slug', 'like', 'email_message%')
+                        ->orWhere('slug', 'like', 'follow%');
+                })->get()->groupBy(function ($element) {
+                    if (is_string($element->slug)) {
+                        if (str_starts_with($element->slug, 'view_profile')) return 'view_profile';
+                        if (str_starts_with($element->slug, 'invite_to_connect')) return 'invite_to_connect';
+                        if (str_starts_with($element->slug, 'email_message')) return 'email_message';
+                        if (str_starts_with($element->slug, 'follow')) return 'follow';
+                    }
+                    return 'other';
+                });
+            $leadActions = Lead_Action::whereIn('campaign_id', $campaignIds)->get()
+                ->groupBy(function ($item) {
+                    return \Carbon\Carbon::parse($item->created_at)->format('Y-m-d');
+                });
+            $reports = [];
+            foreach ($leadActions as $date => $actions) {
+                $reports[$date] = [
+                    'invite_count' => isset($campaignElements['invite_to_connect'])
+                        ? $actions->whereIn('current_element_id', $campaignElements['invite_to_connect']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'email_count' => isset($campaignElements['email_message'])
+                        ? $actions->whereIn('current_element_id', $campaignElements['email_message']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'view_count' => isset($campaignElements['view_profile'])
+                        ? $actions->whereIn('current_element_id', $campaignElements['view_profile']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'follow_count' => isset($campaignElements['follow'])
+                        ? $actions->whereIn('current_element_id', $campaignElements['follow']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                ];
+            }
             /* Prepare data to pass to the view */
             $data = [
                 'title' => 'Dashboard - Networked',
@@ -112,7 +159,8 @@ class SeatDashboardController extends Controller
                 'profile' => $profile['user_profile'],
                 'campaigns' => $campaigns,
                 'chats' => $chats,
-                'relations' => $relations
+                'relations' => $relations,
+                'reports' => $reports
             ];
 
             /* Return the view with the seat data */

@@ -1126,6 +1126,39 @@ class UnipileController extends Controller
         }
     }
 
+    public function recruiter_search(Request $request)
+    {
+        $all = $request->all();
+        if (!isset($all['account_id']) || !isset($all['search_url']) || !config('services.unipile.key') || !config('services.unipile.dsn')) {
+            return response()->json(['error' => 'Missing required parameters'], 400);
+        }
+        $client = new Client([
+            'verify' => false,
+        ]);
+        $account_id = $all['account_id'];
+        $url = config('services.unipile.dsn') . 'api/v1/linkedin/search?account_id=' . $account_id;
+        if (isset($all['cursor']) && !is_null($all['cursor'])) {
+            $url .= '&cursor=' . $all['cursor'];
+        }
+        $search_url = $all['search_url'];
+        try {
+            $response = $client->request('POST', $url, [
+                'json' => [
+                    'url' => $search_url
+                ],
+                'headers' => [
+                    'X-API-KEY' => config('services.unipile.key'),
+                    'accept' => 'application/json',
+                    'content-type' => 'application/json'
+                ],
+            ]);
+            $result = json_decode($response->getBody(), true);
+            return response()->json(['accounts' => $result]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
     public function message(Request $request)
     {
         $all = $request->all();
@@ -1411,8 +1444,122 @@ class UnipileController extends Controller
         try {
             $response = $client->request('DELETE', $url, [
                 'headers' => [
-                  'X-API-KEY' => config('services.unipile.key'),
-                  'accept' => 'application/json',
+                    'X-API-KEY' => config('services.unipile.key'),
+                    'accept' => 'application/json',
+                ],
+            ]);
+            return response()->json(['webhook' => json_decode($response->getBody(), true)]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function create_messaging_webhook(Request $request)
+    {
+        $all = $request->all();
+        if (!isset($all['request_url']) || !isset($all['name']) || !isset($all['account_id']) || !config('services.unipile.key') || !config('services.unipile.dsn')) {
+            return response()->json(['error' => 'Missing required parameters'], 400);
+        }
+
+        $client = new \GuzzleHttp\Client(['verify' => false]);
+        $events = $all['events'] ?? ['message_received', 'message_read', 'message_reaction'];
+        $bodyData = [
+            'source' => 'messaging',
+            'request_url' => $all['request_url'],
+            'name' => $all['name'],
+            'account_ids' => [$all['account_id']],
+            'headers' => $all['headers'] ?? [],
+            'events' => $events,
+            'data' => [
+                [
+                    'name' => 'account_id',
+                    'key' => 'account_id'
+                ]
+            ]
+        ];
+        try {
+            $response = $client->request('POST', config('services.unipile.dsn') . 'api/v1/webhooks', [
+                'json' => $bodyData,
+                'headers' => [
+                    'X-API-KEY' => config('services.unipile.key'),
+                    'accept' => 'application/json',
+                    'content-type' => 'application/json',
+                ],
+            ]);
+            return response()->json(['webhook' => json_decode($response->getBody(), true)]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function create_email_webhook(Request $request)
+    {
+        $all = $request->all();
+        if (!isset($all['request_url']) || !isset($all['name']) || !isset($all['account_id']) || !config('services.unipile.key') || !config('services.unipile.dsn')) {
+            return response()->json(['error' => 'Missing required parameters'], 400);
+        }
+        $accountIds = is_array($all['account_id']) ? $all['account_id'] : [$all['account_id']];
+        $client = new \GuzzleHttp\Client(['verify' => false]);
+        $events = $all['events'] ?? ['mail_sent', 'mail_received'];
+        $bodyData = [
+            'source' => 'email',
+            'request_url' => $all['request_url'],
+            'name' => $all['name'],
+            'account_ids' => $accountIds,
+            'headers' => $all['headers'] ?? [],
+            'events' => $events,
+            'data' => [
+                [
+                    'name' => 'account_id',
+                    'key' => 'account_id'
+                ]
+            ]
+        ];
+        try {
+            $response = $client->request('POST', config('services.unipile.dsn') . 'api/v1/webhooks', [
+                'json' => $bodyData,
+                'headers' => [
+                    'X-API-KEY' => config('services.unipile.key'),
+                    'accept' => 'application/json',
+                    'content-type' => 'application/json',
+                ],
+            ]);
+            return response()->json(['webhook' => json_decode($response->getBody(), true)]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function create_tracking_webhook(Request $request)
+    {
+        $all = $request->all();
+        if (!isset($all['request_url']) || !isset($all['name']) || !isset($all['account_id']) || !config('services.unipile.key') || !config('services.unipile.dsn')) {
+            return response()->json(['error' => 'Missing required parameters'], 400);
+        }
+        $accountIds = is_array($all['account_id']) ? $all['account_id'] : [$all['account_id']];
+        $client = new \GuzzleHttp\Client(['verify' => false]);
+        $events = $all['events'] ?? ['mail_opened', 'mail_link_clicked'];
+        $bodyData = [
+            'source' => 'email_tracking',
+            'request_url' => $all['request_url'],
+            'name' => $all['name'],
+            'account_ids' => $accountIds,
+            'headers' => $all['headers'] ?? [],
+            'events' => $events,
+            'data' => [
+                [
+                    'name' => 'account_id',
+                    'key' => 'account_id'
+                ]
+            ]
+        ];
+        try {
+            $response = $client->request('POST', config('services.unipile.dsn') . 'api/v1/webhooks', [
+                'json' => $bodyData,
+                'headers' => [
+                    'X-API-KEY' => config('services.unipile.key'),
+                    'accept' => 'application/json',
+                    'content-type' => 'application/json',
                 ],
             ]);
             return response()->json(['webhook' => json_decode($response->getBody(), true)]);

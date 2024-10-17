@@ -1142,40 +1142,4 @@ $(document).ready(function () {
             }
         });
     }
-
-    $("#save-changes").on("click", function () {
-        $(".drop-pad-element .cancel-icon").css({
-            display: "none",
-        });
-        $(".drop-pad-element").css({
-            "z-index": "0",
-            border: "none",
-        });
-        $("#loader").show();
-        $.ajax({
-            url: updateCampaignRoute.replace(":campaign_id", campaign_id),
-            type: "POST",
-            dataType: "json",
-            contentType: "application/json",
-            data: JSON.stringify({
-                settings: settings,
-            }),
-            headers: {
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-            },
-            success: function (response) {
-                if (response.success) {
-                    window.location = campaignRoute;
-                } else {
-                    toastr.error(response.properties);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error(xhr.responseText);
-            },
-            complete: function () {
-                $("#loader").hide();
-            }
-        });
-    });
 });

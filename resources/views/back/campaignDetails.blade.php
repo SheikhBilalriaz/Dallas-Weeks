@@ -1,5 +1,6 @@
 @extends('back/partials/header')
 @section('content')
+<script src="{{ asset('assets/js/campaignDetails.js') }}"></script>
     <section class="main_dashboard blacklist campaign_detail_sec">
         <div class="container_fluid">
             <div class="row">
@@ -9,7 +10,13 @@
                 <div class="col-lg-11">
                     <div class="border_box">
                         <div class="camp_details">
-                            <h4>Campaign Details:</h4>
+                            <div class="filter_head_row d-flex">
+                                <a href="{{ route('campaignPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}">
+                                    <span style="color: #16adcb;"><i class="fa-solid fa-chevron-left"></i></span>
+                                    <span style="color: #16adcb;">Back</span>
+                                </a>
+                                <h4>Campaign Details:</h4>
+                            </div>
                             <table class="details_table">
                                 <tr>
                                     <td class="item_name">Name:</td>
@@ -21,8 +28,8 @@
                                 </tr>
                                 <tr>
                                     <td class="item_name">Url:</td>
-                                    <td class="campaign_url"><a href="{{ $campaign->url }}"
-                                            target="blank">{{ $campaign->url }}</a></td>
+                                    <td class="campaign_url"><a style="width: 30%" href="{{ $campaign->url }}"
+                                            target="blank">Go to campaign url</a></td>
                                 </tr>
                                 @if (!empty($campaign->connection))
                                     <tr>
@@ -89,7 +96,7 @@
                                                     @endphp
                                                     <thead>
                                                         <th class="text-center text-danger" colspan="4">Schedule: <span
-                                                                class="ml-3">{{ $schedule->schedule_name }}</span></th>
+                                                                class="ml-3">{{ $schedule->name }}</span></th>
                                                     </thead>
                                                     <thead>
                                                         <th>Day</th>
@@ -109,11 +116,13 @@
                                                         <tbody>
                                                             @foreach ($schedules as $day)
                                                                 <tr>
-                                                                    <td>{{ ucfirst($day->schedule_day) }}</td>
+                                                                    <td>{{ ucfirst($day->day) }}</td>
                                                                     <td>{{ date('h:i A', strtotime($day->start_time)) }}
                                                                     </td>
                                                                     <td>{{ date('h:i A', strtotime($day->end_time)) }}</td>
-                                                                    <td>{{ $day->is_active == 1 ? 'Open' : 'Closed' }}</td>
+                                                                    <td
+                                                                        class="{{ $day->is_active == 1 ? 'text-success' : 'text-danger' }}">
+                                                                        {{ $day->is_active == 1 ? 'Open' : 'Closed' }}</td>
                                                                 </tr>
                                                             @endforeach
                                                         </tbody>
@@ -188,7 +197,7 @@
                                                     @endphp
                                                     <thead>
                                                         <th class="text-center text-danger" colspan="4">Schedule: <span
-                                                                class="ml-3">{{ $schedule->schedule_name }}</span></th>
+                                                                class="ml-3">{{ $schedule->name }}</span></th>
                                                     </thead>
                                                     <thead>
                                                         <th>Day</th>
@@ -208,11 +217,13 @@
                                                         <tbody>
                                                             @foreach ($schedules as $day)
                                                                 <tr>
-                                                                    <td>{{ ucfirst($day->schedule_day) }}</td>
+                                                                    <td>{{ ucfirst($day->day) }}</td>
                                                                     <td>{{ date('h:i A', strtotime($day->start_time)) }}
                                                                     </td>
                                                                     <td>{{ date('h:i A', strtotime($day->end_time)) }}</td>
-                                                                    <td>{{ $day->is_active == 1 ? 'Open' : 'Closed' }}</td>
+                                                                    <td
+                                                                        class="{{ $day->is_active == 1 ? 'text-success' : 'text-danger' }}">
+                                                                        {{ $day->is_active == 1 ? 'Open' : 'Closed' }}</td>
                                                                 </tr>
                                                             @endforeach
                                                         </tbody>
