@@ -12,6 +12,7 @@ use App\Models\Seat;
 use App\Models\Seat_Time;
 use App\Models\Seat_Timezone;
 use App\Models\Team;
+use Carbon\Carbon;
 use Exception;
 use DateTime;
 use DateTimeZone;
@@ -151,6 +152,34 @@ class SeatDashboardController extends Controller
                         : 0,
                 ];
             }
+            $lead_actions_of_pre_month = Lead_Action::whereIn('campaign_id', $campaignIds)
+                ->whereBetween(
+                    'created_at',
+                    [
+                        Carbon::now()->subMonth()->startOfDay(),
+                        Carbon::now()->endOfDay()
+                    ]
+                )->get()->groupBy(function ($item) {
+                    return \Carbon\Carbon::parse($item->created_at)->format('Y-m-d');
+                });
+            $past_month_reports = [];
+            for ($date = Carbon::now()->subMonth()->startOfDay(); $date <= Carbon::now()->endOfDay(); $date->addDay()) {
+                $formattedDate = $date->format('Y-m-d');
+                $past_month_reports[$formattedDate] = [
+                    'invite_count' => isset($campaignElements['invite_to_connect'])
+                        ? $lead_actions_of_pre_month->get($formattedDate, collect())->whereIn('current_element_id', $campaignElements['invite_to_connect']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'email_count' => isset($campaignElements['email_message'])
+                        ? $lead_actions_of_pre_month->get($formattedDate, collect())->whereIn('current_element_id', $campaignElements['email_message']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'view_count' => isset($campaignElements['view_profile'])
+                        ? $lead_actions_of_pre_month->get($formattedDate, collect())->whereIn('current_element_id', $campaignElements['view_profile']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'follow_count' => isset($campaignElements['follow'])
+                        ? $lead_actions_of_pre_month->get($formattedDate, collect())->whereIn('current_element_id', $campaignElements['follow']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                ];
+            }
             /* Prepare data to pass to the view */
             $data = [
                 'title' => 'Dashboard - Networked',
@@ -160,9 +189,9 @@ class SeatDashboardController extends Controller
                 'campaigns' => $campaigns,
                 'chats' => $chats,
                 'relations' => $relations,
-                'reports' => $reports
+                'reports' => $reports,
+                'past_month_data' => $past_month_reports,
             ];
-
             /* Return the view with the seat data */
             return view('back.main', $data);
         } catch (Exception $e) {

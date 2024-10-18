@@ -150,7 +150,6 @@ nextBtns.forEach((btn) => {
         formStepsNum++;
         updateFormSteps();
         updateProgressBar();
-        console.log("kk");
     });
 });
 
@@ -159,7 +158,6 @@ prevBtns.forEach((btn) => {
         formStepsNum--;
         updateFormSteps();
         updateProgressBar();
-        console.log("kk");
     });
 });
 

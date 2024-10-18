@@ -80,29 +80,18 @@
                                                 <table class="data_table w-100">
                                                     <thead>
                                                         <tr>
-                                                            <th width="5%">Status</th>
                                                             <th width="20%">Contact</th>
                                                             <th width="25%">Title/Company</th>
                                                             <th width="15%">Send Connections</th>
-                                                            <th width="10%">Current step</th>
-                                                            <th width="10%">Next step</th>
-                                                            <th width="10%">Executed time</th>
-                                                            <th width="5%">Action</th>
+                                                            <th width="15%">Current step</th>
+                                                            <th width="15%">Next step</th>
+                                                            <th width="15%">Executed time</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         @if ($leads->isNotEmpty())
                                                             @foreach ($leads as $lead)
                                                                 <tr>
-                                                                    <td>
-                                                                        <div class="switch_box"><input type="checkbox"
-                                                                                class="switch"
-                                                                                id="{{ 'swicth' . $lead['id'] }}"
-                                                                                {{ $lead['is_active'] == 1 ? 'checked' : '' }}>
-                                                                            <label
-                                                                                for="{{ 'swicth' . $lead['id'] }}">Toggle</label>
-                                                                        </div>
-                                                                    </td>
                                                                     <td class="title_cont">{{ $lead['contact'] }}</td>
                                                                     <td class="title_comp">
                                                                         {{ $lead['title_company'] }}
@@ -139,11 +128,6 @@
                                                                             days ago
                                                                         </div>
                                                                     </td>
-                                                                    </td>
-                                                                    <td>
-                                                                        <a href="javascript:;" type="button"
-                                                                            class="setting setting_btn" id=""><i
-                                                                                class="fa-solid fa-gear"></i></a>
                                                                     </td>
                                                                 </tr>
                                                             @endforeach
@@ -688,7 +672,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Stats Content -->
                                     <div class="tab-pane lead_pane" id="Stats" role="tabpanel">
                                         <div class="chart_box">
                                             <div class="border_box">
@@ -697,18 +680,17 @@
                                                     </div>
                                                 </div>
                                                 <div class="chart_canvas_report">
-                                                    <div id="chartContainer" style="height: 388px; width: 100%;"></div>
+                                                    <div id="chartContainer"
+                                                        style="height: 388px; width: 100%; !important"></div>
                                                 </div>
-                                                <ul class="chart_status d-flex justify-content-between list-unstyled p-0">
-                                                    <li><span></span>Views</li>
-                                                    <li><span></span>Follows</li>
-                                                    <li><span></span>Connections sent</li>
-                                                    <li><span></span>Invite via email sent</li>
-                                                    <li><span></span>Messages sent</li>
-                                                    <li><span></span>InMails sent</li>
-                                                    <li><span></span>Emails sent</li>
-                                                    <li><span></span>Connections accepted</li>
-                                                    <li><span></span>Replies Received</li>
+                                                <ul
+                                                    class="chart_status d-flex justify-content-between list-unstyled p-0 stats_list">
+                                                    <li data-span="viewsDataPoints"><span></span>Views</li>
+                                                    <li data-span="inviteDataPoints"><span></span>Connections sent</li>
+                                                    <li data-span="messageDataPoints"><span></span>Messages sent</li>
+                                                    <li data-span="inMailDataPoints"><span></span>InMails sent</li>
+                                                    <li data-span="followDataPoints"><span></span>Follows</li>
+                                                    <li data-span="emailDataPoints"><span></span>Emails sent</li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -780,7 +762,6 @@
             </div>
         </div>
     </section>
-    <!-- Modal Export leads -->
     <div class="modal fade create_sequence_modal export_modal" id="export_modal" tabindex="-1"
         aria-labelledby="export_modal" aria-hidden="true">
         <div class="modal-dialog">
@@ -811,10 +792,49 @@
         </div>
     </div>
     <script>
+        var pastMonthReports = @json($past_month_data);
+        var viewsDataPoints = [];
+        var inviteDataPoints = [];
+        var messageDataPoints = [];
+        var inMailDataPoints = [];
+        var followDataPoints = [];
+        var emailDataPoints = [];
+
+        Object.keys(pastMonthReports).forEach(function(date) {
+            var dateParts = date.split('-');
+            var fullDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            viewsDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['view_count']
+            });
+            inviteDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['invite_count']
+            });
+            messageDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['message_count']
+            });
+            inMailDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['in_mail_count']
+            });
+            followDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['follow_count']
+            });
+            emailDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['email_count']
+            });
+        });
+    </script>
+    <script>
         var leadsCampaignFilterPath =
             "{{ route('getLeadsByCampaign', ['slug' => $team->slug, 'seat_slug' => $seat->slug, ':id', ':search']) }}";
         var sendLeadsToEmail = "{{ route('sendLeadsToEmail', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}";
         $(document).ready(function() {
+            $('.stats_list li').first().trigger('click');
             const currentDate = new Date();
             const year = currentDate.getFullYear();
             const month = String(currentDate.getMonth() + 1).padStart(2, '0');

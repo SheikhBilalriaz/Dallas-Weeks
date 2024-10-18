@@ -2806,16 +2806,16 @@ select {
     color: #16adcb;
 }
 
-.chart_box .chart_status li:first-child {
+.chart_box .chart_status li.active {
     color: #e3c935;
     opacity: 1;
 }
 
-.chart_box .chart_status li:first-child span {
+.chart_box .chart_status li.active span {
     border-color: #e3c935;
 }
 
-.chart_box .chart_status li:first-child span::before {
+.chart_box .chart_status li.active span::before {
     background: #e3c935;
 }
 

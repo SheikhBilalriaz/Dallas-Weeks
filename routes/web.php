@@ -48,6 +48,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/stripe/webhook', [StripeController::class, 'handleWebhook']);
 Route::post('/unipile/linkedin/webhook', [UnipileLinkedinController::class, 'handleWebhook']); //Done
 Route::post('/unipile/email/webhook', [UnipileEmailController::class, 'handleWebhook']); //Done
+Route::post('/unipile/callback', [UnipileEmailController::class, 'handleWebhook']); //Done
 
 /* These are home pages url which does not require any authentication */
 Route::get('/', [HomeController::class, 'home'])->name('homePage'); //Done
@@ -79,13 +80,13 @@ Route::middleware(['userAuth'])->group(function () {
     Route::get('/no-team-page')->name('noTeamPage');
 
     Route::prefix('/team/{slug}')->middleware(['teamChecker'])->group(function () {
-        Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboardPage');
+        Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboardPage'); //Done
 
         Route::get('/seat-dashboard', [SeatDashboardController::class, 'toSeatDashboard'])->name('seatDashboard'); //Done
 
         Route::prefix('/seat/{seat_slug}')->middleware(['seatAccessChecker'])->group(function () {
             Route::middleware(['linkedinAccountChecker'])->group(function () {
-                Route::get('/', [SeatDashboardController::class, 'seatDashboard'])->name('seatDashboardPage');
+                Route::get('/', [SeatDashboardController::class, 'seatDashboard'])->name('seatDashboardPage'); //Done
 
                 Route::middleware(['isCampaignAllowed'])->group(function () {
                     Route::prefix('campaign')->group(function () {
@@ -106,18 +107,18 @@ Route::middleware(['userAuth'])->group(function () {
                             Route::get('/change-campaign-status/{campaign_id}', [CampaignController::class, 'changeCampaignStatus'])->name('changeCampaignStatus'); //Done
                             Route::get('/archive/{campaign_id}', [CampaignController::class, 'archiveCampaign'])->name('archiveCampaign'); //Done
                             Route::post('/update-campaign/{campaign_id}', [CampaignController::class, 'updateCampaign'])->name('updateCampaign'); //Done
+                            Route::get('/get-campaign-element-by-id/{element_id}', [CampaignElementController::class, 'getcampaignelementbyid'])->name('getcampaignelementbyid'); //Done
                         });
-                        Route::get('/get-campaign-element-by-id/{element_id}', [CampaignElementController::class, 'getcampaignelementbyid'])->name('getcampaignelementbyid');
                     });
                     Route::prefix('leads')->group(function () {
-                        Route::get('/', [LeadsController::class, 'leads'])->name('dash-leads');
-                        Route::get('/getLeadsByCampaign/{id}/{search}', [LeadsController::class, 'getLeadsByCampaign'])->name('getLeadsByCampaign');
-                        Route::post('/sendLeadsToEmail', [LeadsController::class, 'sendLeadsToEmail'])->name('sendLeadsToEmail');
+                        Route::get('/', [LeadsController::class, 'leads'])->name('dash-leads'); //Done
+                        Route::get('/getLeadsByCampaign/{id}/{search}', [LeadsController::class, 'getLeadsByCampaign'])->name('getLeadsByCampaign'); //Done
+                        Route::post('/sendLeadsToEmail', [LeadsController::class, 'sendLeadsToEmail'])->name('sendLeadsToEmail'); //Done
                     });
                     Route::get('/filter-campaign/{filter}/{search}', [CampaignController::class, 'filterCampaign'])->name('filterCampaign'); //Done
                     Route::get('/filter-schedule/{search}', [ScheduleController::class, 'filterSchedule'])->name('filterSchedule'); //Done
                     Route::get('/filter-team-schedule/{search}', [ScheduleController::class, 'filterTeamSchedule'])->name('filterTeamSchedule'); //Done
-                    Route::get('/get-elements/{campaign_id}', [CampaignElementController::class, 'getElements'])->name('getElements');
+                    Route::get('/get-elements/{campaign_id}', [CampaignElementController::class, 'getElements'])->name('getElements'); //Done
                 });
                 Route::prefix('webhook')->middleware(['isWebhookAllowed'])->group(function () {
                     Route::get('/', [SeatWebhookController::class, 'webhook'])->name('webhookPage'); //Done
@@ -146,16 +147,16 @@ Route::middleware(['userAuth'])->group(function () {
                     });
                 });
                 Route::middleware(['isReportAllowed'])->group(function () {
-                    Route::get('/report', [ReportController::class, 'report'])->name('reportPage');
+                    Route::get('/report', [ReportController::class, 'report'])->name('reportPage'); //Done
                 });
                 Route::post('/import-csv', [CsvController::class, 'import_csv'])->name('importCsv'); //Done
                 Route::post('/disconnect-linkedin-account', [LinkedinIntegrationController::class, 'disconnectLinkedinAccount'])->name('disconnectLinkedinAccount'); //Done
                 Route::get('/seat-messages', [SeatMessageController::class, 'seatMessageController'])->name('seatMessageController'); //Done
                 Route::get('/get-profile-and-latest-messages/{profile_id}/{chat_id}', [MessagingController::class, 'getProfileAndLatestMessage'])->name('getProfileAndLatestMessage'); //Done
             });
-            Route::get('/seat-setting', [SeatSettingController::class, 'seatSetting'])->name('seatSettingPage');
-            Route::put('/update-seat-limit', [GlobalLimitController::class, 'updateSeatLimit'])->name('updateSeatLimit');
-            Route::put('/update-account-health', [AccountHealthController::class, 'updateAccountHealth'])->name('updateAccountHealth');
+            Route::get('/seat-setting', [SeatSettingController::class, 'seatSetting'])->name('seatSettingPage'); //Done
+            Route::put('/update-seat-limit', [GlobalLimitController::class, 'updateSeatLimit'])->name('updateSeatLimit'); //Done
+            Route::put('/update-account-health', [AccountHealthController::class, 'updateAccountHealth'])->name('updateAccountHealth'); //Done
             Route::post('/create-linkedin-account', [LinkedinIntegrationController::class, 'createLinkedinAccount'])->name('createLinkedinAccount'); //Done
             Route::post('/create-email-account', [EmailIntegrationController::class, 'createEmailAccount'])->name('createEmailAccount'); //Done
             Route::post('/disconnect-email-account/{email_id}', [EmailIntegrationController::class, 'disconnectEmailAccount'])->name('disconnectEmailAccount'); //Done
@@ -167,8 +168,8 @@ Route::middleware(['userAuth'])->group(function () {
             Route::get('/get-seat-access/{id}', [SeatController::class, 'getSeatAccess'])->name('getSeatAccess'); //Done
             Route::get('/get-seat-by-id/{id}', [SeatController::class, 'getSeatById'])->name('getSeatById'); //Done
             Route::get('/update-seat-name/{id}/{seat_name}', [SeatController::class, 'updateName'])->name('updateName'); //Done
-            Route::get('/cancel-seat-subscription/{id}', [SeatController::class, 'cancelSubscription'])->name('cancelSubscription');
-            Route::get('/delete-seat/{id}', [SeatController::class, 'deleteSeat'])->name('deleteSeat');
+            Route::get('/cancel-seat-subscription/{id}', [SeatController::class, 'cancelSubscription'])->name('cancelSubscription'); //Done
+            Route::get('/delete-seat/{id}', [SeatController::class, 'deleteSeat'])->name('deleteSeat'); //Done
         });
 
         /* These are for blacklist requires access blacklist manage */

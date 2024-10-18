@@ -1,4 +1,79 @@
 $(document).ready(function () {
+    var chart = new CanvasJS.Chart("chartContainer", {
+        backgroundColor: "rgba(0, 0, 0, 0)",
+        animationEnabled: true,
+        title: {
+            text: "",
+            fontColor: "#ffffff4d"
+        },
+        toolTip: {
+            shared: true
+        },
+        axisX: {
+            title: "",
+            lineColor: "#0000",
+            tickColor: "#0000",
+            logarithmic: false,
+            gridColor: "#0000",
+            gridThickness: 0,
+            intervalType: "day",
+            valueFormatString: "MMM DD",
+            labelFontSize: 12,
+            labelFontColor: "#ffffff4d"
+        },
+        axisY: {
+            title: "",
+            labelFontColor: "#ffffff4d",
+            interval: 20,
+            labelFontSize: 12,
+            gridColor: "#0000",
+        },
+        data: [
+            { type: "spline", name: "Views", dataPoints: viewsDataPoints },
+            { type: "spline", name: "Invites", dataPoints: inviteDataPoints },
+            { type: "spline", name: "Messages", dataPoints: messageDataPoints },
+            { type: "spline", name: "InMails", dataPoints: inMailDataPoints },
+            { type: "spline", name: "Follows", dataPoints: followDataPoints },
+            { type: "spline", name: "Emails", dataPoints: emailDataPoints }
+        ]
+    });
+
+    $(document).on('click', '.stats_list li', function () {
+        var activeItems = $('.stats_list li.active');
+        if (activeItems.length === 1 && $(this).hasClass('active')) {
+            return;
+        }
+        $(this).toggleClass('active');
+        activeItems = $('.stats_list li.active');
+        chart.options.data.forEach(function (data) {
+            data.dataPoints = [];
+        });
+        $i = 0;
+        activeItems.each(function () {
+            const dataSpan = $(this).data('span');
+            if (dataSpan == "viewsDataPoints") {
+                chart.options.data[$i].dataPoints = viewsDataPoints;
+                $i++;
+            } else if (dataSpan == "inviteDataPoints") {
+                chart.options.data[$i].dataPoints = inviteDataPoints;
+                $i++;
+            } else if (dataSpan == "messageDataPoints") {
+                chart.options.data[$i].dataPoints = messageDataPoints;
+                $i++;
+            } else if (dataSpan == "inMailDataPoints") {
+                chart.options.data[$i].dataPoints = inMailDataPoints;
+                $i++;
+            } else if (dataSpan == "followDataPoints") {
+                chart.options.data[$i].dataPoints = followDataPoints;
+                $i++;
+            } else if (dataSpan == "emailDataPoints") {
+                chart.options.data[$i].dataPoints = emailDataPoints;
+                $i++;
+            }
+        });
+        chart.render();
+    });
+
     $("#search_lead").on("input", filter_search);
     $("#campaign").on("change", filter_search);
 
@@ -42,20 +117,14 @@ $(document).ready(function () {
                     var leads = response.leads;
                     var html = ``;
                     for (var key in leads) {
-                        html += `<tr style="z-index: 999;"><td><div class="switch_box"><input type="checkbox" class="switch"`;
-                        if (leads[key]["is_active"] == 1) {
-                            html += ` checked `;
-                        }
-                        html += `id="` + leads[key]["id"] + `"><label for="`;
-                        html +=
-                            leads[key]["id"] + `">Toggle</label></div></td>`;
+                        html += `<tr style="z-index: 999;">`;
                         html +=
                             `<td class="title_cont">` +
-                            leads[key]["contact"] +
+                            `${leads[key]["contact"] ?? ''}` +
                             `</td>`;
                         html +=
                             `<td class="title_comp">` +
-                            leads[key]["title_company"] +
+                            `${leads[key]["title_company"] ?? ''}` +
                             `</td>`;
                         html += `<td class="">`;
                         if (leads[key]["send_connections"] == "1") {
@@ -84,15 +153,13 @@ $(document).ready(function () {
                         var diffDays = Math.floor(
                             diffMs / (1000 * 60 * 60 * 24)
                         );
+                        if (diffDays < 0) {
+                            diffDays = 0;
+                        }
                         html +=
                             `<td><div class="">` +
                             diffDays +
                             ` days ago</div></td>`;
-                        html += `<td><a href="javascript:;" type="button" class="setting setting_btn"`;
-                        html += `id=""><i class="fa-solid fa-gear"></i></a>`;
-                        html += `<ul class="setting_list" style="display: block;">`;
-                        html += `<li><a href="#">Edit</a></li><li><a href="#">Delete</a></li>`;
-                        html += `</ul></td>`;
                         html += `</tr>`;
                     }
                     $(".leads_list table tbody").html(html);
@@ -220,6 +287,44 @@ $(document).ready(function () {
                             });
                         }
                     });
+                    viewsDataPoints = [];
+                    inviteDataPoints = [];
+                    messageDataPoints = [];
+                    inMailDataPoints = [];
+                    followDataPoints = [];
+                    emailDataPoints = [];
+                    Object.keys(response.past_month_data).forEach(function (date) {
+                        var dateParts = date.split('-');
+                        var fullDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                        viewsDataPoints.push({
+                            x: fullDate,
+                            y: response.past_month_data[date]['view_count']
+                        });
+                        inviteDataPoints.push({
+                            x: fullDate,
+                            y: response.past_month_data[date]['invite_count']
+                        });
+                        messageDataPoints.push({
+                            x: fullDate,
+                            y: response.past_month_data[date]['message_count']
+                        });
+                        inMailDataPoints.push({
+                            x: fullDate,
+                            y: response.past_month_data[date]['in_mail_count']
+                        });
+                        followDataPoints.push({
+                            x: fullDate,
+                            y: response.past_month_data[date]['follow_count']
+                        });
+                        emailDataPoints.push({
+                            x: fullDate,
+                            y: response.past_month_data[date]['email_count']
+                        });
+                    });
+                    $('.stats_list li.active').each(function () {
+                        $(this).removeClass('active');
+                    });
+                    $('.stats_list li').first().trigger('click');
                 } else {
                     $("#campaign-name").val("");
                     $("#linkedin-url").val("");

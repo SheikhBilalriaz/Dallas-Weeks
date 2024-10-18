@@ -1,6 +1,5 @@
 @extends('back/partials/header')
 @section('content')
-    <script src="{{ asset('assets/js/chart_query.js') }}"></script>
     <section class="main_dashboard">
         <div class="container_fluid">
             <div class="row">
@@ -191,5 +190,85 @@
     <script>
         var getProfileAndLatestMessageRoute =
             "{{ route('getProfileAndLatestMessage', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'profile_id' => ':profile_id', 'chat_id' => ':chat_id']) }}";
+    </script>
+    <script>
+        var pastMonthReports = @json($past_month_data);
+        var viewsDataPoints = [];
+        var followDataPoints = [];
+        var inviteDataPoints = [];
+
+        Object.keys(pastMonthReports).forEach(function(date) {
+            var dateParts = date.split('-');
+            var fullDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            viewsDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['view_count']
+            });
+            followDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['follow_count']
+            });
+            inviteDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['invite_count']
+            });
+        });
+
+        var chart = new CanvasJS.Chart("chartContainer", {
+            backgroundColor: "rgba(0, 0, 0, 0)",
+            animationEnabled: true,
+            title: {
+                text: "",
+                fontColor: "#ffffff4d"
+            },
+            toolTip: {
+                shared: true
+            },
+            axisX: {
+                title: "",
+                lineColor: "#0000",
+                tickColor: "#0000",
+                logarithmic: false,
+                gridColor: "#0000",
+                gridThickness: 0,
+                intervalType: "day",
+                valueFormatString: "MMM DD",
+                labelFontSize: 12,
+                labelFontColor: "#ffffff4d"
+            },
+            axisY: {
+                title: "",
+                labelFontColor: "#ffffff4d",
+                interval: 20,
+                labelFontSize: 12,
+                gridColor: "#0000",
+            },
+            data: [{
+                    type: "spline",
+                    name: "Views",
+                    color: "#E3C935",
+                    xValueFormatString: "MMM DD",
+                    yValueFormatString: "#,##0.00",
+                    dataPoints: viewsDataPoints
+                },
+                {
+                    type: "spline",
+                    name: "Follows",
+                    color: "#16ADCB",
+                    xValueFormatString: "MMM DD",
+                    yValueFormatString: "#,##0.00",
+                    dataPoints: followDataPoints
+                },
+                {
+                    type: "spline",
+                    name: "Invites",
+                    color: "#FF5733",
+                    xValueFormatString: "MMM DD",
+                    yValueFormatString: "#,##0.00",
+                    dataPoints: inviteDataPoints
+                }
+            ]
+        });
+        chart.render();
     </script>
 @endsection

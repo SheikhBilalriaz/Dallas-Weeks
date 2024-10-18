@@ -1,6 +1,6 @@
 @extends('back/partials/header')
 @section('content')
-    <script src="{{ asset('assets/js/chart_query.js') }}"></script>
+    <script src="{{ asset('assets/js/reports.js') }}"></script>
     <section class="main_dashboard blacklist  report_sec ">
         <div class="container_fluid">
             <div class="row">
@@ -27,16 +27,13 @@
                                     <div class="chart_canvas_report">
                                         <div id="chartContainer" style="height: 388px; width: 100%;"></div>
                                     </div>
-                                    <ul class="chart_status d-flex justify-content-between list-unstyled p-0">
-                                        <li><span></span>Views</li>
-                                        <li><span></span>Follows</li>
-                                        <li><span></span>Connections sent</li>
-                                        <li><span></span>Invite via email sent</li>
-                                        <li><span></span>Messages sent</li>
-                                        <li><span></span>InMails sent</li>
-                                        <li><span></span>Emails sent</li>
-                                        <li><span></span>Connections accepted</li>
-                                        <li><span></span>Replies Received</li>
+                                    <ul class="chart_status d-flex justify-content-between list-unstyled p-0 stats_list">
+                                        <li data-span="viewsDataPoints"><span></span>Views</li>
+                                        <li data-span="inviteDataPoints"><span></span>Connections sent</li>
+                                        <li data-span="messageDataPoints"><span></span>Messages sent</li>
+                                        <li data-span="inMailDataPoints"><span></span>InMails sent</li>
+                                        <li data-span="followDataPoints"><span></span>Follows</li>
+                                        <li data-span="emailDataPoints"><span></span>Emails sent</li>
                                     </ul>
                                 </div>
                             </div>
@@ -108,4 +105,46 @@
             </div>
         </div>
     </section>
+    <script>
+        var pastMonthReports = @json($past_month_data);
+        var viewsDataPoints = [];
+        var inviteDataPoints = [];
+        var messageDataPoints = [];
+        var inMailDataPoints = [];
+        var followDataPoints = [];
+        var emailDataPoints = [];
+
+        Object.keys(pastMonthReports).forEach(function(date) {
+            var dateParts = date.split('-');
+            var fullDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            viewsDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['view_count']
+            });
+            inviteDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['invite_count']
+            });
+            messageDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['message_count']
+            });
+            inMailDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['in_mail_count']
+            });
+            followDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['follow_count']
+            });
+            emailDataPoints.push({
+                x: fullDate,
+                y: pastMonthReports[date]['email_count']
+            });
+        });
+
+        $(document).ready(function() {
+            $('.stats_list li').first().trigger('click');
+        });
+    </script>
 @endsection

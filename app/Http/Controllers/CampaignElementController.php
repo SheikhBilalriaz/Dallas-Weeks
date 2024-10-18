@@ -201,14 +201,21 @@ class CampaignElementController extends Controller
     private function createInitialCampaignAction($campaign_id)
     {
         $campaign_path = Campaign_Path::where('campaign_id', $campaign_id)->first();
-        Campaign_Action::create([
-            'current_element_id' => 0,
-            'next_true_element_id' => $campaign_path->current_element_id,
-            'next_false_element_id' => null,
-            'campaign_id' => $campaign_id,
-            'status' => 'inprogress',
-            'ending_time' => now(),
-        ]);
+
+        $current_element_id = $campaign_path ? $campaign_path->current_element_id : null;
+
+        if ($current_element_id) {
+            Campaign_Action::create([
+                'current_element_id' => $current_element_id,
+                'next_true_element_id' => $campaign_path->next_true_element_id ?? null,
+                'next_false_element_id' => $campaign_path->next_false_element_id ?? null,
+                'campaign_id' => $campaign_id,
+                'status' => 'inprogress',
+                'ending_time' => now(),
+            ]);
+        } else {
+            Log::error("No valid current element found for campaign ID: $campaign_id");
+        }
     }
 
     private function deleteCampaignData($campaign_id)

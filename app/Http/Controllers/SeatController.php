@@ -16,6 +16,7 @@ use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Stripe\Stripe;
 
 class SeatController extends Controller
 {
@@ -194,6 +195,13 @@ class SeatController extends Controller
                     ->value('access') ?? false;
             }
 
+            if ($data['cancel_subscription']) {
+                $data['cancel_subs_route'] = route('cancelSubscription', ['slug' => $team->slug, 'id' => $seat->id]);
+            }
+            if ($data['delete_seat']) {
+                $data['delet_seat_route'] = route('deleteSeat', ['slug' => $team->slug, 'id' => $seat->id]);
+            }
+
             /* Return the data as JSON */
             return response()->json($data);
         } catch (ModelNotFoundException $e) {
@@ -288,6 +296,172 @@ class SeatController extends Controller
 
             /* Return a JSON response with the error message and a 404 status code */
             return response()->json(['success' => false, 'error' => 'Something went wrong'], 500);
+        }
+    }
+
+    public function cancelSubscription($slug, $seat_id)
+    {
+        try {
+            /* Set the Stripe API key for authentication */
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            /* Get the currently authenticated user */
+            $user = Auth::user();
+
+            /* Retrieve the team associated with the provided slug */
+            $team = Team::where('slug', $slug)->first();
+
+            /* Retrieve the seat associated with the team and seat ID */
+            $seat = Seat::where('team_id', $team->id)->where('id', $seat_id)->firstOrFail();
+
+            /* Initialize permission to manage seat settings */
+            $access_cancel_subscription = true;
+
+            /* Check if the user is not the team creator */
+            if ($user->id != $team->creator_id) {
+                /* Retrieve the team member entry for the current user */
+                $member = Team_Member::where('user_id', $user->id)->where('team_id', $team->id)->first();
+
+                /* If the user is not a member or doesn't have an assigned seat, deny access */
+                if (!$member || !Assigned_Seat::where('member_id', $member->id)->where('seat_id', $seat->id)->exists()) {
+                    return redirect()->route('dashboardPage', ['slug' => $team->slug])
+                        ->withErrors(['error' => "You don't have access to cancel subscription"]);
+                }
+
+                /* Retrieve the assigned seat for the member */
+                $assignedSeat = Assigned_Seat::where('member_id', $member->id)->where('seat_id', $seat->id)->first();
+
+                /* Get the role of the assigned seat */
+                $role = Role::find($assignedSeat->id);
+
+                /* Retrieve the permission to manage seat settings */
+                $permission = Permission::where('slug', 'cancel_subscription')->first();
+
+                /* Check if the role has permission to manage seat settings */
+                $access_cancel_subscription = Role_Permission::where('role_id', $role->id)
+                    ->where('permission_id', $permission->id)
+                    ->value('access') ?? false;
+            }
+
+            /* If the user has permission to manage the seat settings */
+            if ($access_cancel_subscription) {
+
+                \Stripe\Subscription::update(
+                    $seat->subscription_id,
+                    [
+                        'pause_collection' => [
+                            'behavior' => 'keep_as_draft',
+                        ]
+                    ]
+                );
+
+                $seat->is_active = 0;
+                $seat->updated_at = now();
+                $seat->save();
+
+                if ($seat->id) {
+                    return redirect()->route('dashboardPage', ['slug' => $team->slug])
+                        ->with(['success' => 'Seat unsubscribed successfully']);
+                }
+
+                /* If saving fails, return an error response */
+                return redirect()->route('dashboardPage', ['slug' => $team->slug])
+                    ->withErrors(['error' => 'Seat cancel subscription failed']);
+            }
+
+            /* If the user does not have permission to manage the seat, return a 403 error */
+            return redirect()->route('dashboardPage', ['slug' => $team->slug])->withErrors(['error' => "You don't have access to cancel subscription"]);
+        } catch (ModelNotFoundException $e) {
+            /* Return a 404 response if any model (SeatInfo, AssignedSeats, Role) is not found */
+            return redirect()->route('dashboardPage', ['slug' => $team->slug])
+                ->withErrors(['error' => 'Seat not found']);
+        } catch (Exception $e) {
+            /* Log the exception for debugging purposes */
+            Log::error($e);
+
+            /* Return a JSON response with the error message and a 404 status code */
+            return redirect()->route('dashboardPage', ['slug' => $team->slug])
+                ->withErrors(['error' => 'Something went wrong']);
+        }
+    }
+
+    public function deleteSeat($slug, $seat_id)
+    {
+        try {
+            /* Set the Stripe API key for authentication */
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            /* Get the currently authenticated user */
+            $user = Auth::user();
+
+            /* Retrieve the team associated with the provided slug */
+            $team = Team::where('slug', $slug)->first();
+
+            /* Retrieve the seat associated with the team and seat ID */
+            $seat = Seat::where('team_id', $team->id)->where('id', $seat_id)->firstOrFail();
+
+            /* Initialize permission to manage seat settings */
+            $access_delete_seat = true;
+
+            /* Check if the user is not the team creator */
+            if ($user->id != $team->creator_id) {
+                /* Retrieve the team member entry for the current user */
+                $member = Team_Member::where('user_id', $user->id)->where('team_id', $team->id)->first();
+
+                /* If the user is not a member or doesn't have an assigned seat, deny access */
+                if (!$member || !Assigned_Seat::where('member_id', $member->id)->where('seat_id', $seat->id)->exists()) {
+                    return redirect()->route('dashboardPage', ['slug' => $team->slug])
+                        ->withErrors(['error' => "You don't have access to delete seat"]);
+                }
+
+                /* Retrieve the assigned seat for the member */
+                $assignedSeat = Assigned_Seat::where('member_id', $member->id)->where('seat_id', $seat->id)->first();
+
+                /* Get the role of the assigned seat */
+                $role = Role::find($assignedSeat->id);
+
+                /* Retrieve the permission to manage seat settings */
+                $permission = Permission::where('slug', 'delete_seat')->first();
+
+                /* Check if the role has permission to manage seat settings */
+                $access_delete_seat = Role_Permission::where('role_id', $role->id)
+                    ->where('permission_id', $permission->id)
+                    ->value('access') ?? false;
+            }
+
+            /* If the user has permission to manage the seat settings */
+            if ($access_delete_seat) {
+
+                \Stripe\Subscription::update(
+                    $seat->subscription_id,
+                    [
+                        'cancel_at_period_end' => false,
+                    ]
+                );
+
+                $seat->delete();
+
+                return redirect()->route('dashboardPage', ['slug' => $team->slug])
+                    ->with(['success' => 'Seat deleted successfully']);
+
+                /* If saving fails, return an error response */
+                return redirect()->route('dashboardPage', ['slug' => $team->slug])
+                    ->withErrors(['error' => 'Seat deletion failed']);
+            }
+
+            /* If the user does not have permission to manage the seat, return a 403 error */
+            return redirect()->route('dashboardPage', ['slug' => $team->slug])->withErrors(['error' => "You don't have access to delete subscription"]);
+        } catch (ModelNotFoundException $e) {
+            /* Return a 404 response if any model (SeatInfo, AssignedSeats, Role) is not found */
+            return redirect()->route('dashboardPage', ['slug' => $team->slug])
+                ->withErrors(['error' => 'Seat not found']);
+        } catch (Exception $e) {
+            /* Log the exception for debugging purposes */
+            Log::error($e);
+
+            /* Return a JSON response with the error message and a 404 status code */
+            return redirect()->route('dashboardPage', ['slug' => $team->slug])
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 }

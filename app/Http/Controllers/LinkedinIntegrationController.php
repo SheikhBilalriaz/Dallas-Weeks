@@ -45,8 +45,8 @@ class LinkedinIntegrationController extends Controller
                     'providers' => $provider,
                     'api_url' => config('services.unipile.dsn'),
                     'expiresOn' => $expirationTime,
-                    'success_redirect_url' => 'https://networked.staging.designinternal.com/dashboard',
-                    'failure_redirect_url' => 'https://networked.staging.designinternal.com/settings',
+                    'success_redirect_url' => route('seatSettingPage', ['slug' => $slug, 'seat_slug' => $seat_slug]),
+                    'failure_redirect_url' => route('seatSettingPage', ['slug' => $slug, 'seat_slug' => $seat_slug]),
                     'notify_url' => 'https://networked.staging.designinternal.com/unipile/linkedin/webhook',
                     'name' => $seat_slug,
                 ],
@@ -70,7 +70,7 @@ class LinkedinIntegrationController extends Controller
             Log::error($e);
 
             /* Redirect to the dashboard with a generic error message if an exception occurs */
-            return redirect()->route('seatDashboardPage', ['slug' => $slug])
+            return redirect()->route('seatDashboardPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
                 ->withErrors(['error' => 'Something went wrong']);
         }
     }

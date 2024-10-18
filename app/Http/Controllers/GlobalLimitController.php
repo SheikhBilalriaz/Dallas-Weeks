@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Global_Limit;
 use App\Models\Seat_Time;
 use App\Models\Seat;
 use App\Models\Seat_Timezone;
@@ -82,8 +83,128 @@ class GlobalLimitController extends Controller
                 ]
             );
 
+            $profile_views = Global_Limit::firstOrNew(
+                [
+                    'seat_id' => $seat->id,
+                    'health_slug' => 'profile_views',
+                ],
+                [
+                    'value' => 0,
+                ]
+            );
+
+            /* Update the value based on request input */
+            $profile_views->value = $request->input('profile_views') ?? 0;
+            $profile_views->updated_at = now();
+            $profile_views->save();
+
+            $follows = Global_Limit::firstOrNew(
+                [
+                    'seat_id' => $seat->id,
+                    'health_slug' => 'follows',
+                ],
+                [
+                    'value' => 0,
+                ]
+            );
+
+            /* Update the value based on request input */
+            $follows->value = $request->input('follows') ?? 0;
+            $follows->updated_at = now();
+            $follows->save();
+
+            $invite = Global_Limit::firstOrNew(
+                [
+                    'seat_id' => $seat->id,
+                    'health_slug' => 'invite',
+                ],
+                [
+                    'value' => 0,
+                ]
+            );
+
+            /* Update the value based on request input */
+            $invite->value = $request->input('invite') ?? 0;
+            $invite->updated_at = now();
+            $invite->save();
+
+            $message = Global_Limit::firstOrNew(
+                [
+                    'seat_id' => $seat->id,
+                    'health_slug' => 'message',
+                ],
+                [
+                    'value' => 0,
+                ]
+            );
+
+            /* Update the value based on request input */
+            $message->value = $request->input('message') ?? 0;
+            $message->updated_at = now();
+            $message->save();
+
+            $inmail = Global_Limit::firstOrNew(
+                [
+                    'seat_id' => $seat->id,
+                    'health_slug' => 'inmail',
+                ],
+                [
+                    'value' => 0,
+                ]
+            );
+
+            /* Update the value based on request input */
+            $inmail->value = $request->input('inmail') ?? 0;
+            $inmail->updated_at = now();
+            $inmail->save();
+
+            $discover = Global_Limit::firstOrNew(
+                [
+                    'seat_id' => $seat->id,
+                    'health_slug' => 'discover',
+                ],
+                [
+                    'value' => 0,
+                ]
+            );
+
+            /* Update the value based on request input */
+            $discover->value = $request->input('discover') ?? 0;
+            $discover->updated_at = now();
+            $discover->save();
+
+            $email_message = Global_Limit::firstOrNew(
+                [
+                    'seat_id' => $seat->id,
+                    'health_slug' => 'email_message',
+                ],
+                [
+                    'value' => 0,
+                ]
+            );
+
+            /* Update the value based on request input */
+            $email_message->value = $request->input('email_message') ?? 0;
+            $email_message->updated_at = now();
+            $email_message->save();
+
+            $email_delay = Global_Limit::firstOrNew(
+                [
+                    'seat_id' => $seat->id,
+                    'health_slug' => 'email_delay',
+                ],
+                [
+                    'value' => 0,
+                ]
+            );
+
+            /* Update the value based on request input */
+            $email_delay->value = $request->input('email_delay') ?? 0;
+            $email_delay->updated_at = now();
+            $email_delay->save();
+
             /* Redirect to the seat dashboard page with a success message */
-            return redirect()->route('seatDashboardPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
+            return redirect()->route('seatSettingPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
                 ->with(['success' => 'Global Limits updated successfully']);
         } catch (Exception $e) {
             /* Log the exception message for debugging */

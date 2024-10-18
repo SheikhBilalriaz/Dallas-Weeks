@@ -49,6 +49,12 @@ class SeatSettingController extends Controller
             $pending_connections = Account_Health_Limit::where('seat_id', $seat->id)->where('health_slug', 'pending_connections')->first();
             $profile_views = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'profile_views')->first();
             $follows = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'follows')->first();
+            $invite = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'invite')->first();
+            $message = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'message')->first();
+            $inmail = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'inmail')->first();
+            $discover = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'discover')->first();
+            $email_message = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'email_message')->first();
+            $email_delay = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'email_delay')->first();
 
             /* Retrieve all email integrations for the seat */
             $integrated_emails = Email_Integraion::where('seat_id', $seat->id)->get();
@@ -104,6 +110,12 @@ class SeatSettingController extends Controller
                 'pending_connections' => $pending_connections,
                 'profile_views' => $profile_views,
                 'follows' => $follows,
+                'invite' => $invite,
+                'message' => $message,
+                'inmail' => $inmail,
+                'discover' => $discover,
+                'email_message' => $email_message,
+                'email_delay' => $email_delay,
             ];
 
             /* Return the view with the seat data */

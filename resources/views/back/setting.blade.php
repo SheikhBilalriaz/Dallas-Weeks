@@ -9,80 +9,6 @@
             border: 1px solid red;
             margin-bottom: 0 !important;
         }
-
-        .range-slider {
-            position: relative;
-            width: 80vmin;
-            height: 20vmin;
-        }
-
-        .range-slider_input {
-            width: 100%;
-            position: absolute;
-            top: 50%;
-            z-index: 3;
-            transform: translateY(-50%);
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 4px;
-            opacity: 0;
-            margin: 0;
-        }
-
-        .range-slider_input::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            cursor: pointer;
-            border-radius: 50%;
-            opacity: 0;
-        }
-
-        .range-slider_input::-moz-range-thumb {
-            width: 14vmin;
-            height: 14vmin;
-            cursor: pointer;
-            border-radius: 50%;
-            opacity: 0;
-        }
-
-        .range-slider_thumb {
-            width: 14vmin;
-            height: 14vmin;
-            border: 0.6vmin solid #303030;
-            border-radius: 50%;
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: 700;
-            font-size: 4vmin;
-            color: #303030;
-            z-index: 2;
-        }
-
-        .range-slider_line {
-            height: 0.5vmin;
-            width: 100%;
-            background-color: #e1e1e1;
-            top: 50%;
-            transform: translateY(-50%);
-            left: 0;
-            position: absolute;
-            z-index: 1;
-        }
-
-        .range-slider_line-fill {
-            position: absolute;
-            height: 0.5vmin;
-            width: 0;
-            background-color: #303030;
-        }
     </style>
     <script src="{{ asset('assets/js/settings.js') }}"></script>
     <section class="main_dashboard blacklist  campaign_sec lead_sec setting_sec">
@@ -484,18 +410,14 @@
                                                                         between 10 and 25 per day.
                                                                     </div>
                                                                     <div class="col-lg-4">
-                                                                        <div class="range-slider">
-                                                                            <div id="slider_thumb"
-                                                                                class="range-slider_thumb"></div>
-                                                                            <div class="range-slider_line">
-                                                                                <div id="slider_line"
-                                                                                    class="range-slider_line-fill"></div>
-                                                                            </div>
-                                                                            <input id="slider_input"
-                                                                                class="range-slider_input" type="range"
-                                                                                value="20" min="0"
-                                                                                max="100">
-                                                                        </div>
+                                                                        <label for="invite">Invites:
+                                                                            <span
+                                                                                id="invite_val">{{ $invite->value }}</span></label>
+                                                                        <input type="range" name="invite"
+                                                                            id="invite" min="0" max="15"
+                                                                            step="1" value="{{ $invite->value }}"
+                                                                            data-span="invite_val"
+                                                                            class="global_limit_ranges">
                                                                     </div>
                                                                 </div>
                                                                 <div class="row grey_box d-flex align-items-center">
@@ -512,11 +434,15 @@
                                                                         start with lower limits than maximum, otherwise set
                                                                         limits at range 30 to 40.
                                                                     </div>
-                                                                    <div class="slider col-lg-4">
-                                                                        <div class="cont">
-                                                                            <span>50</span>
-                                                                            <span>100</span>
-                                                                        </div>
+                                                                    <div class="col-lg-4">
+                                                                        <label for="message">Messages:
+                                                                            <span
+                                                                                id="message_val">{{ $message->value }}</span></label>
+                                                                        <input type="range" name="message"
+                                                                            id="message" min="0" max="120"
+                                                                            step="1" value="{{ $message->value }}"
+                                                                            data-span="message_val"
+                                                                            class="global_limit_ranges">
                                                                     </div>
                                                                 </div>
                                                                 <div class="row grey_box d-flex align-items-center">
@@ -533,11 +459,15 @@
                                                                         advice to start with lower limits than maximum,
                                                                         otherwise set limits at range 15 to 25.
                                                                     </div>
-                                                                    <div class="slider col-lg-4">
-                                                                        <div class="cont">
-                                                                            <span>50</span>
-                                                                            <span>100</span>
-                                                                        </div>
+                                                                    <div class="col-lg-4">
+                                                                        <label for="inmail">Inmail Messages:
+                                                                            <span
+                                                                                id="inmail_val">{{ $inmail->value }}</span></label>
+                                                                        <input type="range" name="inmail"
+                                                                            id="inmail" min="0" max="45"
+                                                                            step="1" value="{{ $inmail->value }}"
+                                                                            data-span="inmail_val"
+                                                                            class="global_limit_ranges">
                                                                     </div>
                                                                 </div>
                                                                 <div class="row grey_box d-flex align-items-center">
@@ -552,11 +482,15 @@
                                                                         discover from the search results. Recommend range is
                                                                         between 40 and 60
                                                                     </div>
-                                                                    <div class="slider col-lg-4">
-                                                                        <div class="cont">
-                                                                            <span>50</span>
-                                                                            <span>100</span>
-                                                                        </div>
+                                                                    <div class="col-lg-4">
+                                                                        <label for="discover">Discover:
+                                                                            <span
+                                                                                id="discover_val">{{ $discover->value }}</span></label>
+                                                                        <input type="range" name="discover"
+                                                                            id="discover" min="0" max="100"
+                                                                            step="1" value="{{ $discover->value }}"
+                                                                            data-span="discover_val"
+                                                                            class="global_limit_ranges">
                                                                     </div>
                                                                 </div>
                                                                 <div class="row grey_box d-flex align-items-center">
@@ -573,11 +507,16 @@
                                                                         advise to start with lower limits than maximum,
                                                                         otherwise set limits of 20 and 40.
                                                                     </div>
-                                                                    <div class="slider col-lg-4">
-                                                                        <div class="cont">
-                                                                            <span>50</span>
-                                                                            <span>100</span>
-                                                                        </div>
+                                                                    <div class="col-lg-4">
+                                                                        <label for="email_message">Email:
+                                                                            <span
+                                                                                id="email_message_val">{{ $email_message->value }}</span></label>
+                                                                        <input type="range" name="email_message"
+                                                                            id="email_message" min="0"
+                                                                            max="100" step="1"
+                                                                            value="{{ $email_message->value }}"
+                                                                            data-span="email_message_val"
+                                                                            class="global_limit_ranges">
                                                                     </div>
                                                                 </div>
                                                                 <div class="row grey_box d-flex align-items-center">
@@ -594,11 +533,16 @@
                                                                         tool.
                                                                         The recommended value is 5 or more.
                                                                     </div>
-                                                                    <div class="slider col-lg-4">
-                                                                        <div class="cont">
-                                                                            <span>50</span>
-                                                                            <span>100</span>
-                                                                        </div>
+                                                                    <div class="col-lg-4">
+                                                                        <label for="email_delay">Email Delay:
+                                                                            <span
+                                                                                id="email_delay_val">{{ $email_delay->value }}</span></label>
+                                                                        <input type="range" name="email_delay"
+                                                                            id="email_delay" min="0"
+                                                                            max="60" step="1"
+                                                                            value="{{ $email_delay->value }}"
+                                                                            data-span="email_delay_val"
+                                                                            class="global_limit_ranges">
                                                                     </div>
                                                                 </div>
                                                             </div>

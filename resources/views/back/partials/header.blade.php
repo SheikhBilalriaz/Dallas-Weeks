@@ -273,6 +273,11 @@
                             </a>
                             <ul class="user_toggle_list" style="display: none">
                                 <li>
+                                    <a href="{{ route('dashboardPage', ['slug' => $team->slug]) }}">
+                                        <i class="fa-solid fa-house"></i> Dashboard
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('logoutUser') }}">
                                         <i class="fa-solid fa-right-from-bracket"></i> Logout
                                     </a>

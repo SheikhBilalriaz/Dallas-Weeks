@@ -14,8 +14,15 @@ $(document).ready(function () {
     $(document).on('click', '.setting_btn', settingList);
     $(document).on('click', '.seat_table_data', toSeat);
     $(document).on('click', '.update_seat_name', updateSeatName);
-    // $(document).on('click', '.delete_seat', deleteSeat);
+    $(document).on('click', '.cancel_subscription', cancelSubscription);
+    $(document).on('click', '.delet_whole_seat', deleteSeat);
 });
+
+function cancelSubscription() {
+    if (confirm('Are you sure to cancel the subscription?')) {
+        window.location = $(this).data('to');
+    }
+}
 
 function btnPrev(e) {
     changeStep(false);
@@ -256,7 +263,7 @@ function renderSeatSettings(id) {
                 if (cancelSubscription) {
                     html += accordionItem('Three', 'Cancel Subscription', `
                         Are you sure you want to cancel subscription <span class="seat_name" style="color: #16adcb; font-weight: 600;"></span> seat?
-                        <button type="button" class="theme_btn mb-3 delete_seat">Cancel Subscription</button>`);
+                        <button type="button" class="theme_btn mb-3 delete_seat cancel_subscription" data-to="${response.cancel_subs_route}">Cancel Subscription</button>`);
                 } else {
                     html += accordionItem('Three', 'Cancel Subscription', `
                         You cannot cancel subscription of this '<span class="seat_name" style="color: #16adcb; font-weight: 600;"></span>' seat.`);
@@ -264,7 +271,7 @@ function renderSeatSettings(id) {
                 if (deleteSeat) {
                     html += accordionItem('Four', 'Delete seat', `
                         Are you sure you want to delete <span class="seat_name" style="color: #16adcb; font-weight: 600;"></span> seat?
-                        <button type="button" class="theme_btn mb-3 delete_seat">Delete seat</button>`);
+                        <button type="button" class="theme_btn mb-3 delete_seat delet_whole_seat" data-to="${response.delet_seat_route}">Delete seat</button>`);
                 } else {
                     html += accordionItem('Four', 'Delete seat', `
                         You cannot delete this '<span class="seat_name" style="color: #16adcb; font-weight: 600;"></span>' seat.`);
@@ -414,40 +421,7 @@ function getEmptyBlacklistHTML() {
 }
 
 function deleteSeat(e) {
-    e.preventDefault();
-    var id = $(this).attr('id').replace('delete_seat_', '');
-
-    if (!deleteAjax) {
-        deleteAjax = $.ajax({
-            url: deleteSeatRoute.replace(':seat_id', id),
-            type: "GET",
-            success: function (response) {
-                if (response.success) {
-                    $('#update_seat').modal('hide');
-                    $('#table_row_' + response.seat).remove();
-                    if ($('.seat_table_row').length == 0) {
-                        $('#campaign_table_body').html(
-                            `<tr>
-                                <td colspan="8">
-                                    <div class="text-center text-danger" style="font-size: 25px; font-weight: bold; font-style: italic;">
-                                        Not Found!
-                                    </div>
-                                </td>
-                            </tr>`
-                        );
-                    }
-                    toastr.options = toastrOptions;
-                    toastr.success('Seat deleted successfully.');
-                }
-            },
-            error: function (xhr, status, error) {
-                const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
-                toastr.error(errorMessage);
-            },
-            complete: function () {
-                deleteAjax = null;
-            }
-        });
-        deleteAjax = null;
+    if (confirm('Are you sure to delete the seat?')) {
+        window.location = $(this).data('to');
     }
 }

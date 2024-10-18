@@ -16,6 +16,7 @@ use App\Models\Lead_Action;
 use App\Models\Linkedin_Setting;
 use App\Models\Schedule;
 use App\Models\Webhook;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -89,13 +90,17 @@ class LeadsController extends Controller
                     $query->where('slug', 'like', 'view_profile%')
                         ->orWhere('slug', 'like', 'invite_to_connect%')
                         ->orWhere('slug', 'like', 'email_message%')
-                        ->orWhere('slug', 'like', 'follow%');
+                        ->orWhere('slug', 'like', 'follow%')
+                        ->orWhere('slug', 'like', 'message%')
+                        ->orWhere('slug', 'like', 'inmail_message%');
                 })->get()->groupBy(function ($element) {
                     if (is_string($element->slug)) {
                         if (str_starts_with($element->slug, 'view_profile')) return 'view_profile';
                         if (str_starts_with($element->slug, 'invite_to_connect')) return 'invite_to_connect';
                         if (str_starts_with($element->slug, 'email_message')) return 'email_message';
                         if (str_starts_with($element->slug, 'follow')) return 'follow';
+                        if (str_starts_with($element->slug, 'message')) return 'message';
+                        if (str_starts_with($element->slug, 'inmail_message')) return 'inmail_message';
                     }
                     return 'other';
                 });
@@ -120,6 +125,40 @@ class LeadsController extends Controller
                         : 0,
                 ];
             }
+            $lead_actions_of_pre_month = Lead_Action::whereIn('campaign_id', $campaignIds)
+                ->whereBetween(
+                    'created_at',
+                    [
+                        Carbon::now()->subMonth()->startOfDay(),
+                        Carbon::now()->endOfDay()
+                    ]
+                )->get()->groupBy(function ($item) {
+                    return \Carbon\Carbon::parse($item->created_at)->format('Y-m-d');
+                });
+            $past_month_reports = [];
+            for ($date = Carbon::now()->subMonth()->startOfDay(); $date <= Carbon::now()->endOfDay(); $date->addDay()) {
+                $formattedDate = $date->format('Y-m-d');
+                $past_month_reports[$formattedDate] = [
+                    'invite_count' => isset($campaignElements['invite_to_connect'])
+                        ? $lead_actions_of_pre_month->get($formattedDate, collect())->whereIn('current_element_id', $campaignElements['invite_to_connect']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'email_count' => isset($campaignElements['email_message'])
+                        ? $lead_actions_of_pre_month->get($formattedDate, collect())->whereIn('current_element_id', $campaignElements['email_message']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'view_count' => isset($campaignElements['view_profile'])
+                        ? $lead_actions_of_pre_month->get($formattedDate, collect())->whereIn('current_element_id', $campaignElements['view_profile']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'follow_count' => isset($campaignElements['follow'])
+                        ? $lead_actions_of_pre_month->get($formattedDate, collect())->whereIn('current_element_id', $campaignElements['follow']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'message_count' => isset($campaignElements['message'])
+                        ? $actions->whereIn('current_element_id', $campaignElements['message']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'in_mail_count' => isset($campaignElements['inmail_message'])
+                        ? $actions->whereIn('current_element_id', $campaignElements['inmail_message']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                ];
+            }
             $data = [
                 'title' => 'Dashboard - Leads',
                 'emails' => $emails,
@@ -130,6 +169,7 @@ class LeadsController extends Controller
                 'schedules' => $schedules,
                 'team_schedules' => $team_schedules,
                 'reports' => $reports,
+                'past_month_data' => $past_month_reports,
             ];
             return view('back.leads', $data);
         } catch (Exception $e) {
@@ -265,7 +305,7 @@ class LeadsController extends Controller
                         $elementId = $updatedCampaignElement->element_id;
                         $campaignElement = Element::find($elementId);
                         if ($campaignElement) {
-                            $item['current_step'] = $campaignElement->element_name;
+                            $item['current_step'] = $campaignElement->name;
                         }
                     }
                     $nextElementId = $leadAction->next_true_element_id;
@@ -274,7 +314,7 @@ class LeadsController extends Controller
                         $elementId = $updatedCampaignElement->element_id;
                         $campaignElement = Element::find($elementId);
                         if ($campaignElement) {
-                            $item['next_step'] = $campaignElement->element_name;
+                            $item['next_step'] = $campaignElement->name;
                         }
                     } else {
                         $nextElementId = $leadAction->next_false_element_id;
@@ -283,7 +323,7 @@ class LeadsController extends Controller
                             $elementId = $updatedCampaignElement->element_id;
                             $campaignElement = Element::find($elementId);
                             if ($campaignElement) {
-                                $item['next_step'] = $campaignElement->element_name;
+                                $item['next_step'] = $campaignElement->name;
                             }
                         }
                     }
@@ -338,10 +378,58 @@ class LeadsController extends Controller
                         : 0,
                 ];
             }
+            $lead_actions_of_pre_month = Lead_Action::whereIn('campaign_id', $campaignIds)
+                ->whereBetween(
+                    'created_at',
+                    [
+                        Carbon::now()->subMonth()->startOfDay(),
+                        Carbon::now()->endOfDay()
+                    ]
+                )->get()->groupBy(function ($item) {
+                    return \Carbon\Carbon::parse($item->created_at)->format('Y-m-d');
+                });
+            $past_month_reports = [];
+            for ($date = Carbon::now()->subMonth()->startOfDay(); $date <= Carbon::now()->endOfDay(); $date->addDay()) {
+                $formattedDate = $date->format('Y-m-d');
+                $past_month_reports[$formattedDate] = [
+                    'invite_count' => isset($campaignElements['invite_to_connect'])
+                        ? $lead_actions_of_pre_month->get($formattedDate, collect())->whereIn('current_element_id', $campaignElements['invite_to_connect']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'email_count' => isset($campaignElements['email_message'])
+                        ? $lead_actions_of_pre_month->get($formattedDate, collect())->whereIn('current_element_id', $campaignElements['email_message']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'view_count' => isset($campaignElements['view_profile'])
+                        ? $lead_actions_of_pre_month->get($formattedDate, collect())->whereIn('current_element_id', $campaignElements['view_profile']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'follow_count' => isset($campaignElements['follow'])
+                        ? $lead_actions_of_pre_month->get($formattedDate, collect())->whereIn('current_element_id', $campaignElements['follow']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'message_count' => isset($campaignElements['message'])
+                        ? $actions->whereIn('current_element_id', $campaignElements['message']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                    'in_mail_count' => isset($campaignElements['inmail_message'])
+                        ? $actions->whereIn('current_element_id', $campaignElements['inmail_message']->pluck('id'))->where('status', 'completed')->count()
+                        : 0,
+                ];
+            }
             if (count($lead) > 0) {
-                return response()->json(['success' => true, 'leads' => $lead, 'campaign' => $campaign, 'settings' => $settings, 'reports' => $reports]);
+                return response()->json([
+                    'success' => true,
+                    'leads' => $lead,
+                    'campaign' => $campaign,
+                    'settings' => $settings,
+                    'reports' => $reports,
+                    'past_month_data' => $past_month_reports,
+                ]);
             } else {
-                return response()->json(['success' => false, 'leads' => $lead, 'campaign' => $campaign, 'settings' => $settings, 'reports' => $reports]);
+                return response()->json([
+                    'success' => false,
+                    'leads' => $lead,
+                    'campaign' => $campaign,
+                    'settings' => $settings,
+                    'reports' => $reports,
+                    'past_month_data' => $past_month_reports,
+                ]);
             }
         } catch (Exception $e) {
             /* Log the exception message for debugging */

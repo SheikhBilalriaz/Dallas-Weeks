@@ -664,7 +664,6 @@ $(document).ready(function () {
                     "elements_data_array",
                     JSON.stringify(elements_data_array)
                 );
-                console.log(elements_data_array);
             });
             $("#" + element_name).css({
                 border: "1px solid rgb(23, 172, 203)",

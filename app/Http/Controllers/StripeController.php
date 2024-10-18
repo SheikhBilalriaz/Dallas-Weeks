@@ -13,6 +13,8 @@ use App\Models\Team;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SubscriptionSuccessMail;
 use App\Models\Account_Health;
+use App\Models\Account_Health_Limit;
+use App\Models\Global_Limit;
 use App\Models\Invoice;
 use App\Models\Seat_Time;
 use App\Models\Seat_Timezone;
@@ -197,6 +199,60 @@ class StripeController extends Controller
         $oldest_pending_invitations = Account_Health::create([
             'seat_id' => $seat->id,
             'health_slug' => 'oldest_pending_invitations',
+            'value' => 0,
+        ]);
+
+        $pending_connections = Account_Health_Limit::create([
+            'seat_id' => $seat->id,
+            'health_slug' => 'pending_connections',
+            'value' => 0,
+        ]);
+
+        $profile_views = Global_Limit::create([
+            'seat_id' => $seat->id,
+            'health_slug' => 'profile_views',
+            'value' => 0,
+        ]);
+
+        $follows = Global_Limit::create([
+            'seat_id' => $seat->id,
+            'health_slug' => 'follows',
+            'value' => 0,
+        ]);
+
+        $invite = Global_Limit::create([
+            'seat_id' => $seat->id,
+            'health_slug' => 'invite',
+            'value' => 0,
+        ]);
+
+        $message = Global_Limit::create([
+            'seat_id' => $seat->id,
+            'health_slug' => 'message',
+            'value' => 0,
+        ]);
+
+        $inmail = Global_Limit::create([
+            'seat_id' => $seat->id,
+            'health_slug' => 'inmail',
+            'value' => 0,
+        ]);
+
+        $discover = Global_Limit::create([
+            'seat_id' => $seat->id,
+            'health_slug' => 'discover',
+            'value' => 0,
+        ]);
+
+        $email_message = Global_Limit::create([
+            'seat_id' => $seat->id,
+            'health_slug' => 'email_message',
+            'value' => 0,
+        ]);
+
+        $email_delay = Global_Limit::create([
+            'seat_id' => $seat->id,
+            'health_slug' => 'email_delay',
             'value' => 0,
         ]);
 
