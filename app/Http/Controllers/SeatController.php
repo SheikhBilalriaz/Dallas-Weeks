@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Role;
 use App\Models\Assigned_Seat;
 use App\Models\Company_Info;
+use App\Models\Linkedin_Integration;
 use App\Models\Permission;
 use App\Models\Role_Permission;
 use App\Models\Seat;
@@ -463,5 +464,26 @@ class SeatController extends Controller
             return redirect()->route('dashboardPage', ['slug' => $team->slug])
                 ->withErrors(['error' => 'Something went wrong']);
         }
+    }
+
+    public function get_final_accounts()
+    {
+        $linkedin_integrations = Linkedin_Integration::whereNotNull('account_id')->get();
+        $seat_ids = $linkedin_integrations->pluck('seat_id')->toArray();
+        $seats = Seat::whereIn('id', $seat_ids)->where('is_active', 1)->get();
+        $final_accounts = [];
+        $uc = new UnipileController();
+        foreach ($seats as $seat) {
+            $account_id = Linkedin_Integration::where('seat_id', $seat->id)->value('account_id');
+            if ($account_id) {
+                $account = $uc->retrieve_an_account(new \Illuminate\Http\Request(['account_id' => $account_id]));
+                $account = $account->getData(true);
+                $im_id = $account['account']['connection_params']['im']['id'] ?? null;
+                if ($im_id) {
+                    $final_accounts[$im_id][] = $account_id;
+                }
+            }
+        }
+        return $final_accounts;
     }
 }

@@ -440,4 +440,86 @@ class LeadsController extends Controller
                 ->withErrors(['error' => 'Something went wrong']);
         }
     }
+
+    function applySettings($campaign, $url, $profile)
+    {
+        try {
+            $setting = Linkedin_Setting::where()->first();
+            if (
+                Global_Setting::where('campaign_id', $campaign->id)
+                ->where('setting_slug', 'global_settings_discover_new_leads_only')
+                ->value('value') === 'yes'
+            ) {
+                if (
+                    Lead::whereIn('campaign_id', Campaign::where('seat_id', $campaign->seat_id)->pluck('id'))
+                    ->where('profileUrl', $url)
+                    ->exists()
+                ) {
+                    return false;
+                }
+            }
+
+            if (
+                Linkedin_Setting::where('campaign_id', $campaign->id)
+                ->where('setting_slug', 'linkedin_settings_remove_leads_with_pending_connections')
+                ->value('value') === 'yes'
+            ) {
+                if (
+                    Lead::whereIn(
+                        'id',
+                        Lead_Action::whereIn(
+                            'current_element_id',
+                            Campaign_Element::where(
+                                'campaign_id',
+                                Campaign::where('seat_id', $campaign->seat_id)->pluck('id')
+                            )
+                                ->where('slug', 'like', 'invite_to_connect%')
+                                ->pluck('id')
+                        )
+                            ->where('status', 'inprogress')
+                            ->pluck('id')
+                    )
+                    ->where('profileUrl', $url)
+                    ->exists()
+                ) {
+                    return false;
+                }
+            }
+
+            if (
+                Linkedin_Setting::where('campaign_id', $campaign->id)
+                ->where('setting_slug', 'linkedin_settings_discover_leads_with_open_profile_status_only')
+                ->value('value') === 'yes'
+            ) {
+                if (
+                    (isset($profile['is_open_profile'])
+                        &&
+                        !$profile['is_open_profile'])
+                    ||
+                    !isset($profile['is_open_profile'])
+                ) {
+                    return false;
+                }
+            }
+
+            if (
+                Linkedin_Setting::where('campaign_id', $campaign->id)
+                ->where('setting_slug', 'linkedin_settings_discover_leads_with_open_profile_status_only')
+                ->value('value') === 'yes'
+            ) {
+                if (
+                    (isset($user_profile['is_premium'])
+                        &&
+                        !$user_profile['is_premium'])
+                    ||
+                    !isset($user_profile['is_premium'])
+                ) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
 }

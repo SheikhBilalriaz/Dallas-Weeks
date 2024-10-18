@@ -477,4 +477,16 @@ class BlacklistController extends Controller
             return response()->json(['success' => false, 'message' => 'Something went wrong'], 500);
         }
     }
+
+    public function applyBlacklist($team, $url, $profile)
+    {
+        if (
+            Global_Blacklist::where('team_id', $team->id)
+            ->where('keyword', $url)
+            ->where('blacklist_type', 'profile_url')
+            ->exists()
+        ) {
+            return false;
+        }
+    }
 }
