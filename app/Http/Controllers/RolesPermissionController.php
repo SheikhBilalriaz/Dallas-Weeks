@@ -147,33 +147,27 @@ class RolesPermissionController extends Controller
             /* Retrieve the team associated with the provided slug */
             $team = Team::where('slug', $slug)->first();
 
-            /* Check if the role ID is not one of the default role IDs (1, 2, 3) */
-            if (!in_array($role_id, [1, 2, 3])) {
-                /* Retrieve the role by ID */
-                $role = Role::where('id', $role_id)->where('team_id', $team->id)->first();
+            /* Retrieve the role by ID */
+            $role = Role::where('id', $role_id)->where('team_id', $team->id)->first();
 
-                /* If the role doesn't exist, return a JSON response with the error message */
-                if (!$role) {
-                    return response()->json(['success' => false, 'error' => 'Role not found'], 404);
-                }
-
-                /* Retrieve the permissions associated with this role */
-                $permissions_to_roles = Role_Permission::where('role_id', $role_id)->get();
-
-                /* Retrieve all available permissions */
-                $permissions = Permission::all();
-
-                /* Return the role and permission details in a successful JSON response */
-                return response()->json([
-                    'success' => true,
-                    'role' => $role,
-                    'permissions_to_roles' => $permissions_to_roles,
-                    'permissions' => $permissions
-                ]);
+            /* If the role doesn't exist, return a JSON response with the error message */
+            if (!$role) {
+                return response()->json(['success' => false, 'error' => 'Role not found'], 404);
             }
 
-            /* If the role ID is one of the default roles (1, 2, 3) */
-            return response()->json(['success' => false, 'error' => 'You cannot edit default roles'], 403);
+            /* Retrieve the permissions associated with this role */
+            $permissions_to_roles = Role_Permission::where('role_id', $role_id)->get();
+
+            /* Retrieve all available permissions */
+            $permissions = Permission::all();
+
+            /* Return the role and permission details in a successful JSON response */
+            return response()->json([
+                'success' => true,
+                'role' => $role,
+                'permissions_to_roles' => $permissions_to_roles,
+                'permissions' => $permissions
+            ]);
         } catch (Exception $e) {
             /* Log the exception message for debugging purposes */
             Log::error($e);
@@ -197,60 +191,52 @@ class RolesPermissionController extends Controller
             /* Retrieve the team associated with the provided slug */
             $team = Team::where('slug', $slug)->first();
 
-            /* Check if the role ID is not one of the default role IDs (1, 2, 3) */
-            if (!in_array($role_id, [1, 2, 3])) {
-                /* Validate request data */
-                $validator = Validator::make($request->all(), [
-                    'edit_role_name' => 'required|string|max:191',
-                ]);
+            /* Validate request data */
+            $validator = Validator::make($request->all(), [
+                'edit_role_name' => 'required|string|max:191',
+            ]);
 
-                /* Return validation errors if validation fails */
-                if ($validator->fails()) {
-                    return back()->withErrors($validator)
-                        ->with(['custom_role_edit_error' => true, 'role_id' => $role_id])
-                        ->withInput();
-                }
-
-                /* Create a new role for the team */
-                $role = Role::where('id', $role_id)->where('team_id', $team->id)->first();
-
-                if (!$role) {
-                    /* Return a JSON response with the error message */
-                    return redirect()
-                        ->route('rolesPermissionPage', ['slug' => $team->slug])
-                        ->withErrors(['error' => 'Role not found']);
-                }
-
-                $role->name = $request->input('edit_role_name');
-                $role->updated_at = now();
-                $role->save();
-
-                /* Fetch all available permissions */
-                $permissions = Permission::all();
-
-                /* Iterate over each permission to assign it to the new role */
-                foreach ($permissions as $permission) {
-                    $rolePermission = Role_Permission::where('role_id', $role->id)->where('permission_id', $permission->id)->first();
-
-                    /* Check if permission exists in the request and whether it's view-only */
-                    $hasAccess = $request->has($permission->slug);
-                    $viewOnly = $request->has('view_only_' . $permission->slug);
-
-                    $rolePermission->access = $hasAccess ? 1 : 0;
-                    $rolePermission->view_only = $viewOnly && $hasAccess ? 1 : 0;
-                    $rolePermission->save();
-                }
-
-                /* Redirect with success message */
-                return redirect()
-                    ->route('rolesPermissionPage', ['slug' => $team->slug])
-                    ->with(['success' => 'Role edited successfully']);
+            /* Return validation errors if validation fails */
+            if ($validator->fails()) {
+                return back()->withErrors($validator)
+                    ->with(['custom_role_edit_error' => true, 'role_id' => $role_id])
+                    ->withInput();
             }
 
-            /* If the role ID is one of the default roles (1, 2, 3), throw an exception */
+            /* Create a new role for the team */
+            $role = Role::where('id', $role_id)->where('team_id', $team->id)->first();
+
+            if (!$role) {
+                /* Return a JSON response with the error message */
+                return redirect()
+                    ->route('rolesPermissionPage', ['slug' => $team->slug])
+                    ->withErrors(['error' => 'Role not found']);
+            }
+
+            $role->name = $request->input('edit_role_name');
+            $role->updated_at = now();
+            $role->save();
+
+            /* Fetch all available permissions */
+            $permissions = Permission::all();
+
+            /* Iterate over each permission to assign it to the new role */
+            foreach ($permissions as $permission) {
+                $rolePermission = Role_Permission::where('role_id', $role->id)->where('permission_id', $permission->id)->first();
+
+                /* Check if permission exists in the request and whether it's view-only */
+                $hasAccess = $request->has($permission->slug);
+                $viewOnly = $request->has('view_only_' . $permission->slug);
+
+                $rolePermission->access = $hasAccess ? 1 : 0;
+                $rolePermission->view_only = $viewOnly && $hasAccess ? 1 : 0;
+                $rolePermission->save();
+            }
+
+            /* Redirect with success message */
             return redirect()
                 ->route('rolesPermissionPage', ['slug' => $team->slug])
-                ->withErrors(['error' => 'You cannot edit default roles']);
+                ->with(['success' => 'Role edited successfully']);
         } catch (Exception $e) {
             /* Log the exception for debugging purposes */
             Log::error($e);
@@ -275,41 +261,35 @@ class RolesPermissionController extends Controller
             /* Retrieve the team by its slug */
             $team = Team::where('slug', $slug)->first();
 
-            /* Ensure the role is not a default role (IDs 1, 2, 3) */
-            if (!in_array($role_id, [1, 2, 3])) {
-                /* Retrieve the role by its ID and the team ID */
-                $role = Role::where('id', $role_id)->where('team_id', $team->id)->first();
+            /* Retrieve the role by its ID and the team ID */
+            $role = Role::where('id', $role_id)->where('team_id', $team->id)->first();
 
-                /* If the role doesn't exist, throw an exception */
-                if (!$role) {
-                    return response()->json(['success' => false, 'error' => 'Role not found'], 404);
-                }
-
-                /* Find the team member associated with the current user and team */
-                $members = Team_Member::where('team_id', $team->id)->get();
-
-                /* Check if the role is assigned to any member in the team */
-                $assignedSeats = Assigned_Seat::whereIn('member_id', $members->pluck('id')->toArray())->where('role_id', $role->id)->get();
-
-                /* If the role is already in use (assigned to a member), throw an exception */
-                if ($assignedSeats->isNotEmpty()) {
-                    return response()->json(['success' => false, 'error' => 'Role is already in use'], 500);
-                }
-
-                /* Delete all associated role-permission records before deleting the role */
-                Role_Permission::where('role_id', $role->id)->get()->each(function ($permission) {
-                    $permission->delete();
-                });
-
-                /* Delete the role */
-                $role->delete();
-
-                /* Return a success JSON response */
-                return response()->json(['success' => true]);
+            /* If the role doesn't exist, throw an exception */
+            if (!$role) {
+                return response()->json(['success' => false, 'error' => 'Role not found'], 404);
             }
 
-            /* Return a failure response with the exception message */
-            return response()->json(['success' => false, 'error' => 'You cannot edit default roles'], 403);
+            /* Find the team member associated with the current user and team */
+            $members = Team_Member::where('team_id', $team->id)->get();
+
+            /* Check if the role is assigned to any member in the team */
+            $assignedSeats = Assigned_Seat::whereIn('member_id', $members->pluck('id')->toArray())->where('role_id', $role->id)->get();
+
+            /* If the role is already in use (assigned to a member), throw an exception */
+            if ($assignedSeats->isNotEmpty()) {
+                return response()->json(['success' => false, 'error' => 'Role is already in use'], 500);
+            }
+
+            /* Delete all associated role-permission records before deleting the role */
+            Role_Permission::where('role_id', $role->id)->get()->each(function ($permission) {
+                $permission->delete();
+            });
+
+            /* Delete the role */
+            $role->delete();
+
+            /* Return a success JSON response */
+            return response()->json(['success' => true]);
         } catch (Exception $e) {
             /* Log the exception message for debugging purposes */
             Log::error($e);

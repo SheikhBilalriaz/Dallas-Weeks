@@ -142,28 +142,29 @@ class StripeController extends Controller
 
         /* Create a new company_info record in the database */
         $company_info = Company_Info::create([
-            'name' => $company_info->name ?? '',
-            'street_address' => $company_info->street_address ?? '',
-            'city' => $company_info->city ?? '',
-            'state' => $company_info->state ?? '',
-            'postal_code' => $company_info->postal_code ?? '',
-            'country' => $company_info->country ?? '',
+            'name' => $company_info->name,
+            'street_address' => $company_info->street_address,
+            'city' => $company_info->city,
+            'state' => $company_info->state,
+            'postal_code' => $company_info->postal_code,
+            'country' => $company_info->country,
             'tax_id' => $company_info->tax_id ?? null,
         ]);
 
         /* Create a new seat_info record in the database */
         $seat_info = Seat_Info::create([
-            'email' => $seat_info->email ?? '',
-            'phone_number' => $seat_info->phone_number ?? '',
+            'email' => $seat_info->email,
+            'phone_number' => $seat_info->phone_number,
             'summary' => $seat_info->summary ?? null,
         ]);
 
         /* Create a new seat record in the database, linking all previously created records */
         $seat = Seat::create([
-            'creator_id' => $seat->creator_id ?? '',
-            'team_id' => $team->id ?? '',
-            'company_info_id' => $company_info->id ?? '',
-            'seat_info_id' => $seat_info->id ?? '',
+            'slug' => $this->createUniqueSlug($company_info->name),
+            'creator_id' => $seat->creator_id,
+            'team_id' => $team->id,
+            'company_info_id' => $company_info->id,
+            'seat_info_id' => $seat_info->id,
             'subscription_id' => $subscription->id,
             'customer_id' => $stripeCustomer->id,
             'is_active' => 0,
@@ -450,7 +451,7 @@ class StripeController extends Controller
             $seat->save();
         }
     }
-
+    
     /**
      * Generate a unique filename for an invoice PDF.
      *
@@ -465,5 +466,30 @@ class StripeController extends Controller
 
         /* Return the unique filename */
         return $uniqueFileName;
+    }
+    
+    /**
+     * Return an unique slug for seat
+     * 
+     * @param String $seatName
+     * @return String $slug
+     */
+    private function createUniqueSlug($seatName)
+    {
+        /* Generate the initial slug from the team name */
+        $slug = Str::slug($seatName);
+        $originalSlug = $slug;
+
+        /* Keep appending random numbers until the slug is unique */
+        while (Seat::where('slug', $slug)->exists()) {
+            /* Generate a random 5-digit number */
+            $randomNumber = rand(10000, 99999);
+
+            /* Append the random number to the slug */
+            $slug = $originalSlug . '-' . $randomNumber;
+        }
+
+        /* Return the unique slug */
+        return $slug;
     }
 }

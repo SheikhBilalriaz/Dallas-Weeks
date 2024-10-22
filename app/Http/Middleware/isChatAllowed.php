@@ -29,12 +29,13 @@ class isChatAllowed
         $slug = $request->route('slug');
         $seat_slug = $request->route('seat_slug');
         try {
-            if (session('manage_chat') === true || session('manage_chat') === 'view_only') {
-                return $next($request);
+            if (session('manage_chat') !== true && session('manage_chat') !== 'view_only') {
+                /* Redirect to the dashboard with a generic error message if an exception occurs */
+                return redirect()->route('dashboardPage', ['slug' => $slug])
+                    ->withErrors(['error' => 'You can not access messages or chats']);
             }
-            /* Redirect to the dashboard with a generic error message if an exception occurs */
-            return redirect()->route('dashboardPage', ['slug' => $slug])
-                ->withErrors(['error' => 'You can not access messages or chats']);
+
+            return $next($request);
         } catch (Exception $e) {
             /* Log the exception message for debugging */
             Log::error($e);

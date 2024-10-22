@@ -136,7 +136,7 @@ class CsvController extends Controller
                 Storage::delete($uploadFilePath);
                 return response()->json(['success' => false, 'message' => 'No Profile Url Column Found']);
             }
-
+            
             return response()->json([
                 'success' => true,
                 'duplicates' => $duplicates,
@@ -144,11 +144,36 @@ class CsvController extends Controller
                 'global_blacklists' => $global_blacklists,
                 'path' => $fileName,
                 'total' => $rowCount,
-                'total_without_duplicate_blacklist' => $totalProcessed
+                'total_without_duplicate_blacklist' => $totalProcessed,
+                'campaign_url_hidden' => $uploadFilePath,
             ]);
         } catch (Exception $e) {
             Log::error($e);
             return response()->json(['success' => false, 'message' => 'Something went wrong'], 500);
         }
+    }
+
+    public function importedLeadToArray($file_path)
+    {
+        if ($file_path !== null) {
+            $fileHandle = fopen(storage_path('app/uploads/' . $file_path), 'r');
+            if ($fileHandle !== false) {
+                $csvData = [];
+                $delimiter = ',';
+                $enclosure = '"';
+                $escape = '\\';
+                $columnNames = fgetcsv($fileHandle, 0, $delimiter, $enclosure, $escape);
+                foreach ($columnNames as $colName) {
+                    $csvData[$colName] = [];
+                }
+                while (($rowData = fgetcsv($fileHandle, 0, $delimiter, $enclosure, $escape)) !== false) {
+                    foreach ($columnNames as $index => $colName) {
+                        $csvData[$colName][] = $rowData[$index] ?? null;
+                    }
+                }
+                return $csvData;
+            }
+        }
+        return null;
     }
 }

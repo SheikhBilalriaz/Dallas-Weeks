@@ -35,12 +35,15 @@ class CampaignController extends Controller
             foreach ($campaigns as $campaign) {
                 $campaign['lead_count'] = $lc->getLeadsCountByCampaign($campaign->id);
                 $campaign['view_action_count'] = $lc->getViewProfileByCampaign($campaign->id);
-                $total_profile_views += $lc->getViewProfileByCampaign($campaign->id);
                 $campaign['invite_action_count'] = $lc->getInviteToConnectByCampaign($campaign->id);
                 $campaign['message_count'] = $lc->getSentMessageByCampaign($campaign->id);
                 $campaign['email_action_count'] = $lc->getSentEmailByCampaign($campaign->id);
             }
             $campaigns = $campaigns->values();
+            $all_campaigns = Campaign::where('seat_id', $seat->id)->get();
+            foreach ($all_campaigns as $campaign) {
+                $total_profile_views += $lc->getViewProfileByCampaign($campaign->id);
+            }
             $uc = new UnipileController();
             $request = ['account_id' => $linkedin_integrations['account_id'], 'profile_url' => session('linkedin_profile')['provider_id'],];
             $profile = $uc->view_profile(new \Illuminate\Http\Request($request))->getData(true);

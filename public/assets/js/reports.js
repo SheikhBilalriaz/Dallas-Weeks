@@ -52,21 +52,27 @@ $(document).ready(function () {
         activeItems.each(function () {
             const dataSpan = $(this).data('span');
             if (dataSpan == "viewsDataPoints") {
+                chart.options.data[$i].name = "Views";
                 chart.options.data[$i].dataPoints = viewsDataPoints;
                 $i++;
             } else if (dataSpan == "inviteDataPoints") {
+                chart.options.data[$i].name = "Invites";
                 chart.options.data[$i].dataPoints = inviteDataPoints;
                 $i++;
             } else if (dataSpan == "messageDataPoints") {
+                chart.options.data[$i].name = "Messages";
                 chart.options.data[$i].dataPoints = messageDataPoints;
                 $i++;
             } else if (dataSpan == "inMailDataPoints") {
+                chart.options.data[$i].name = "InMails";
                 chart.options.data[$i].dataPoints = inMailDataPoints;
                 $i++;
             } else if (dataSpan == "followDataPoints") {
+                chart.options.data[$i].name = "Follows";
                 chart.options.data[$i].dataPoints = followDataPoints;
                 $i++;
             } else if (dataSpan == "emailDataPoints") {
+                chart.options.data[$i].name = "Emails";
                 chart.options.data[$i].dataPoints = emailDataPoints;
                 $i++;
             }

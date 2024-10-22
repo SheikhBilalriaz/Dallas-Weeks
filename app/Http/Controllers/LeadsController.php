@@ -9,6 +9,7 @@ use App\Models\Element;
 use App\Models\Email_Integraion;
 use App\Models\Email_Setting;
 use App\Models\Global_Blacklist;
+use App\Models\Global_Limit;
 use App\Models\Global_Setting;
 use App\Models\Team;
 use App\Models\Lead;
@@ -19,6 +20,11 @@ use App\Models\Webhook;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use League\Csv\Writer;
 
 class LeadsController extends Controller
 {
@@ -239,7 +245,12 @@ class LeadsController extends Controller
     {
         try {
             $team = Team::where('slug', $slug)->first();
-            if (Global_Blacklist::where('team_id', $team->id)->where('blacklist_type', 'profile_url')->where('keyword', $url)->exists()) {
+            if (
+                Global_Blacklist::where('team_id', $team->id)
+                ->where('keyword', $url)
+                ->where('blacklist_type', 'profile_url')
+                ->exists()
+            ) {
                 return true;
             }
             return false;
@@ -444,7 +455,6 @@ class LeadsController extends Controller
     function applySettings($campaign, $url, $profile)
     {
         try {
-            $setting = Linkedin_Setting::where()->first();
             if (
                 Global_Setting::where('campaign_id', $campaign->id)
                 ->where('setting_slug', 'global_settings_discover_new_leads_only')
@@ -519,7 +529,163 @@ class LeadsController extends Controller
             }
             return true;
         } catch (Exception $e) {
+            Log::error($e);
             return false;
+        }
+    }
+
+    function get_view_count($campaigns, $seat)
+    {
+        $past_time = now()->modify('-1 days')->format('Y-m-d');
+        $views = Campaign_Element::whereIn('campaign_id', $campaigns->pluck('id')->toArray())
+            ->where('slug', 'like', 'view_profile%')->get();
+        $views = Lead_Action::whereIn('current_element_id', $views->pluck('id')->toArray())
+            ->whereDate('updated_at', '>=', $past_time)->where('status', 'completed')->get();
+        $profile_views = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'profile_views')->first();
+        $view_count = floor(($profile_views->value - count($views)) / count($campaigns));
+        if ($view_count > 0) {
+            return $view_count;
+        }
+        return 0;
+    }
+
+    function get_invite_count($campaigns, $seat)
+    {
+        $past_time = now()->modify('-1 days')->format('Y-m-d');
+        $invites = Campaign_Element::whereIn('campaign_id', $campaigns->pluck('id')->toArray())
+            ->where('slug', 'like', 'invite_to_connect%')->get();
+        $invites = Lead_Action::whereIn('current_element_id', $invites->pluck('id')->toArray())
+            ->whereDate('updated_at', '>=', $past_time)->where('status', 'completed')->get();
+        $invite = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'invite')->first();
+        $invite_count = floor(($invite->value - count($invites)) / count($campaigns));
+        if ($invite_count > 0) {
+            return $invite_count;
+        }
+        return 0;
+    }
+
+    function get_message_count($campaigns, $seat)
+    {
+        $past_time = now()->modify('-1 days')->format('Y-m-d');
+        $messages = Campaign_Element::whereIn('campaign_id', $campaigns->pluck('id')->toArray())
+            ->where('slug', 'like', 'message%')->get();
+        $messages = Lead_Action::whereIn('current_element_id', $messages->pluck('id')->toArray())
+            ->whereDate('updated_at', '>=', $past_time)->where('status', 'completed')->get();
+        $message = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'message')->first();
+        $message_count = floor(($message->value - count($messages)) / count($campaigns));
+        if ($message_count > 0) {
+            return $message_count;
+        }
+        return 0;
+    }
+
+    function get_follow_count($campaigns, $seat)
+    {
+        $past_time = now()->modify('-1 days')->format('Y-m-d');
+        $follows = Campaign_Element::whereIn('campaign_id', $campaigns->pluck('id')->toArray())
+            ->where('slug', 'like', 'follow%')->get();
+        $follows = Lead_Action::whereIn('current_element_id', $follows->pluck('id')->toArray())
+            ->whereDate('updated_at', '>=', $past_time)->where('status', 'completed')->get();
+        $follow = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'follows')->first();
+        $follow_count = floor(($follow->value - count($follows)) / count($campaigns));
+        if ($follow_count > 0) {
+            return $follow_count;
+        }
+        return 0;
+    }
+
+    function get_inmail_message_count($campaigns, $seat)
+    {
+        $past_time = now()->modify('-1 days')->format('Y-m-d');
+        $inmail_messages = Campaign_Element::whereIn('campaign_id', $campaigns->pluck('id')->toArray())
+            ->where('slug', 'like', 'inmail_message%')->get();
+        $inmail_messages = Lead_Action::whereIn('current_element_id', $inmail_messages->pluck('id')->toArray())
+            ->whereDate('updated_at', '>=', $past_time)->where('status', 'completed')->get();
+        $inmail_message = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'inmail')->first();
+        $inmail_message_count = floor(($inmail_message->value - count($inmail_messages)) / count($campaigns));
+        if ($inmail_message_count > 0) {
+            return $inmail_message_count;
+        }
+        return 0;
+    }
+
+    function get_email_message_count($campaigns, $seat)
+    {
+        $past_time = now()->modify('-1 days')->format('Y-m-d');
+        $email_messages = Campaign_Element::whereIn('campaign_id', $campaigns->pluck('id')->toArray())
+            ->where('slug', 'like', 'email_message%')->get();
+        $email_messages = Lead_Action::whereIn('current_element_id', $email_messages->pluck('id')->toArray())
+            ->whereDate('updated_at', '>=', $past_time)->where('status', 'completed')->get();
+        $email_message = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'email_message')->first();
+        $email_message_count = floor(($email_message->value - count($email_messages)) / count($campaigns));
+        if ($email_message_count > 0) {
+            return $email_message_count;
+        }
+        return 0;
+    }
+
+    function sendLeadsToEmail($slug, $seat_slug, Request $request)
+    {
+        try {
+            $team = Team::where('slug', $slug)->first();
+            $seat = Seat::where('slug', $seat_slug)->first();
+            $campaign_id = $request->input('campaign_id');
+            $email = $request->input('email');
+            $campaigns = Campaign::where('seat_id', $seat->id);
+            if ($campaign_id !== 'all') {
+                $campaigns->where('id', $campaign_id);
+            }
+            $campaigns = $campaigns->get();
+            if ($campaigns->isNotEmpty()) {
+                foreach ($campaigns as $campaign) {
+                    $fileName = 'leads_' . time() . '_' . Str::random(10) . '.csv';
+                    $uploadDir = 'uploads/';
+                    $uploadFilePath = $uploadDir . $fileName;
+                    $csv = Writer::createFromFileObject(new \SplTempFileObject());
+                    $leads = Lead::where('campaign_id', $campaign->id)->get();
+                    $csv->insertOne(['Sr. #', 'Campaign Id', 'Campaign Name', 'Status', 'Contact', 'Title Company', 'Send Connections', 'Next Step', 'Executed Time']);
+                    if (!$leads->isEmpty()) {
+                        $count = 1;
+                        foreach ($leads as $lead) {
+                            $csv->insertOne([
+                                $count++,
+                                $campaign->id,
+                                $campaign->name,
+                                $lead->is_active == '1' ? 'Active' : 'Not Active',
+                                $lead->contact,
+                                $lead->title_company,
+                                $lead->send_connections,
+                                $lead->next_step ?? 'Completed',
+                                $lead->executed_time
+                            ]);
+                        }
+                    } else {
+                        $csv->insertOne(['No Lead Found', '', '', '', '', '', '', '', '']);
+                    }
+                    $csvContent = $csv->getContent();
+                    Storage::put($uploadFilePath, $csvContent);
+                    $filePaths[$campaign->name] = $uploadFilePath;
+                }
+                Mail::send([], [], function ($message) use ($email, $filePaths) {
+                    $message->to($email)
+                        ->subject('Your Leads CSVs');
+                    $count = 1;
+                    foreach ($filePaths as $name => $filePath) {
+                        $message->attach(Storage::path($filePath), [
+                            'as' => $name,
+                            'mime' => 'text/csv',
+                        ]);
+                    }
+                });
+            }
+            return response()->json(['success' => true]);
+        } catch (Exception $e) {
+            /* Log the exception message for debugging */
+            Log::error($e);
+
+            /* Redirect to the dashboard with a generic error message if an exception occurs */
+            return redirect()->route('seatDashboardPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
+                ->withErrors(['error' => 'Something went wrong']);
         }
     }
 }

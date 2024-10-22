@@ -129,17 +129,16 @@ class seatAccessCheckingMiddleware
                 /* Initialize the UnipileController */
                 $uc = new UnipileController();
 
-                if (!session()->has('seat_linkedin')) {
-                    /* Call retrieve_an_account method with the properly formatted Request object */
-                    $account = $uc->retrieve_an_account($request)->getData(true);
-                    session(['seat_linkedin' => $account['account']]);
-                }
+                /* Call retrieve_an_account method with the properly formatted Request object */
+                $account = $uc->retrieve_an_account($request)->getData(true);
+                session(['seat_linkedin' => $account['account']]);
 
-                if (!session()->has('linkedin_profile')) {
-                    /* Call retrieve_own_profile method with the same Request object */
-                    $account_profile = $uc->retrieve_own_profile($request)->getData(true);
-                    session(['linkedin_profile' => $account_profile['profile']]);
-                }
+                /* Call retrieve_own_profile method with the same Request object */
+                $account_profile = $uc->retrieve_own_profile($request)->getData(true);
+                session(['linkedin_profile' => $account_profile['profile']]);
+            } else {
+                /* Clear specific session variables if no LinkedIn integration found */
+                session()->forget(['seat_linkedin', 'linkedin_profile']);
             }
 
             /* If the user is authorized, proceed to the next middleware or request handler */

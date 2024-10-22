@@ -80,7 +80,104 @@ $(document).ready(function () {
             "edit_campaign_details",
             JSON.stringify(edit_campaign_details)
         );
+        var active_form = $(".campaign_pane.active").find("form");
+        if (active_form.attr("id") != "campaign_form_4") {
+            if (active_form.attr("id") == "campaign_form_1") {
+                var url = $(".campaign_pane.active")
+                    .find("#campaign_url")
+                    .val();
+                const queryString = url.split('?')[1];
+                const params = new URLSearchParams(queryString);
+                const query = {};
+                params.forEach((value, key) => {
+                    try {
+                        const parsedValue = JSON.parse(value);
+                        if (key === 'keywords' && typeof parsedValue === 'string') {
+                            query[key] = encodeURIComponent(parsedValue.trim());
+                        } else {
+                            query[key] = parsedValue;
+                        }
+                    } catch (e) {
+                        query[key] = encodeURIComponent(value.trim());
+                    }
+                });
+                find_connection_linkedin(query);
+            } else if (active_form.attr("id") == "campaign_form_2") {
+                var url = $(".campaign_pane.active")
+                    .find("#campaign_url")
+                    .val();
+                const queryString = url.split('?')[1];
+                const params = new URLSearchParams(queryString);
+                const query = params.get('query');
+                find_connection_sales_navigator(query);
+            }
+            edit_campaign_details["campaign_url"] = $(this).val();
+            sessionStorage.setItem(
+                "edit_campaign_details",
+                JSON.stringify(edit_campaign_details)
+            );
+        }
     });
+
+    function find_connection_linkedin(query) {
+        if (!query['network']) {
+            $(".campaign_pane.active").find("form").find('.connections').val('o');
+        } else {
+            const array = query['network'];
+            if (array.length > 1) {
+                $(".campaign_pane.active").find("form").find('.connections').val('o');
+            } else {
+                if (array[0] == 'F') {
+                    $(".campaign_pane.active").find("form").find('.connections').val('1');
+                } else if (array[0] == 'S') {
+                    $(".campaign_pane.active").find("form").find('.connections').val('2');
+                } else if (array[0] == 'O') {
+                    $(".campaign_pane.active").find("form").find('.connections').val('3');
+                } else {
+                    $(".campaign_pane.active").find("form").find('.connections').val('o');
+                }
+            }
+        }
+        $(".campaign_pane.active").find("form").find('.connections').prop('disabled', true);
+        edit_campaign_details["connections"] = $(".campaign_pane.active").find("form").find('.connections').val();
+        sessionStorage.setItem(
+            "edit_campaign_details",
+            JSON.stringify(edit_campaign_details)
+        );
+    }
+
+    function find_connection_sales_navigator(query) {
+        var relation_index = query.search(/RELATIONSHIP/i);
+        if (relation_index > 0) {
+            var newStr = query.substr(0, relation_index);
+            var paran = newStr.lastIndexOf('(');
+            var newSubStr = query.substring(paran, query.length);
+            var include = newSubStr.search(/INCLUDED/i);
+            if (include > 0) {
+                var newSubStr = query.substr(paran, include);
+                if (newSubStr.includes('1st')) {
+                    $(".campaign_pane.active").find("form").find('.connections').val('1');
+                } else if (newSubStr.includes('2nd')) {
+                    $(".campaign_pane.active").find("form").find('.connections').val('2');
+                } else if (newSubStr.includes('3rd')) {
+                    $(".campaign_pane.active").find("form").find('.connections').val('3');
+                } else {
+                    $(".campaign_pane.active").find("form").find('.connections').val('o');
+                }
+            } else {
+                $(".campaign_pane.active").find("form").find('.connections').val('o');
+            }
+        } else {
+            $(".campaign_pane.active").find("form").find('.connections').val('o');
+        }
+        $(".campaign_pane.active").find("form").find('.connections').prop('disabled', true);
+        edit_campaign_details["connections"] = $(".campaign_pane.active").find("form").find('.connections').val();
+        sessionStorage.setItem(
+            "edit_campaign_details",
+            JSON.stringify(edit_campaign_details)
+        );
+    }
+
     $(".connections").on("change", function (e) {
         edit_campaign_details["connection"] = $(this).val();
         sessionStorage.setItem(

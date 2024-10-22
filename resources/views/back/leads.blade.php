@@ -97,21 +97,33 @@
                                                                         {{ $lead['title_company'] }}
                                                                     </td>
                                                                     <td class="">
-                                                                        @if ($lead['send_connections'] == 'discovered')
-                                                                            <div class="per discovered">Discovered</div>
-                                                                        @elseif ($lead['send_connections'] == 'connected_not_replied')
+                                                                        @if ($lead['send_connections'] == 'connected_not_replied')
                                                                             <div class="per connected_not_replied">
                                                                                 Connected, not replied</div>
+                                                                        @elseif ($lead['send_connections'] == 'profile_viewed')
+                                                                            <div class="per discovered">
+                                                                                Profile Viewed</div>
+                                                                        @elseif ($lead['send_connections'] == 'followed')
+                                                                            <div class="per discovered">
+                                                                                Followed</div>
+                                                                        @elseif ($lead['send_connections'] == 'messaged')
+                                                                            <div class="per discovered">
+                                                                                Messaged</div>
                                                                         @elseif ($lead['send_connections'] == 'replied_not_connected')
                                                                             <div class="per replied_not_connected">Replied,
                                                                                 not connected</div>
                                                                         @elseif ($lead['send_connections'] == 'connection_pending')
                                                                             <div class="per connection_pending">Connection
                                                                                 pending</div>
+                                                                        @elseif ($lead['send_connections'] == 'connected')
+                                                                            <div class="per connected_not_replied">Connected
+                                                                            </div>
                                                                         @elseif ($lead['send_connections'] == 'replied')
                                                                             <div class="per replied">Replied</div>
+                                                                        @elseif ($lead['send_connections'] == 'not_connected')
+                                                                            <div class="per replied">Not Connected</div>
                                                                         @else
-                                                                            <div class="per replied">Disconnected</div>
+                                                                            <div class="per discovered">Discovered</div>
                                                                         @endif
                                                                     </td>
                                                                     <td
@@ -707,7 +719,7 @@
                                                                 <th width="15%">Connections sent</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody>
+                                                        <tbody id="report_data">
                                                             @php
                                                                 $total_view = 0;
                                                                 $total_email = 0;

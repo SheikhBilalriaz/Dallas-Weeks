@@ -70,7 +70,7 @@ class LinkedinIntegrationController extends Controller
             Log::error($e);
 
             /* Redirect to the dashboard with a generic error message if an exception occurs */
-            return redirect()->route('seatDashboardPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
+            return redirect()->route('seatDashboardPage', ['slug' => $slug])
                 ->withErrors(['error' => 'Something went wrong']);
         }
     }

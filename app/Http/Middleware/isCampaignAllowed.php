@@ -29,13 +29,13 @@ class isCampaignAllowed
         $slug = $request->route('slug');
         $seat_slug = $request->route('seat_slug');
         try {
-            if (session('manage_campaigns') === true || session('manage_campaigns') === 'view_only') {
-                return $next($request);
+            if (session('manage_campaigns') !== true && session('manage_campaigns') !== 'view_only') {
+                /* Redirect to the dashboard with a generic error message if an exception occurs */
+                return redirect()->route('seatDashboardPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
+                    ->withErrors(['error' => 'You can not access campaigns or leads']);
             }
 
-            /* Redirect to the dashboard with a generic error message if an exception occurs */
-            return redirect()->route('seatDashboardPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
-                ->withErrors(['error' => 'You can not access campaigns or leads']);
+            return $next($request);
         } catch (Exception $e) {
             /* Log the exception message for debugging */
             Log::error($e);

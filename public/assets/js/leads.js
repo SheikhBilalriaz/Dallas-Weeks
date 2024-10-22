@@ -52,21 +52,27 @@ $(document).ready(function () {
         activeItems.each(function () {
             const dataSpan = $(this).data('span');
             if (dataSpan == "viewsDataPoints") {
+                chart.options.data[$i].name = "Views";
                 chart.options.data[$i].dataPoints = viewsDataPoints;
                 $i++;
             } else if (dataSpan == "inviteDataPoints") {
+                chart.options.data[$i].name = "Invites";
                 chart.options.data[$i].dataPoints = inviteDataPoints;
                 $i++;
             } else if (dataSpan == "messageDataPoints") {
+                chart.options.data[$i].name = "Messages";
                 chart.options.data[$i].dataPoints = messageDataPoints;
                 $i++;
             } else if (dataSpan == "inMailDataPoints") {
+                chart.options.data[$i].name = "InMails";
                 chart.options.data[$i].dataPoints = inMailDataPoints;
                 $i++;
             } else if (dataSpan == "followDataPoints") {
+                chart.options.data[$i].name = "Follows";
                 chart.options.data[$i].dataPoints = followDataPoints;
                 $i++;
             } else if (dataSpan == "emailDataPoints") {
+                chart.options.data[$i].name = "Emails";
                 chart.options.data[$i].dataPoints = emailDataPoints;
                 $i++;
             }
@@ -127,8 +133,24 @@ $(document).ready(function () {
                             `${leads[key]["title_company"] ?? ''}` +
                             `</td>`;
                         html += `<td class="">`;
-                        if (leads[key]["send_connections"] == "1") {
-                            html += `<div class="per connected">Connected</div>`;
+                        if (leads[key]['send_connections'] == 'connected_not_replied') {
+                            html += `<div class="per connected_not_replied">Connected, not replied</div>`;
+                        } else if (leads[key]['send_connections'] == 'profile_viewed') {
+                            html += `<div class="per discovered">Profile Viewed</div>`;
+                        } else if (leads[key]['send_connections'] == 'followed') {
+                            html += `<div class="per discovered">Followed</div>`;
+                        } else if (leads[key]['send_connections'] == 'messaged') {
+                            html += `<div class="per discovered">Messaged</div>`;
+                        } else if (leads[key]['send_connections'] == 'replied_not_connected') {
+                            html += `<div class="per replied_not_connected">Replied, not connected</div>`;
+                        } else if (leads[key]['send_connections'] == 'connection_pending') {
+                            html += `<div class="per connection_pending">Connection pending</div>`;
+                        } else if (leads[key]['send_connections'] == 'connected') {
+                            html += `<div class="per connected_not_replied">Connected</div>`;
+                        } else if (leads[key]['send_connections'] == 'replied') {
+                            html += `<div class="per replied">Replied</div>`;
+                        } else if (leads[key]['send_connections'] == 'not_connected') {
+                            html += `<div class="per replied">Not Connected</div>`;
                         } else {
                             html += `<div class="per discovered">Discovered</div>`;
                         }
@@ -173,6 +195,7 @@ $(document).ready(function () {
                 var reports = response.reports;
                 const tableBody = $('#report_data');
                 const tfoot = $('#report_totals');
+                tfoot.empty();
                 tableBody.empty();
                 let totalView = 0;
                 let totalEmail = 0;
@@ -217,6 +240,44 @@ $(document).ready(function () {
                         <td>${totalInvite}</td>
                     </tr>
                 `);
+                viewsDataPoints = [];
+                inviteDataPoints = [];
+                messageDataPoints = [];
+                inMailDataPoints = [];
+                followDataPoints = [];
+                emailDataPoints = [];
+                Object.keys(response.past_month_data).forEach(function (date) {
+                    var dateParts = date.split('-');
+                    var fullDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+                    viewsDataPoints.push({
+                        x: fullDate,
+                        y: response.past_month_data[date]['view_count']
+                    });
+                    inviteDataPoints.push({
+                        x: fullDate,
+                        y: response.past_month_data[date]['invite_count']
+                    });
+                    messageDataPoints.push({
+                        x: fullDate,
+                        y: response.past_month_data[date]['message_count']
+                    });
+                    inMailDataPoints.push({
+                        x: fullDate,
+                        y: response.past_month_data[date]['in_mail_count']
+                    });
+                    followDataPoints.push({
+                        x: fullDate,
+                        y: response.past_month_data[date]['follow_count']
+                    });
+                    emailDataPoints.push({
+                        x: fullDate,
+                        y: response.past_month_data[date]['email_count']
+                    });
+                });
+                $('.stats_list li.active').each(function () {
+                    $(this).removeClass('active');
+                });
+                $('.stats_list li').first().trigger('click');
                 if (response.campaign != null) {
                     var campaign = response.campaign;
                     $("#campaign-name").val(campaign["name"]);
@@ -287,44 +348,6 @@ $(document).ready(function () {
                             });
                         }
                     });
-                    viewsDataPoints = [];
-                    inviteDataPoints = [];
-                    messageDataPoints = [];
-                    inMailDataPoints = [];
-                    followDataPoints = [];
-                    emailDataPoints = [];
-                    Object.keys(response.past_month_data).forEach(function (date) {
-                        var dateParts = date.split('-');
-                        var fullDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-                        viewsDataPoints.push({
-                            x: fullDate,
-                            y: response.past_month_data[date]['view_count']
-                        });
-                        inviteDataPoints.push({
-                            x: fullDate,
-                            y: response.past_month_data[date]['invite_count']
-                        });
-                        messageDataPoints.push({
-                            x: fullDate,
-                            y: response.past_month_data[date]['message_count']
-                        });
-                        inMailDataPoints.push({
-                            x: fullDate,
-                            y: response.past_month_data[date]['in_mail_count']
-                        });
-                        followDataPoints.push({
-                            x: fullDate,
-                            y: response.past_month_data[date]['follow_count']
-                        });
-                        emailDataPoints.push({
-                            x: fullDate,
-                            y: response.past_month_data[date]['email_count']
-                        });
-                    });
-                    $('.stats_list li.active').each(function () {
-                        $(this).removeClass('active');
-                    });
-                    $('.stats_list li').first().trigger('click');
                 } else {
                     $("#campaign-name").val("");
                     $("#linkedin-url").val("");

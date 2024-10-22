@@ -87,20 +87,16 @@
                                                 <li>Lead count: {{ $campaign['lead_count'] }}</li>
                                                 <li>
                                                     <div class="switch_box">
-                                                        @if ($campaign['is_active'] == 1)
-                                                            <input type="checkbox" class="switch"
-                                                                id="switch{{ $campaign['id'] }}" checked />
-                                                        @else
-                                                            <input type="checkbox" class="switch"
-                                                                id="switch{{ $campaign['id'] }}" />
-                                                        @endif
+                                                        <input type="checkbox" class="switch"
+                                                            id="switch{{ $campaign['id'] }}"
+                                                            {{ $campaign['is_active'] === 1 ? 'checked' : '' }} />
                                                         <label for="switch{{ $campaign['id'] }}">Toggle</label>
                                                     </div>
                                                 </li>
                                             </ul>
                                         @endforeach
                                         <a class="get_more_label"
-                                            href="{{ route('campaignPage', ['slug' => $team->slug, 'seat_slug', $seat->slug]) }}"
+                                            href="{{ route('campaignPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}"
                                             bis_skin_checked="1">
                                             More Campaigns<i class="fa-solid fa-arrow-right"></i>
                                         </a>

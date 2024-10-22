@@ -480,12 +480,78 @@ class BlacklistController extends Controller
 
     public function applyBlacklist($team, $url, $profile)
     {
-        if (
-            Global_Blacklist::where('team_id', $team->id)
-            ->where('keyword', $url)
-            ->where('blacklist_type', 'profile_url')
-            ->exists()
-        ) {
+        try {
+            if (
+                Global_Blacklist::where('team_id', $team->id)
+                ->where('keyword', $url)
+                ->where('blacklist_type', 'profile_url')
+                ->exists()
+            ) {
+                return false;
+            }
+    
+            $fullName = $profile['first_name'] . ' ' . $profile['last_name'];
+            $blacklistConditions = [
+                ['operator' => '=', 'value' => $fullName, 'comparison_type' => 'exact'],
+                ['operator' => 'LIKE', 'value' => '%' . $fullName . '%', 'comparison_type' => 'contains'],
+                ['operator' => 'LIKE', 'value' => $fullName . '%', 'comparison_type' => 'starts_with'],
+                ['operator' => 'LIKE', 'value' => '%' . $fullName, 'comparison_type' => 'ends_with'],
+            ];
+            foreach ($blacklistConditions as $condition) {
+                if (
+                    Global_Blacklist::where('team_id', $team->id)
+                    ->where('blacklist_type', 'lead_full_name')
+                    ->where('comparison_type', $condition['comparison_type'])
+                    ->where('keyword', $condition['operator'], $condition['value'])
+                    ->exists()
+                ) {
+                    return false;
+                }
+            }
+    
+            if (!empty($profile['work_experience'][0]['position'])) {
+                $jobTitle = $profile['work_experience'][0]['position'];
+                $blacklistConditions = [
+                    ['operator' => '=', 'value' => $jobTitle, 'comparison_type' => 'exact'],
+                    ['operator' => 'LIKE', 'value' => '%' . $jobTitle . '%', 'comparison_type' => 'contains'],
+                    ['operator' => 'LIKE', 'value' => $jobTitle . '%', 'comparison_type' => 'starts_with'],
+                    ['operator' => 'LIKE', 'value' => '%' . $jobTitle, 'comparison_type' => 'ends_with'],
+                ];
+                foreach ($blacklistConditions as $condition) {
+                    if (
+                        Global_Blacklist::where('team_id', $team->id)
+                        ->where('blacklist_type', 'job_title')
+                        ->where('comparison_type', $condition['comparison_type'])
+                        ->where('keyword', $condition['operator'], $condition['value'])
+                        ->exists()
+                    ) {
+                        return false;
+                    }
+                }
+            }
+    
+            if (!empty($profile['work_experience'][0]['company'])) {
+                $companyName = $profile['work_experience'][0]['company'];
+                $blacklistConditions = [
+                    ['operator' => '=', 'value' => $companyName, 'comparison_type' => 'exact'],
+                    ['operator' => 'LIKE', 'value' => '%' . $companyName . '%', 'comparison_type' => 'contains'],
+                    ['operator' => 'LIKE', 'value' => $companyName . '%', 'comparison_type' => 'starts_with'],
+                    ['operator' => 'LIKE', 'value' => '%' . $companyName, 'comparison_type' => 'ends_with'],
+                ];
+                foreach ($blacklistConditions as $condition) {
+                    if (
+                        Global_Blacklist::where('team_id', $team->id)
+                        ->where('blacklist_type', 'company_name')
+                        ->where('comparison_type', $condition['comparison_type'])
+                        ->where('keyword', $condition['operator'], $condition['value'])
+                        ->exists()
+                    ) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        } catch (Exception $e) {
             return false;
         }
     }
