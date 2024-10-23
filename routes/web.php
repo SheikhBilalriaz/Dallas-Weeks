@@ -214,6 +214,7 @@ Route::middleware(['userAuth'])->group(function () {
         Route::prefix('/settings')->group(function () {
             Route::get('/', [SettingController::class, 'globalSetting'])->name('globalSetting'); //Done
             Route::put('/change-password', [SettingController::class, 'changePassword'])->name('changePassword'); //Done
+            Route::delete('/delete-account', [SettingController::class, 'deleteAccount'])->name('deleteAccount'); //Done
         });
     });
 });

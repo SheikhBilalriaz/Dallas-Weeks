@@ -17,7 +17,9 @@ use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Stripe\Customer;
 use Stripe\Stripe;
+use Stripe\Subscription;
 
 class SeatController extends Controller
 {
@@ -433,12 +435,18 @@ class SeatController extends Controller
             /* If the user has permission to manage the seat settings */
             if ($access_delete_seat) {
 
-                \Stripe\Subscription::update(
+                Subscription::update(
                     $seat->subscription_id,
                     [
                         'cancel_at_period_end' => false,
                     ]
                 );
+
+                $subscription = Subscription::retrieve($seat->subscription_id);
+                $subscription->cancel();
+                
+                $customer = Customer::retrieve($seat->customer_id);
+                $customer->delete();
 
                 $seat->delete();
 

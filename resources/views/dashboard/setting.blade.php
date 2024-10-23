@@ -56,7 +56,11 @@
                         <div class="d-flex"><strong>Delete account</strong>
                             <p>Are you sure you want to delete this account?</p>
                         </div>
-                        <button class="del_btn">Delete Account</button>
+                        <form action="{{ route('deleteAccount', ['slug' => $team->slug]) }}" method="post">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="del_btn">Delete Account</button>
+                        </form>
                     </div>
                 </div>
             </div>

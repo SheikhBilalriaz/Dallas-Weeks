@@ -78,11 +78,15 @@ class DashboardController extends Controller
                 $seats = Seat::whereIn('id', $assignedSeatIds)->get();
             }
 
+            $team_members = Team_Member::where('user_id', $user->id)->get();
+            $teams = Team::whereIn('id', $team_members->pluck('team_id')->toArray())->get();
+
             /* Prepare data for the view */
             $data = [
                 'title' => 'Dashboard - Networked',
                 'team' => $team,
                 'seats' => $seats,
+                'teams' => $teams,
                 'error' => session()->has('errors') ? session('errors')->first() : null,
             ];
 
