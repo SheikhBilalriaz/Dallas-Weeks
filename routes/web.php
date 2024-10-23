@@ -48,7 +48,6 @@ use Illuminate\Support\Facades\Route;
 Route::post('/stripe/webhook', [StripeController::class, 'handleWebhook']);
 Route::post('/unipile/linkedin/webhook', [UnipileLinkedinController::class, 'handleWebhook']); //Done
 Route::post('/unipile/email/webhook', [UnipileEmailController::class, 'handleWebhook']); //Done
-Route::post('/unipile/callback', [UnipileEmailController::class, 'handleWebhook']); //Done
 
 /* These are home pages url which does not require any authentication */
 Route::get('/', [HomeController::class, 'home'])->name('homePage'); //Done

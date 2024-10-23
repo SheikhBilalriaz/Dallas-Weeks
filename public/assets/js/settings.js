@@ -16,7 +16,7 @@ $(document).ready(function () {
         $(this).siblings('.setting_list').toggle();
     });
     $(document).on('input', '#pending_connections', pending_connections);
-    $(document).on('input', '.global_limit_ranges', global_limit_ranges);   
+    $(document).on('input', '.global_limit_ranges', global_limit_ranges);
 });
 
 function global_limit_ranges() {

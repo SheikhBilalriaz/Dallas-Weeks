@@ -693,7 +693,7 @@
                                                 </div>
                                                 <div class="chart_canvas_report">
                                                     <div id="chartContainer"
-                                                        style="height: 388px; width: 100%; !important"></div>
+                                                        style="height: 388px; width: 100% !important;"></div>
                                                 </div>
                                                 <ul
                                                     class="chart_status d-flex justify-content-between list-unstyled p-0 stats_list">

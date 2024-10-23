@@ -177,7 +177,7 @@ $(document).ready(function () {
             JSON.stringify(edit_campaign_details)
         );
     }
-
+    
     $(".connections").on("change", function (e) {
         edit_campaign_details["connection"] = $(this).val();
         sessionStorage.setItem(

@@ -130,7 +130,7 @@
                                             <tbody id="campaign_table_body">
                                                 @foreach ($seats as $seat)
                                                     @php
-                                                        $company_info = \App\Models\Company_info::find(
+                                                        $company_info = \App\Models\Company_Info::find(
                                                             $seat->company_info_id,
                                                         );
                                                     @endphp
