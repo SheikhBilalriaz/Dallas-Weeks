@@ -15,6 +15,7 @@ use App\Models\Lead_Action;
 use App\Models\Linkedin_Integration;
 use App\Models\Properties;
 use App\Models\Seat;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -78,7 +79,7 @@ class ActionLeadCron extends Command
             $inmail_distribution_limit = $lc->get_inmail_message_count($campaigns, $seat);
             $email_distribution_limit = $lc->get_email_message_count($campaigns, $seat);
             foreach ($campaigns as $campaign) {
-                $actions = Lead_Action::where('campaign_id', $campaign['id'])->where('status', 'inprogress')->get();
+                $actions = Lead_Action::where('campaign_id', $campaign['id'])->where('status', 'inprogress')->distinct('lead_id')->get();
                 if ($actions->isNotEmpty()) {
                     $view_count = 0;
                     $invite_count = 0;
@@ -122,25 +123,39 @@ class ActionLeadCron extends Command
                                             }
                                             break;
                                         case 'message':
-                                            if ($message_count < $message_distribution_limit) {
-                                                $success = $cc->message($action, $account_id, $element, $campaign_element);
-                                                if ($success) {
-                                                    Log::channel($this->logFilePath)->info('Message sent successfully');
+                                            $half_hour_past = Carbon::now()->subMinutes(5);
+                                            if ($action->updated === $action->created_at || $action->updated_at <= $half_hour_past) {
+                                                $action['updated_at'] = now();
+                                                $action->save();
+                                                if ($message_count < $message_distribution_limit) {
+                                                    $success = $cc->message($action, $account_id, $element, $campaign_element);
+                                                    if ($success) {
+                                                        Log::channel($this->logFilePath)->info('Message sent successfully');
+                                                    }
+                                                    $message_count++;
+                                                } else {
+                                                    Log::channel($this->logFilePath)->info('Message Limitation reached');
                                                 }
-                                                $message_count++;
                                             } else {
-                                                Log::channel($this->logFilePath)->info('Message Limitation reached');
+                                                Log::channel($this->logFilePath)->info('Wait for 5 minutes');
                                             }
                                             break;
                                         case 'invite_to_connect':
-                                            if ($invite_count < $invitation_distribution_limit) {
-                                                $success = $cc->invite_to_connect($action, $account_id, $element, $campaign_element);
-                                                if ($success) {
-                                                    Log::channel($this->logFilePath)->info('Invitation to connect sent successfully');
+                                            $half_hour_past = Carbon::now()->subMinutes(5);
+                                            if ($action->updated === $action->created_at || $action->updated_at <= $half_hour_past) {
+                                                $action['updated_at'] = now();
+                                                $action->save();
+                                                if ($invite_count < $invitation_distribution_limit) {
+                                                    $success = $cc->invite_to_connect($action, $account_id, $element, $campaign_element);
+                                                    if ($success) {
+                                                        Log::channel($this->logFilePath)->info('Invitation to connect sent successfully');
+                                                    }
+                                                    $invite_count++;
+                                                } else {
+                                                    Log::channel($this->logFilePath)->info('Invitation Limitation reached');
                                                 }
-                                                $invite_count++;
                                             } else {
-                                                Log::channel($this->logFilePath)->info('Invitation Limitation reached');
+                                                Log::channel($this->logFilePath)->info('Wait for 5 minutes');
                                             }
                                             break;
                                         case 'inmail_message':
@@ -220,7 +235,7 @@ class ActionLeadCron extends Command
                         } catch (Exception $e) {
                             Log::channel($this->logFilePath)->error('Error in campaign processing: ' . $e->getMessage());
                         }
-                        if ($success || $action['current_element_id'] == null || $current_time > $action['ending_time']) {
+                        if ($success || $action['current_element_id'] == null) {
                             $action['status'] = 'completed';
                             $action['updated_at'] = now();
                             $action->save();

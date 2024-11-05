@@ -1128,6 +1128,7 @@ $(document).ready(function () {
     }
 
     function check_elements() {
+        $("#loader").show();
         for (var key in elements_array) {
             if (key !== "step-1") {
                 if (find_element(key) == undefined) {
@@ -1146,7 +1147,6 @@ $(document).ready(function () {
                     var element_data = elements_data_array[key];
                     for (var prop_key in element_data) {
                         var errorOccurred = false;
-                        $("#loader").show();
                         $.ajax({
                             url: getPropertyRequiredPath.replace(
                                 ":id",

@@ -110,7 +110,6 @@ class BlacklistController extends Controller
             $insertData = [];
             foreach ($blacklistItems as $item) {
                 $insertData[] = [
-                    'creator_id' => $creator->id,
                     'team_id' => $team->id,
                     'keyword' => $item,
                     'blacklist_type' => $globalBlacklistType,
@@ -165,6 +164,22 @@ class BlacklistController extends Controller
                 'email_blacklist_type' => 'required|string',
                 'email_comparison_type' => 'required|string',
             ]);
+            
+            /* Additional validation for 'lead_email' blacklist type */
+            $validator->after(function ($validator) use ($request) {
+                if ($request->input('email_blacklist_type') === 'lead_email') {
+                    if ($request->input('email_comparison_type') !== 'exact') {
+                        $validator->errors()->add('global_comparison_type', 'If Lead Email is selected, the comparison type must be exact.');
+                    }
+
+                    /* Validate that each profile URL contains 'https://www.linkedin.com/in/' */
+                    foreach ($request->input('email_blacklist_item') as $item) {
+                        if (!filter_var($item, FILTER_VALIDATE_EMAIL)) {
+                            $validator->errors()->add('global_blacklist_item', 'Lead Emails must be email.');
+                        }
+                    }
+                }
+            });
 
             /* Return validation errors if validation fails */
             if ($validator->fails()) {
@@ -185,7 +200,6 @@ class BlacklistController extends Controller
             $insertData = [];
             foreach ($blacklistItems as $item) {
                 $insertData[] = [
-                    'creator_id' => $creator->id,
                     'team_id' => $team->id,
                     'keyword' => $item,
                     'blacklist_type' => $emailBlacklistType,

@@ -24,7 +24,7 @@ class UserAuthMiddleware
         /* If the user is not authenticated, clear the specific session keys */
         if (!$user) {
             session()->flush();
-            return redirect()->route('loginPage')->withErrors(['error' => 'Please log in to access this page.']);
+            return redirect()->route('loginPage')->withErrors(['error' => 'Please log in to access the dashboard.']);
         }
 
         /* Store the user's email verification status in the session */

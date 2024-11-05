@@ -421,7 +421,8 @@
                                             <div class="cmp_btns d-flex justify-content-center align-items-center">
                                                 <a href="javascript:;" class="btn prev_tab"><i
                                                         class="fa-solid fa-arrow-left"></i>Back</a>
-                                                <a id="create_sequence" type="button" class="btn nxt_btn">Save Changes<i class="fa-solid fa-arrow-right"></i></a>
+                                                <a id="create_sequence" type="button" class="btn nxt_btn">Edit
+                                                    sequence<i class="fa-solid fa-arrow-right"></i></a>
                                             </div>
                                         </div>
                                     </div>

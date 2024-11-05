@@ -184,7 +184,6 @@ class SeatWebhookController extends Controller
             }
             if (!isset($webhook_response['error'])) {
                 Webhook::create([
-                    'creator_id' => Auth::user()->id,
                     'seat_id' => $seat->id,
                     'name' => $request->input('name'),
                     'reason' => $request->input('desc'),

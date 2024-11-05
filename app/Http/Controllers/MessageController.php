@@ -23,7 +23,7 @@ class MessageController extends Controller
             $request = ['account_id' => $linkedin_integrations['account_id'], 'limit' => 10];
             $chats = $uc->list_all_chats(new \Illuminate\Http\Request($request));
             $all_chats = $chats->getData(true)['chats'];
-            $data['title'] = 'Message';
+            $data['title'] = 'Dashboard - Message';
             $data['team'] = $team;
             $data['seat'] = $seat;
             $data['chats'] = $all_chats['items'];

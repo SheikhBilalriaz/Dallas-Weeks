@@ -147,6 +147,8 @@ Route::middleware(['userAuth'])->group(function () {
                 });
                 Route::middleware(['isReportAllowed'])->group(function () {
                     Route::get('/report', [ReportController::class, 'report'])->name('reportPage'); //Done
+                    Route::get('/generate-report', [ReportController::class, 'generate_report'])->name('generateReport'); //Done
+                    Route::get('/generate-pdf', [ReportController::class, 'generate_pdf'])->name('generatePdf'); //Done
                 });
                 Route::post('/import-csv', [CsvController::class, 'import_csv'])->name('importCsv'); //Done
                 Route::post('/disconnect-linkedin-account', [LinkedinIntegrationController::class, 'disconnectLinkedinAccount'])->name('disconnectLinkedinAccount'); //Done

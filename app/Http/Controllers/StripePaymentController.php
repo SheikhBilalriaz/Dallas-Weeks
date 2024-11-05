@@ -38,7 +38,7 @@ class StripePaymentController extends Controller
                 'card_number' => 'required|string',
                 'card_cvc' => 'required|string',
                 'card_expiry_month' => 'required|max:2',
-                'card_expiry_year' => 'required|max:2',
+                'card_expiry_year' => 'required|max:4',
             ]);
 
             /* Return validation errors if validation fails */

@@ -397,8 +397,24 @@
     @endif
     <script>
         $(document).ready(function() {
-            if ("{{ session()->has('payment_error') }}") {
+            var hasPaymentError = "{{ session()->has('payment_error') }}" === "1";
+            if (hasPaymentError) {
                 $('#addaccount').modal('show');
+                var hasStreetAddressError = "{{ $errors->has('street_address') }}" === "1";
+                var hasCityError = "{{ $errors->has('city') }}" === "1";
+                var hasStateError = "{{ $errors->has('state') }}" === "1";
+                var hasPostalCodeError = "{{ $errors->has('postal_code') }}" === "1";
+                var hasCountryError = "{{ $errors->has('country') }}" === "1";
+                var hasCompanyError = "{{ $errors->has('company') }}" === "1";
+                var hasEmailError = "{{ $errors->has('email') }}" === "1";
+                var hasPhoneNumberError = "{{ $errors->has('phone_number') }}" === "1";
+                if (hasStreetAddressError || hasCityError || hasStateError || hasPostalCodeError ||
+                    hasCountryError || hasCompanyError) {} else if (hasEmailError || hasPhoneNumberError) {
+                    $('.btn-next').trigger('click');
+                } else {
+                    $('.btn-next').trigger('click');
+                    $('.btn-next').trigger('click');
+                }
             }
         });
     </script>

@@ -25,13 +25,14 @@ class isChatAllowed
      */
     public function handle(Request $request, Closure $next)
     {
-        /* Retrieve the slug and seat_slug from the request */
-        $slug = $request->route('slug');
-        $seat_slug = $request->route('seat_slug');
+        /* Retrieve the slug and seat_slug from the session */
+        $slug = session('slug');
+        $seat_slug = session('seat_slug');
+        
         try {
             if (session('manage_chat') !== true && session('manage_chat') !== 'view_only') {
                 /* Redirect to the dashboard with a generic error message if an exception occurs */
-                return redirect()->route('dashboardPage', ['slug' => $slug])
+                return redirect()->route('seatDashboardPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
                     ->withErrors(['error' => 'You can not access messages or chats']);
             }
 
@@ -41,7 +42,7 @@ class isChatAllowed
             Log::error($e);
 
             /* Redirect to the dashboard with a generic error message if an exception occurs */
-            return redirect()->route('dashboardPage', ['slug' => $slug])
+            return redirect()->route('seatDashboardPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
                 ->withErrors(['error' => 'Something went wrong']);
         }
     }

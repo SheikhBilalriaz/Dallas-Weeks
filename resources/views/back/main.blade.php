@@ -62,11 +62,11 @@
                                     </ul>
                                 @endforeach
                             @else
-                                <ul>
-                                    <li>{{ now()->format('Y-m-d') }}</li>
-                                    <li>0</li>
-                                    <li>0</li>
-                                    <li>0</li>
+                                <ul class="date d-flex list-unstyle">
+                                    <li><span>Date</span>{{ now()->format('Y-m-d') }}</li>
+                                    <li><span>Views</span>0</li>
+                                    <li><span>Invites</span>0</li>
+                                    <li><span>Follows</span>0</li>
                                 </ul>
                             @endif
                         </div>

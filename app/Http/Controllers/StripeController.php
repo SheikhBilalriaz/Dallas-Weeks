@@ -157,11 +157,12 @@ class StripeController extends Controller
             'phone_number' => $seat_info->phone_number,
             'summary' => $seat_info->summary ?? null,
         ]);
+        
+        $creator_id = $seat->creator_id;
 
         /* Create a new seat record in the database, linking all previously created records */
         $seat = Seat::create([
             'slug' => $this->createUniqueSlug($company_info->name),
-            'creator_id' => $seat->creator_id,
             'team_id' => $team->id,
             'company_info_id' => $company_info->id,
             'seat_info_id' => $seat_info->id,
@@ -270,7 +271,7 @@ class StripeController extends Controller
 
         /* Retrieve the team creator and the user associated with the seat */
         $team_creator = User::find($team->creator_id);
-        $user = User::find($seat->creator_id);
+        $user = User::find($creator_id);
 
         /* Prepare a list of unique email addresses to notify */
         $emails = array($team_creator->email, $user->email, $seat_info->email);
@@ -278,7 +279,7 @@ class StripeController extends Controller
 
         /* Send notification emails to all unique email addresses */
         foreach ($unique_emails as $email) {
-            Mail::to($email)->send(new SubscriptionSuccessMail($seat, $email));
+            Mail::to($email)->send(new SubscriptionSuccessMail($seat, $email, $creator_id));
         }
     }
 
@@ -340,6 +341,8 @@ class StripeController extends Controller
 
         /* Convert the seat metadata from the customer into an array */
         $seat = json_decode($stripeCustomer->metadata->seat);
+        
+        $creator_id = $seat->creator_id;
 
         /* Retrieve the team associated with the seat using the team slug from metadata */
         $team = Team::where('slug', $seat->team_slug)->first();
@@ -384,7 +387,7 @@ class StripeController extends Controller
 
             /* Prepare the invoice data for PDF generation */
             $invoiceData = [
-                'user' => User::find($seat->creator_id),
+                'user' => User::find($creator_id),
                 'invoiceId' => $invoiceId,
                 'invoice' => $invoice,
                 'subscription' => $subscription,

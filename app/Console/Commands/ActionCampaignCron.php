@@ -54,7 +54,15 @@ class ActionCampaignCron extends Command
                     $discover = Global_Limit::where('seat_id', $seat->id)->where('health_slug', 'discover')->first();
                     $campaigns = Campaign::where('seat_id', $seat->id)->where('is_active', 1)->where('is_archive', 0)->get();
                     if ($campaigns->isNotEmpty()) {
-                        $this->campaign_working($campaigns, 5);
+                        $past_time = now()->modify('-1 days')->format('Y-m-d');
+                        $campiagn_leads = Lead_Action::whereIn('campaign_id', $campaigns->pluck('id')->toArray())
+                            ->where('current_element_id', null)
+                            ->whereDate('updated_at', '>=', $past_time)
+                            ->where('status', 'completed')->get();
+                        if ($discover->value - count($campiagn_leads) > 0) {
+                            $this->campaign_working($campaigns, ($discover->value - count($campiagn_leads)));
+                        }
+                        Log::channel($this->logFilePath)->info('Limitation reached');
                     } else {
                         Log::channel($this->logFilePath)->info('No campaigns found for seats # (' . implode(', ', $seat_ids) . ')');
                     }
@@ -67,7 +75,7 @@ class ActionCampaignCron extends Command
         }
     }
 
-    private function campaign_working($campaigns, $remain_distribution_limit = 80, $campaignFunctionCount = 0)
+    private function campaign_working($campaigns, $remain_distribution_limit, $campaignFunctionCount = 0)
     {
         Log::channel($this->logFilePath)->info('Working on campaigns ' . ++$campaignFunctionCount . ' times started successfully at ' . now());
         try {
@@ -102,7 +110,7 @@ class ActionCampaignCron extends Command
             case 'sales_navigator':
                 return $this->salesLeads($campaign, ($remain_distribution_limit + $lead_distribution_limit));
             case 'recruiter':
-                return $this->leadList($campaign, ($remain_distribution_limit + $lead_distribution_limit));
+                return $this->recruiterLeads($campaign, ($remain_distribution_limit + $lead_distribution_limit));
             case 'import':
                 return $this->importLeads($campaign, ($remain_distribution_limit + $lead_distribution_limit));
             case 'post_engagement':
@@ -112,6 +120,72 @@ class ActionCampaignCron extends Command
             default:
                 Log::channel($this->logFilePath)->info('Unknown campaign type ' . $campaign['type'] . ' of campaign # ' . $campaign['id']);
                 return $remain_distribution_limit;
+        }
+    }
+
+    private function recruiterLeads($campaign, $lead_distribution_limit, $leadCount = 0, $cursor = null)
+    {
+        Log::channel($this->logFilePath)->info('Searching recruiter Leads started succesfully at ' . now());
+        try {
+            $integrated_linkedin = Linkedin_Integration::where('seat_id', $campaign->seat_id)->first();
+            $seat = Seat::where('id', $campaign->seat_id)->first();
+            $team = Team::where('id', $seat->team_id)->first();
+            $account_id = $integrated_linkedin->account_id;
+            $url = $campaign->url;
+            $request = [
+                'account_id' => $account_id,
+                'search_url' => $url,
+                'cursor' => $cursor
+            ];
+            $uc = new UnipileController();
+            $lead_list_search = $uc->recruiter_search(new \Illuminate\Http\Request($request))->getData(true);
+            $searches = $lead_list_search['accounts']['items'];
+            $cursor = $lead_list_search['accounts']['cursor'];
+            if (count($searches) > 0) {
+                foreach ($searches as $search) {
+                    if ($leadCount >= $lead_distribution_limit) {
+                        break;
+                    }
+                    $request = [
+                        'account_id' => $account_id,
+                        'profile_url' => $search['public_profile_url'],
+                    ];
+                    $profile = $uc->view_profile(new \Illuminate\Http\Request($request))->getData(true);
+                    if (!isset($profile['error'])) {
+                        $profile = $profile['user_profile'];
+                        if (strpos($profile['public_identifier'], 'https://www.linkedin.com/in/') !== false) {
+                            $url = $profile['public_identifier'];
+                        } else {
+                            $url = 'https://www.linkedin.com/in/' . $profile['public_identifier'];
+                        }
+                        $lead = Lead::where('campaign_id', $campaign['id'])->where('profileUrl', $url)->first();
+                        if (empty($lead) && $leadCount < $lead_distribution_limit) {
+                            $bc = new BlacklistController();
+                            $lc = new LeadsController();
+                            if ($bc->applyBlacklist($team, $url, $profile)) {
+                                if ($lc->applySettings($campaign, $url, $profile)) {
+                                    if ($this->insertLeadToDB($url, $campaign, $profile)) {
+                                        $leadCount++;
+                                        Log::channel($this->logFilePath)->info('Lead inserted succesfully');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if ($leadCount < $lead_distribution_limit && !is_null($cursor)) {
+                    return $this->recruiterLeads($campaign, $lead_distribution_limit, $leadCount, $cursor);
+                }
+            } else if ($leadCount < $lead_distribution_limit) {
+                Log::channel($this->logFilePath)->info('No more searches found');
+            }
+            if ($leadCount >= $lead_distribution_limit) {
+                Log::channel($this->logFilePath)->info('Limitation reached');
+            }
+        } catch (Exception $e) {
+            Log::channel($this->logFilePath)->error('Error in recruiter leads processing: ' . $e->getMessage());
+        } finally {
+            return $lead_distribution_limit - $leadCount;
         }
     }
 
@@ -167,7 +241,7 @@ class ActionCampaignCron extends Command
                                         if ($bc->applyBlacklist($team, $url, $profile) && $lc->applySettings($campaign, $url, $profile)) {
                                             if ($this->insertLeadToDB($url, $campaign, $profile)) {
                                                 $leadCount++;
-                                                Log::channel($this->logFilePath)->error('Lead inserted succesfully');
+                                                Log::channel($this->logFilePath)->info('Lead inserted succesfully');
                                             }
                                         }
                                     }
@@ -181,10 +255,10 @@ class ActionCampaignCron extends Command
                         return $this->linkedinLeads($campaign, $lead_distribution_limit, $leadCount, ($k + $searchedLeadCount));
                     }
                 } else if ($leadCount < $lead_distribution_limit) {
-                    Log::channel($this->logFilePath)->error('No more searches found');
+                    Log::channel($this->logFilePath)->info('No more searches found');
                 }
                 if ($leadCount >= $lead_distribution_limit) {
-                    Log::channel($this->logFilePath)->error('Limitation reached');
+                    Log::channel($this->logFilePath)->info('Limitation reached');
                 }
             } else {
                 Log::channel($this->logFilePath)->error('Error in fetching searches: ' . $linkedin_search['error']);
@@ -338,15 +412,15 @@ class ActionCampaignCron extends Command
                     }
                 }
                 if (!$have_url) {
-                    Log::channel($this->logFilePath)->error('No URL column found');
+                    Log::channel($this->logFilePath)->info('No URL column found');
                 }
                 if ($leadCount < $lead_distribution_limit) {
-                    Log::channel($this->logFilePath)->error('No more searches found');
+                    Log::channel($this->logFilePath)->info('No more searches found');
                 } else {
-                    Log::channel($this->logFilePath)->error('Limitation reached');
+                    Log::channel($this->logFilePath)->info('Limitation reached');
                 }
             } else {
-                Log::channel($this->logFilePath)->error('No data in csv file');
+                Log::channel($this->logFilePath)->info('No data in csv file');
             }
         } catch (Exception $e) {
             Log::channel($this->logFilePath)->error('Error in import leads processing: ' . $e->getMessage());
@@ -423,10 +497,10 @@ class ActionCampaignCron extends Command
                         return $this->salesLeads($campaign, $lead_distribution_limit, $leadCount, (count($searches) + $searchedLeadCount));
                     }
                 } else if ($leadCount < $lead_distribution_limit) {
-                    Log::channel($this->logFilePath)->error('No more searches found');
+                    Log::channel($this->logFilePath)->info('No more searches found');
                 }
                 if ($leadCount >= $lead_distribution_limit) {
-                    Log::channel($this->logFilePath)->error('Limitation reached');
+                    Log::channel($this->logFilePath)->info('Limitation reached');
                 }
             } else {
                 Log::channel($this->logFilePath)->error('Error in fetching searches: ' . $sales_navigator_search['error']);
@@ -556,16 +630,16 @@ class ActionCampaignCron extends Command
                             file_put_contents($this->logFilePath, '         No more searches found' . PHP_EOL, FILE_APPEND);
                         }
                     } else {
-                        Log::channel($this->logFilePath)->error('Limitation reached');
+                        Log::channel($this->logFilePath)->info('Limitation reached');
                     }
                 } else if ($leadCount < $lead_distribution_limit) {
-                    Log::channel($this->logFilePath)->error('No more searches found');
+                    Log::channel($this->logFilePath)->info('No more searches found');
                 }
             } else if ($leadCount < $lead_distribution_limit) {
-                Log::channel($this->logFilePath)->error('No more searches found');
+                Log::channel($this->logFilePath)->info('No more searches found');
             }
             if ($leadCount >= $lead_distribution_limit) {
-                Log::channel($this->logFilePath)->error('Limitation reached');
+                Log::channel($this->logFilePath)->info('Limitation reached');
             }
         } catch (Exception $e) {
             Log::channel($this->logFilePath)->error('Error in post leads processing: ' . $e->getMessage());
@@ -628,10 +702,10 @@ class ActionCampaignCron extends Command
                     return $this->leadList($campaign, $lead_distribution_limit, $leadCount, $cursor);
                 }
             } else if ($leadCount < $lead_distribution_limit) {
-                Log::channel($this->logFilePath)->error('No more searches found');
+                Log::channel($this->logFilePath)->info('No more searches found');
             }
             if ($leadCount >= $lead_distribution_limit) {
-                Log::channel($this->logFilePath)->error('Limitation reached');
+                Log::channel($this->logFilePath)->info('Limitation reached');
             }
         } catch (Exception $e) {
             Log::channel($this->logFilePath)->error('Error in lead list leads processing: ' . $e->getMessage());

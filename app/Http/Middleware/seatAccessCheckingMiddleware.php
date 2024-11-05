@@ -35,7 +35,10 @@ class seatAccessCheckingMiddleware
             /* Retrieve the slug and seat_slug from the request */
             $slug = $request->route('slug');
             $seat_slug = $request->route('seat_slug');
-
+            
+            session(['slug' => $slug]);
+            session(['seat_slug' => $seat_slug]);
+            
             /* Find the seat and team by their slugs */
             $seat = Seat::where('slug', $seat_slug)->first();
             $team = Team::where('slug', $slug)->first();

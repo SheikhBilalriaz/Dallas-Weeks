@@ -42,16 +42,29 @@ $(document).ready(function () {
         }
         $(this).siblings('input').prop('checked', true);
     });
-    $(document).on('click', '.global_comparison_type', function () {
-        $('.global_comparison_type').siblings('input').prop('checked', false);
-        $(this).siblings('input').prop('checked', true);
-    });
     $(document).on('click', '.email_blacklist_type', function () {
         $('.email_blacklist_type').siblings('input').prop('checked', false);
+        let comparisonType = $('.email_blacklist_type').parent().parent();
+        if ($(this).siblings('input').val() == 'lead_email') {
+            comparisonType.each(function (index, element) {
+                let $element = $(element);
+                if ($element.find('input').val() !== 'exact') {
+                    $element.find('input').prop('checked', false);
+                    $element.addClass('disabled');
+                } else {
+                    $element.find('input').click();
+                }
+            });
+        } else {
+            comparisonType.each(function (index, element) {
+                let $element = $(element);
+                $element.removeClass('disabled');
+            });
+        }
         $(this).siblings('input').prop('checked', true);
     });
-    $(document).on('click', '.email_comparison_type', function () {
-        $('.email_comparison_type').siblings('input').prop('checked', false);
+    $(document).on('click', '.global_comparison_type', function () {
+        $('.global_comparison_type').siblings('input').prop('checked', false);
         $(this).siblings('input').prop('checked', true);
     });
     $(document).on('click', '.filter_global_blacklist_type, .filter_global_comparison_type, .filter_email_blacklist_type, .filter_email_comparison_type', function () {

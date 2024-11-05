@@ -438,6 +438,11 @@
                                                 </div>
                                             </div>
                                         @endforeach
+                                    @else
+                                        <div>
+                                            <i class="fa-solid fa-triangle-exclamation" style="color: #ff0000;"></i>
+                                            You don't have any listed role
+                                        </div>
                                     @endif
                                 </div>
                                 <div

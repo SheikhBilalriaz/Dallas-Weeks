@@ -157,10 +157,16 @@
                                                                     limits at range 20 to 30.
                                                                 </div>
                                                                 <div class="slider col-lg-4">
-                                                                    <div class="cont">
-                                                                        <span>50</span>
-                                                                        <span>100</span>
-                                                                    </div>
+                                                                    <label for="profile_views">Profile Views:
+                                                                        <span
+                                                                            id="profile_views_val">{{ $profile_views->value }}</span></label>
+                                                                    <input type="range" name="profile_views"
+                                                                        id="profile_views" min="0"
+                                                                        max="180" step="10"
+                                                                        value="{{ $profile_views->value }}"
+                                                                        data-span="profile_views_val"
+                                                                        class="global_limit_ranges"
+                                                                        @disabled(true)>
                                                                 </div>
                                                             </div>
                                                             <div class="row grey_box d-flex align-items-center">

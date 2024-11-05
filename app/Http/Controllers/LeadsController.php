@@ -479,9 +479,9 @@ class LeadsController extends Controller
                         'id',
                         Lead_Action::whereIn(
                             'current_element_id',
-                            Campaign_Element::where(
+                            Campaign_Element::whereIn(
                                 'campaign_id',
-                                Campaign::where('seat_id', $campaign->seat_id)->pluck('id')
+                                Campaign::where('seat_id', $campaign->seat_id)->pluck('id')->toArray()
                             )
                                 ->where('slug', 'like', 'invite_to_connect%')
                                 ->pluck('id')

@@ -98,7 +98,6 @@ class RolesPermissionController extends Controller
             $role = Role::create([
                 'name' => $request->input('role_name'),
                 'team_id' => $team->id,
-                'creator_id' => $creator->id,
             ]);
 
             /* Retrieve all permissions from the database */

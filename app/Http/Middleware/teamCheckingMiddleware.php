@@ -26,6 +26,8 @@ class teamCheckingMiddleware
 
         /* Retrieve the slug from the request URL parameters */
         $slug = $request->route('slug');
+        
+        session(['slug' => $slug]);
 
         /* Attempt to retrieve the team by slug */
         $team = Team::where('slug', $slug)->first();

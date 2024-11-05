@@ -64,7 +64,7 @@ class TeamController extends Controller
 
             /* Prepare the data for rendering in the view. */
             $data = [
-                'title' => 'Team Dashboard',
+                'title' => 'Team - Networked',
                 'team' => $team,
                 'seats' => $seats,
                 'roles' => $roles,

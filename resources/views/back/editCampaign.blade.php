@@ -268,6 +268,7 @@
                                                                 <input type="file" id="campaign_url"
                                                                     class="file-input__input" class="campaign_url"
                                                                     name="campaign_url" placeholder="LinkedIn search URL"
+                                                                    value="{{ $campaign->url }}"
                                                                     required>
                                                                 <label class="file-input__label" for="file-input">
                                                                     <svg aria-hidden="true" focusable="false"

@@ -41,6 +41,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Stripe\Customer;
+use Stripe\Stripe;
+use Stripe\Subscription;
 
 class SettingController extends Controller
 {
@@ -122,55 +126,77 @@ class SettingController extends Controller
 
     public function deleteAccount(Request $request)
     {
+        Stripe::setApiKey(config('services.stripe.secret'));
         $user = Auth::user();
-        $teams = Team::where('creator_id', $user->id)->get();
-        foreach ($teams as $team) {
-            $team_members = Team_Member::where('team_id', $team->id)->get();
+        DB::beginTransaction();
+        try {
+            $uc = new UnipileController();
+            $teams = Team::where('creator_id', $user->id)->get();
+            foreach ($teams as $team) {
+                $seats = Seat::where('team_id', $team->id)->get();
+                foreach ($seats as $seat) {
+                    $integrated_emails = Email_Integraion::where('seat_id', $seat->id)->get();
+                    foreach ($integrated_emails as $integration) {
+                        try {
+                            $deleteRequest = new \Illuminate\Http\Request(['account_id' => $integration->account_id]);
+                            $deletedAccount = $uc->delete_account($deleteRequest)->getData(true);
+                        } catch (Exception $e) {
+                            Log::error($e);
+                        } finally {
+                            $integration->delete();
+                        }
+                    }
+                    $linkedin_integrations = Linkedin_Integration::where('seat_id', $seat->id)->get();
+                    foreach ($linkedin_integrations as $integration) {
+                        try {
+                            $deleteRequest = new \Illuminate\Http\Request(['account_id' => $integration->account_id]);
+                            $deletedAccount = $uc->delete_account($deleteRequest)->getData(true);
+                        } catch (Exception $e) {
+                            Log::error($e);
+                        } finally {
+                            $integration->delete();
+                        }
+                    }
+                    $webhooks = Webhook::where('seat_id', $seat->id)->get();
+                    foreach ($webhooks as $webhook) {
+                        try {
+                            $deleteRequest = new \Illuminate\Http\Request(['webhook_id' => $webhook->webhook_id]);
+                            $deletedAccount = $uc->delete_webhook($deleteRequest)->getData(true);
+                        } catch (Exception $e) {
+                            Log::error($e);
+                        } finally {
+                            $webhook->delete();
+                        }
+                    }
+                    Subscription::update(
+                        $seat->subscription_id,
+                        ['cancel_at_period_end' => false,]
+                    );
+                    $subscription = Subscription::retrieve($seat->subscription_id);
+                    $subscription->cancel();
+                    $customer = Customer::retrieve($seat->customer_id);
+                    $customer->delete();
+                    $company_id = $seat->company_info_id;
+                    $seat_info_id = $seat->seat_info_id;
+                    $seat->delete();
+                    Seat_Info::where('id', $seat_info_id)->delete();
+                    Company_Info::where('id', $company_id)->delete();
+                }
+                $team->delete();
+            }
+            $team_members = Team_Member::where('user_id', $user->id)->get();
             foreach ($team_members as $member) {
-                $assigned_seats = Assigned_Seat::where('member_id', $member->id)->get();
+                Assigned_Seat::where('member_id', $member->id)->delete();
+                Global_Permission::where('team_id', $member->team_id)->where('user_id', $user->id)->delete();
+                $member->delete();
             }
-            $seats = Seat::where('team_id', $team->id)->get();
-            foreach ($seats as $seat) {
-                $account_healths = Account_Health::where('seat_id', $seat->id)->get();
-                $account_health_limits = Account_Health_Limit::where('seat_id', $seat->id)->get();
-                $global_limits = Global_Limit::where('seat_id', $seat->id)->get();
-                $seat_times = Seat_Time::where('seat_id', $seat->id)->get();
-                $seat_timezones = Seat_Timezone::where('seat_id', $seat->id)->get();
-                $campaigns = Campaign::where('seat_id', $seat->id)->get();
-                foreach ($campaigns as $campaign) {
-                    $campaign_actions = Campaign_Action::where('campaign_id', $campaign->id)->get();
-                    $campaign_properties = Campaign_Property::where('campaign_id', $campaign->id)->get();
-                    $campaign_paths = Campaign_Path::where('campaign_id', $campaign->id)->get();
-                    $campaign_elements = Campaign_Element::where('campaign_id', $campaign->id)->get();
-                    $lead_actions = Lead_Action::where('campaign_id', $campaign->id)->get();
-                    $leads = Lead::where('campaign_id', $campaign->id)->get();
-                    $email_settings = Email_Setting::where('campaign_id', $campaign->id)->get();
-                    $global_settings = Global_Setting::where('campaign_id', $campaign->id)->get();
-                    $linkedin_settings = Linkedin_Setting::where('campaign_id', $campaign->id)->get();
-                }
-                $webhooks = Webhook::where('seat_id', $seat->id)->get();
-                $email_integrations = Email_Integraion::where('seat_id', $seat->id)->get();
-                $linkedin_integrations = Linkedin_Integration::where('seat_id', $seat->id)->get();
-                $company_info = Company_Info::where('id', $seat->company_info_id)->get();
-                $seat_info = Seat_Info::where('id', $seat->seat_info_id)->get();
-                $invoices = Invoice::where('seat_id', $seat->id)->get();
-                $schedules = Schedule::where('seat_id', $seat->id)->get();
-                foreach ($schedules as $schedule) {
-                    $schedule_days = Schedule_Day::where('schedule_id', $schedule->id)->get();
-                }
-            }
-            $email_blacklists = Email_Blacklist::where('team_id', $team->id)->get();
-            $global_blacklists = Global_Blacklist::where('team_id', $team->id)->get();
-            $global_permissions = Global_Permission::where('team_id', $team->id)->get();
-            $roles = Role::where('team_id', $team->id)->get();
-            foreach ($roles as $role) {
-                $permission_to_roles = Role_Permission::where('role_id', $role->id)->get();
-            }
-        }
-        $team_members = Team_Member::where('user_id', $user->id)->get();
-        foreach ($team_members as $member) {
-            $assigned_seats = Assigned_Seat::where('member_id', $member->id)->get();
-            $global_permissions = Global_Permission::where('team_id', $member->team_id)->where('user_id', $user->id)->get();
+            $user->delete();
+            DB::commit();
+            return redirect()->route('loginPage')->with(['success' => 'Account deleted successfully']);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error($e);
+            return redirect()->route('loginPage')->withErrors(['error' => 'Something went wrong']);
         }
     }
 }

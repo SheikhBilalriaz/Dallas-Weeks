@@ -19,14 +19,16 @@ class SubscriptionSuccessMail extends Mailable
 
     private $seat;
     private $email;
+    private $creator_id;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($seat, $email)
+    public function __construct($seat, $email, $creator_id)
     {
         $this->seat = $seat;
         $this->email = $email;
+        $this->creator_id = $creator_id;
     }
 
     /**
@@ -39,7 +41,7 @@ class SubscriptionSuccessMail extends Mailable
         \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
         $user = User::where('email', $this->email)->first() ?? (object) ['name' => $this->email];
         $company_info = Company_Info::find($this->seat->company_info_id);
-        $creator = User::find($this->seat->creator_id);
+        $creator = User::find($this->creator_id);
         $seat_info = Seat_Info::find($this->seat->seat_info_id);
         $price = \Stripe\Price::retrieve(config('services.stripe.seat_price_id'));
         $customer = \Stripe\Customer::retrieve($this->seat->customer_id);

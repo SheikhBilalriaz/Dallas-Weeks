@@ -25,9 +25,10 @@ class isCampaignAllowed
      */
     public function handle(Request $request, Closure $next)
     {
-        /* Retrieve the slug and seat_slug from the request */
-        $slug = $request->route('slug');
-        $seat_slug = $request->route('seat_slug');
+        /* Retrieve the slug and seat_slug from the session */
+        $slug = session('slug');
+        $seat_slug = session('seat_slug');
+        
         try {
             if (session('manage_campaigns') !== true && session('manage_campaigns') !== 'view_only') {
                 /* Redirect to the dashboard with a generic error message if an exception occurs */

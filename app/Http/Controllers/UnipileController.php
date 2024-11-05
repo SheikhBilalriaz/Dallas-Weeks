@@ -44,9 +44,6 @@ class UnipileController extends Controller
             /* Return the account details as a JSON response */
             return response()->json(['account' => $account]);
         } catch (Exception $e) {
-            /* Log the exception message for debugging */
-            Log::error($e);
-
             /* Handle other unexpected exceptions */
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -86,9 +83,6 @@ class UnipileController extends Controller
             /* Return the profile details as a JSON response */
             return response()->json(['profile' => $profile]);
         } catch (Exception $e) {
-            /* Log the exception message for debugging */
-            Log::error($e);
-
             /* Handle other unexpected exceptions */
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -128,9 +122,6 @@ class UnipileController extends Controller
             /* Return the profile details as a JSON response */
             return response()->json(['delete' => $delete_account]);
         } catch (Exception $e) {
-            /* Log the exception message for debugging */
-            Log::error($e);
-
             /* Handle other unexpected exceptions */
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -184,9 +175,6 @@ class UnipileController extends Controller
             $chats = json_decode($response->getBody(), true);
             return response()->json(['chats' => $chats]);
         } catch (Exception $e) {
-            /* Log the exception message for debugging */
-            Log::error($e);
-
             /* Handle other unexpected exceptions */
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -237,9 +225,6 @@ class UnipileController extends Controller
             $chats = json_decode($response->getBody(), true);
             return response()->json(['user_profile' => $chats]);
         } catch (Exception $e) {
-            /* Log the exception message for debugging */
-            Log::error($e);
-
             /* Handle other unexpected exceptions */
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -1132,7 +1117,7 @@ class UnipileController extends Controller
         if (!isset($all['account_id']) || !isset($all['search_url']) || !config('services.unipile.key') || !config('services.unipile.dsn')) {
             return response()->json(['error' => 'Missing required parameters'], 400);
         }
-        $client = new Client([
+        $client = new \GuzzleHttp\Client([
             'verify' => false,
         ]);
         $account_id = $all['account_id'];

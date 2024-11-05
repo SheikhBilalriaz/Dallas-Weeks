@@ -560,14 +560,14 @@
                                                     <label class="email_comparison_type" for="exact">Exact</label>
                                                 </div>
                                             </div>
-                                            <div class="checkboxes">
+                                            <div class="checkboxes {{ old('email_blacklist_type') == 'lead_email' ? 'disabled' : '' }}">
                                                 <div class="check">
                                                     <input type="checkbox" name="email_comparison_type" value="contains"
                                                         {{ old('email_comparison_type') == 'contains' ? 'checked' : '' }}>
                                                     <label class="email_comparison_type" for="contains">Contains</label>
                                                 </div>
                                             </div>
-                                            <div class="checkboxes">
+                                            <div class="checkboxes {{ old('email_blacklist_type') == 'lead_email' ? 'disabled' : '' }}">
                                                 <div class="check">
                                                     <input type="checkbox" name="email_comparison_type"
                                                         value="starts_with"
@@ -576,7 +576,7 @@
                                                         with</label>
                                                 </div>
                                             </div>
-                                            <div class="checkboxes">
+                                            <div class="checkboxes {{ old('email_blacklist_type') == 'lead_email' ? 'disabled' : '' }}">
                                                 <div class="check">
                                                     <input type="checkbox" name="email_comparison_type" value="ends_with"
                                                         {{ old('email_comparison_type') == 'ends_with' ? 'checked' : '' }}>

@@ -217,12 +217,10 @@ $(document).ready(function () {
                                 html += `<td><a type="button" class="setting setting_btn" id=""><i class="fa-solid fa-gear"></i></a>`;
                                 html += `<ul class="setting_list" style="display: none;">`;
                                 html +=
-                                    `<li><a href="/campaign/campaignDetails/` +
-                                    campaign["id"] +
+                                    `<li><a href="${detailsCampaignRoute.replace(':id', campaign["id"])}` +
                                     `">Check campaign details</a></li>`;
                                 html +=
-                                    `<li><a href="/campaign/editcampaign/` +
-                                    campaign["id"] +
+                                    `<li><a href="${newEditCampaignRoute.replace(':id', campaign["id"])}` +
                                     `">Edit campaign</a></li>`;
                                 html +=
                                     `<li><a class="archive_campaign" id="archive` +

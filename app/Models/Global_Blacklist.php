@@ -22,7 +22,6 @@ class Global_Blacklist extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'creator_id',
         'team_id',
         'keyword',
         'blacklist_type',

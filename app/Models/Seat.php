@@ -18,7 +18,6 @@ class Seat extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'creator_id',
         'team_id',
         'company_info_id',
         'seat_info_id',

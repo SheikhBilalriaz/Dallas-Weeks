@@ -22,7 +22,6 @@ class Webhook extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'creator_id',
         'seat_id',
         'name',
         'reason',

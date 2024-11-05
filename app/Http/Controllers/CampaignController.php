@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Team;
 use App\Models\Seat;
 use App\Models\Campaign;
+use App\Models\Campaign_Action;
 use App\Models\Campaign_Element;
 use App\Models\Campaign_Path;
 use App\Models\Campaign_Property;
@@ -12,12 +13,15 @@ use App\Models\Element;
 use App\Models\Email_Integraion;
 use App\Models\Email_Setting;
 use App\Models\Global_Setting;
+use App\Models\Lead;
+use App\Models\Lead_Action;
 use App\Models\Linkedin_Integration;
 use App\Models\Linkedin_Setting;
 use App\Models\Schedule;
 use Illuminate\Http\Request;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -115,6 +119,8 @@ class CampaignController extends Controller
                 } else if (!isset($matches[1])) {
                     return redirect()->back()->withErrors(['campaign_url' => 'Post must be activity'])->withInput();
                 }
+            } else if ($all['campaign_type'] == 'recruiter' && strpos($all['campaign_url'], 'https://www.linkedin.com/talent/hire/') === false) {
+                return redirect()->back()->withErrors(['campaign_url' => 'Invalid URL for Recruiter search'])->withInput();
             }
             $uc = new UnipileController();
             $seat = Seat::where('slug', $seat_slug)->first();
@@ -276,27 +282,23 @@ class CampaignController extends Controller
         }
     }
 
-    function deleteCampaign($slug, $seat_slug, $campaign_id)
+    public function deleteCampaign($slug, $seat_slug, $campaign_id)
     {
         try {
-            $campaign = Campaign::where('id', $campaign_id)->first();
-            if ($campaign) {
-                Linkedin_Setting::where('campaign_id', $campaign->id)->delete();
-                Global_Setting::where('campaign_id', $campaign->id)->delete();
-                Email_Setting::where('campaign_id', $campaign->id)->delete();
-                $elements = Campaign_Element::where('campaign_id', $campaign->id)->get();
-                if ($elements) {
-                    foreach ($elements as $element) {
-                        Campaign_Property::where('campaign_element_id', $element->id)->delete();
-                        Campaign_Path::where('current_element_id', $element->id)->delete();
-                        $element->delete();
-                    }
-                }
-                $campaign->delete();
-                return response()->json(['success' => true]);
+            DB::beginTransaction();
+            $team = Team::where('slug', $slug)->first();
+            $seat = Seat::where('slug', $seat_slug)->first();
+            $campaign = Campaign::where('id', $campaign_id)->where('seat_id', $seat->id)->first();
+            if (!$campaign) {
+                return response()->json(['error' => 'Campaign not found'], 404);
             }
-            return response()->json(['error' => 'Campaign not found'], 404);
+            $campaign->delete();
+            DB::commit();
+            return response()->json(['success' => true]);
         } catch (Exception $e) {
+            /* Roll back transaction if an error occurs */
+            DB::rollBack();
+
             /* Log the exception message for debugging */
             Log::error($e);
 

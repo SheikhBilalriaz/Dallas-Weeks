@@ -96,7 +96,7 @@ class SeatSettingController extends Controller
 
             /* Prepare data to pass to the view */
             $data = [
-                'title' => 'Dashboard - Networked',
+                'title' => 'Dashboard - Setting',
                 'team' => $team,
                 'seat' => $seat,
                 'time_zones' => $time_zones_with_offset,

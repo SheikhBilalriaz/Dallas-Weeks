@@ -262,6 +262,10 @@
                 "{{ route('changeCampaignStatus', ['slug' => $team->slug, 'seat_slug' => $seat->slug, ':campaign_id']) }}";
             var archiveCampaignRoute =
                 "{{ route('archiveCampaign', ['slug' => $team->slug, 'seat_slug' => $seat->slug, ':id']) }}";
+            var detailsCampaignRoute =
+                "{{ route('campaignDetailsPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'campaign_id' => ':id']) }}";
+            var editCampaignRoute = 
+                "{{ route('editCampaign', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'campaign_id' => ':id']) }}";
         </script>
     @endif
     <script>

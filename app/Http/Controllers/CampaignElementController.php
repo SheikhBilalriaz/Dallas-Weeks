@@ -64,7 +64,6 @@ class CampaignElementController extends Controller
                 $img_path = $data['img_url'];
                 $oneMinuteAgo = Carbon::now()->subMinute();
                 $existing_campaign = Campaign::where('name', $settings['campaign_name'])
-                    ->where('creator_id', $user_id)
                     ->where('seat_id', $seat->id)
                     ->where('created_at', '>=', $oneMinuteAgo)
                     ->first();
@@ -77,7 +76,6 @@ class CampaignElementController extends Controller
                     'type' => $settings['campaign_type'],
                     'url' => $settings['campaign_url'],
                     'connection' => ($settings['campaign_type'] != 'import' && $settings['campaign_type'] != 'recruiter' && $settings['campaign_type'] != 'leads_list') ? $settings['connections'] : 'o',
-                    'creator_id' => $user_id,
                     'seat_id' => $seat->id,
                     'img_path' => $img_path
                 ]);
@@ -96,7 +94,7 @@ class CampaignElementController extends Controller
                 Log::error($e);
                 DB::rollBack();
                 if ($campaign !== null) {
-                    $this->deleteCampaignData($campaign->id);
+                    $campaign->delete();
                 }
                 return response()->json(['success' => false, 'message' => 'Campaign save unsuccesfull']);
             }
