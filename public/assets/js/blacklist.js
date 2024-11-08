@@ -44,7 +44,7 @@ $(document).ready(function () {
     });
     $(document).on('click', '.email_blacklist_type', function () {
         $('.email_blacklist_type').siblings('input').prop('checked', false);
-        let comparisonType = $('.email_blacklist_type').parent().parent();
+        let comparisonType = $('.email_comparison_type').parent().parent();
         if ($(this).siblings('input').val() == 'lead_email') {
             comparisonType.each(function (index, element) {
                 let $element = $(element);
@@ -65,6 +65,10 @@ $(document).ready(function () {
     });
     $(document).on('click', '.global_comparison_type', function () {
         $('.global_comparison_type').siblings('input').prop('checked', false);
+        $(this).siblings('input').prop('checked', true);
+    });
+    $(document).on('click', '.email_comparison_type', function () {
+        $('.email_comparison_type').siblings('input').prop('checked', false);
         $(this).siblings('input').prop('checked', true);
     });
     $(document).on('click', '.filter_global_blacklist_type, .filter_global_comparison_type, .filter_email_blacklist_type, .filter_email_comparison_type', function () {

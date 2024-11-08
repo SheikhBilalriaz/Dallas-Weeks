@@ -237,7 +237,7 @@ function disconnectEmailAccount() {
                     }
                 },
                 error: function (status, xhr, error) {
-                    const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
+                    const errorMessage = status.responseJSON?.error || 'Something went wrong.';
                     toastr.error(errorMessage);
                 },
                 complete: function () {

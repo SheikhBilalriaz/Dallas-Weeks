@@ -297,11 +297,6 @@
                                             value="{{ old('company') }}">
                                         <span class="text-danger">{{ $errors->first('company') }}</span>
                                     </div>
-                                    <div class="col-lg-12">
-                                        <label for="tax_id">Tax ID number</label>
-                                        <input type="text" name="tax_id" id="tax_id"
-                                            placeholder="Enter your tax id" value="{{ old('tax_id') }}">
-                                    </div>
                                 </div>
                                 <div class="btn-group">
                                     <a class="btn btn-prev">Previous</a>
@@ -409,7 +404,8 @@
                 var hasEmailError = "{{ $errors->has('email') }}" === "1";
                 var hasPhoneNumberError = "{{ $errors->has('phone_number') }}" === "1";
                 if (hasStreetAddressError || hasCityError || hasStateError || hasPostalCodeError ||
-                    hasCountryError || hasCompanyError) {} else if (hasEmailError || hasPhoneNumberError) {
+                    hasCountryError || hasCompanyError) {} 
+                else if (hasEmailError || hasPhoneNumberError) {
                     $('.btn-next').trigger('click');
                 } else {
                     $('.btn-next').trigger('click');

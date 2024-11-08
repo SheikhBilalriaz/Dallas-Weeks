@@ -31,45 +31,54 @@
                         </div>
                     </div>
                     <div class="border_box">
-                        <div class="chart_box">
-                            <div class="d-flex justify-content-between">
-                                <span>Campaign stats</span>
+                        @if (session('manage_campaign_details_and_reports') == true || session('manage_campaign_details_and_reports') == 'view_only')
+                            <div class="chart_box">
+                                <div class="d-flex justify-content-between">
+                                    <span>Campaign stats</span>
+                                </div>
+                                <div class="chart_canvas">
+                                    <div id="chartContainer" style="height: 350px; width: 100%;"></div>
+                                </div>
                             </div>
-                            <div class="chart_canvas">
-                                <div id="chartContainer" style="height: 350px; width: 100%;"></div>
-                            </div>
-                        </div>
-                        <div class="invite_date_box">
-                            @if (!empty($reports))
-                                @foreach ($reports as $date => $counts)
+                            <div class="invite_date_box">
+                                @if (!empty($reports))
+                                    @foreach (array_slice($reports, 0, 5) as $date => $counts)
+                                        <ul class="date d-flex list-unstyle">
+                                            <li>
+                                                <span>Date</span>
+                                                {{ $date }}
+                                            </li>
+                                            <li>
+                                                <span>Views</span>
+                                                {{ $counts['view_count'] ?? 0 }}
+                                            </li>
+                                            <li class="invites">
+                                                <span>Invites</span>
+                                                {{ $counts['invite_count'] ?? 0 }}
+                                            </li>
+                                            <li>
+                                                <span>Follows</span>
+                                                {{ $counts['follow_count'] ?? 0 }}
+                                            </li>
+                                        </ul>
+                                    @endforeach
+                                @else
                                     <ul class="date d-flex list-unstyle">
-                                        <li>
-                                            <span>Date</span>
-                                            {{ $date }}
-                                        </li>
-                                        <li>
-                                            <span>Views</span>
-                                            {{ $counts['view_count'] ?? 0 }}
-                                        </li>
-                                        <li class="invites">
-                                            <span>Invites</span>
-                                            {{ $counts['invite_count'] ?? 0 }}
-                                        </li>
-                                        <li>
-                                            <span>Follows</span>
-                                            {{ $counts['follow_count'] ?? 0 }}
-                                        </li>
+                                        <li><span>Date</span>{{ now()->format('Y-m-d') }}</li>
+                                        <li><span>Views</span>0</li>
+                                        <li><span>Invites</span>0</li>
+                                        <li><span>Follows</span>0</li>
                                     </ul>
-                                @endforeach
-                            @else
-                                <ul class="date d-flex list-unstyle">
-                                    <li><span>Date</span>{{ now()->format('Y-m-d') }}</li>
-                                    <li><span>Views</span>0</li>
-                                    <li><span>Invites</span>0</li>
-                                    <li><span>Follows</span>0</li>
-                                </ul>
-                            @endif
-                        </div>
+                                @endif
+                            </div>
+                        @else
+                            <div style="display: block; cursor: auto;">
+                                <div class="text-center">
+                                    <img src="{{ asset('assets/img/empty.png') }}" alt="">
+                                    <p>You can not access Campaign Reports and details</p>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
                 <div class="col-lg-7 col-sm-12">
@@ -98,7 +107,7 @@
                                         <a class="get_more_label"
                                             href="{{ route('campaignPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}"
                                             bis_skin_checked="1">
-                                            More Campaigns<i class="fa-solid fa-arrow-right"></i>
+                                            Manage Campaigns<i class="fa-solid fa-arrow-right"></i>
                                         </a>
                                     @else
                                         <div class="campaign_list" style="display: block; cursor: auto;">
@@ -143,7 +152,7 @@
                                                 <li class="skel_profile">
                                                     <img src="{{ asset('assets/img/acc.png') }}" alt=""
                                                         class="skel_profile_img">
-                                                    <a href="" class="skel_profile_name"></a>
+                                                    <a class="skel_profile_name"></a>
                                                 </li>
                                                 <li class="col-lg-6">
                                                     <p class="skel_message"></p>
@@ -154,9 +163,9 @@
                                             </ul>
                                         @endforeach
                                         <a class="get_more_label"
-                                            href="{{ route('seatMessageController', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}"
+                                            href="{{ route('dash-messages', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}"
                                             bis_skin_checked="1">
-                                            More Messages
+                                            Manage Messages
                                             <i class="fa-solid fa-arrow-right"></i>
                                         </a>
                                     @else
@@ -171,7 +180,7 @@
                                     <div class="campaign_list" style="display: block; cursor: auto;">
                                         <div class="text-center">
                                             <img src="{{ asset('assets/img/empty.png') }}" alt="">
-                                            <p>You can not access Campaigns</p>
+                                            <p>You can not access Chats</p>
                                         </div>
                                     </div>
                                 @endif

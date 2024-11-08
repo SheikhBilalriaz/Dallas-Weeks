@@ -126,14 +126,26 @@
                                                                             <div class="per discovered">Discovered</div>
                                                                         @endif
                                                                     </td>
-                                                                    <td
-                                                                        style="color: {{ $lead['current_step'] ? '' : 'red' }}; font-weight: {{ $lead['current_step'] ? '' : 'bold' }};">
-                                                                        {{ $lead['current_step'] ?? 'Step 1' }}
-                                                                    </td>
-                                                                    <td
-                                                                        style="color: {{ $lead['next_step'] ? '' : 'green' }}; font-weight: {{ $lead['next_step'] ? '' : 'bold' }};">
-                                                                        {{ $lead['next_step'] ?? 'Completed' }}
-                                                                    </td>
+                                                                    @if (isset($lead['current_step']) && isset($lead['next_step']))
+                                                                        <td>
+                                                                            {{ $lead['current_step'] }}
+                                                                        </td>
+                                                                        <td>
+                                                                            {{ $lead['next_step'] }}
+                                                                        </td>
+                                                                    @elseif (!isset($lead['current_step']))
+                                                                        <td class="text-center"
+                                                                            style="color: red; font-weight: bold;"
+                                                                            colspan="2">
+                                                                            Step 1
+                                                                        </td>
+                                                                    @elseif (!isset($lead['next_step']))
+                                                                        <td class="text-center"
+                                                                            style="color: green; font-weight: bold;"
+                                                                            colspan="2">
+                                                                            Completed
+                                                                        </td>
+                                                                    @endif
                                                                     <td>
                                                                         <div class="">
                                                                             {{ $lead['created_at']->diffInDays(now()) }}

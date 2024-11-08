@@ -595,7 +595,6 @@ $(document).ready(function () {
                 border: "none",
             });
             if (check_elements()) {
-                $("#loader").show();
                 $.ajax({
                     url: createCampaignPath,
                     type: "POST",
@@ -611,6 +610,9 @@ $(document).ready(function () {
                         "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr(
                             "content"
                         ),
+                    },
+                    beforeSend: function () {
+                        $("#loader").show();
                     },
                     success: function (response) {
                         if (response.success) {
@@ -1128,7 +1130,8 @@ $(document).ready(function () {
     }
 
     function check_elements() {
-        $("#loader").show();
+        const promises = [];
+    
         for (var key in elements_array) {
             if (key !== "step-1") {
                 if (find_element(key) == undefined) {
@@ -1136,57 +1139,42 @@ $(document).ready(function () {
                     $("#" + key)
                         .find(".item_name")
                         .addClass("error");
-                    key = key.replace(/[0-9]/g, "");
-                    key = key.replace(/_/g, " ");
+                    key = key.replace(/[0-9]/g, "").replace(/_/g, " ");
                     key = capitalize(key);
-                    toastr.error(
-                        key + " is not connected as campaign sequence."
-                    );
-                    return false;
+                    toastr.error(key + " is not connected as campaign sequence.");
+                    return Promise.resolve(false);
                 } else {
                     var element_data = elements_data_array[key];
                     for (var prop_key in element_data) {
-                        var errorOccurred = false;
-                        $.ajax({
-                            url: getPropertyRequiredPath.replace(
-                                ":id",
-                                prop_key
-                            ),
-                            async: false,
+                        const promise = $.ajax({
+                            url: getPropertyRequiredPath.replace(":id", prop_key),
                             type: "GET",
-                            success: function (response) {
-                                if (response.success) {
-                                    var property = response.property;
-                                    if (
-                                        element_data[prop_key] == "" &&
-                                        property["optional"] == 1
-                                    ) {
-                                        $("#" + key).addClass("error");
-                                        $("#" + key)
-                                            .find(".item_name")
-                                            .addClass("error");
-                                        toastr.error(
-                                            property["property_name"] +
-                                            " is not filled as required."
-                                        );
-                                        errorOccurred = true;
-                                    }
+                        }).then(response => {
+                            if (response.success) {
+                                var property = response.property;
+                                if (element_data[prop_key] === "" && property["optional"] === 1) {
+                                    $("#" + key).addClass("error");
+                                    $("#" + key)
+                                        .find(".item_name")
+                                        .addClass("error");
+                                    toastr.error(property["property_name"] + " is not filled as required.");
+                                    return false;
                                 }
-                            },
-                            error: function (xhr, status, error) {
-                                console.error(xhr.responseText);
-                            },
-                            complete: function () {
-                                $("#loader").hide();
                             }
-                        });
-                        if (errorOccurred) {
+                            return true;
+                        }).catch(xhr => {
+                            console.error(xhr.responseText);
                             return false;
-                        }
+                        });
+    
+                        promises.push(promise);
                     }
                 }
             }
         }
-        return true;
+    
+        return Promise.all(promises).then(results => {
+            return results.every(result => result === true);
+        });
     }
 });

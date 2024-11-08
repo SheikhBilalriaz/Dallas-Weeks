@@ -155,19 +155,17 @@ $(document).ready(function () {
                             html += `<div class="per discovered">Discovered</div>`;
                         }
                         html += `</td>`;
-                        if (leads[key]['current_step'] != null) {
+                        if (leads[key]['current_step'] != null && leads[key]['next_step'] != null) {
                             html += `<td>`;
                             html += leads[key]['current_step'];
                             html += `</td>`;
-                        } else {
-                            html += `<td style='color: red; font-weight: bold'>Step 1</td>`;
-                        }
-                        if (leads[key]["next_step"] != null) {
                             html += `<td>`;
                             html += leads[key]['next_step'];
                             html += `</td>`;
-                        } else {
-                            html += `<td style='color: green; font-weight: bold'>Completed</td>`;
+                        } else if (leads[key]['current_step'] == null) {
+                            html += `<td class="text-center" style='color: red; font-weight: bold' colspan="2">Step 1</td>`;
+                        } else if (leads[key]['next_step'] == null) {
+                            html += `<td class="text-center" style='color: green; font-weight: bold' colspan="2">Completed</td>`;
                         }
                         var createdAtDate = new Date(leads[key]["created_at"]);
                         var now = new Date();

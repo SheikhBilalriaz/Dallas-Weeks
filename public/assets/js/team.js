@@ -327,7 +327,12 @@ function getRole(e) {
             `).join('');
             html += seatCheckboxes;
         } else {
-            html += `<p>You don't have any seats to manage. To continue add new seats.</p>`;
+            html += `
+                    <p>
+                        <i class="fa-solid fa-triangle-exclamation" style="color: #ff0000;"></i>
+                        You don't have any seats to manage. To continue add new seats.
+                        <a href="${createSeatRoute}">Create seat -></a>
+                    </p>`;
             $('.manage_member').addClass('disabled');
         }
         html += `</div>`;

@@ -56,7 +56,7 @@
                         <div class="d-flex"><strong>Delete account</strong>
                             <p>Are you sure you want to delete this account?</p>
                         </div>
-                        <form action="{{ route('deleteAccount', ['slug' => $team->slug]) }}" method="post">
+                        <form action="{{ route('deleteAccount', ['slug' => $team->slug]) }}" method="post" onsubmit="return confirmDelete();">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="del_btn">Delete Account</button>
@@ -66,4 +66,9 @@
             </div>
         </div>
     </section>
+    <script>
+        function confirmDelete() {
+            return confirm("Are you sure you want to delete this account? This action cannot be undone.");
+        }
+    </script>
 @endsection

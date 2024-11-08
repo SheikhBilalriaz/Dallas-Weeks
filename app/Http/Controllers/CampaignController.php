@@ -378,6 +378,8 @@ class CampaignController extends Controller
                 } else if (!isset($matches[1])) {
                     return redirect()->back()->withErrors(['campaign_url' => 'Post must be activity'])->withInput();
                 }
+            } else if ($all['campaign_type'] == 'recruiter' && strpos($all['campaign_url'], 'https://www.linkedin.com/talent/hire/') === false) {
+                return redirect()->back()->withErrors(['campaign_url' => 'Invalid URL for Recruiter search'])->withInput();
             }
             $team = Team::where('slug', $slug)->first();
             $seat = Seat::where('slug', $seat_slug)->first();
@@ -423,6 +425,38 @@ class CampaignController extends Controller
                 'emails' => $emails,
             ];
             return view('back.editCampaignInfo', $data);
+        } catch (Exception $e) {
+            /* Log the exception message for debugging */
+            Log::error($e);
+
+            /* Redirect to the dashboard with a generic error message if an exception occurs */
+            return redirect()->route('seatDashboardPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
+                ->withErrors(['error' => 'Something went wrong']);
+        }
+    }
+
+    function editCampaignSequence($slug, $seat_slug, Request $request, $campaign_id)
+    {
+        try {
+            $team = Team::where('slug', $slug)->first();
+            $seat = Seat::where('slug', $seat_slug)->first();
+            $all = $request->except('_token');
+            $campaign_details = [];
+            foreach ($all as $key => $value) {
+                $campaign_details[$key] = $value;
+            }
+            $data = [
+                'title' => 'Dashboard - Campaign Sequence',
+                'team' => $team,
+                'seat' => $seat,
+                'campaigns' => Element::where('is_conditional', '0')->get(),
+                'conditional_campaigns' => Element::where('is_conditional', '1')->get(),
+                'settings' => $campaign_details,
+                'campaign_id' => $campaign_id,
+                'campaign_time' => Campaign::where('id', $campaign_id)->first(),
+                'img' => Campaign::select('img_path')->where('id', $campaign_id)->first()->img_path,
+            ];
+            return view('back.editCampaignSequence', $data);
         } catch (Exception $e) {
             /* Log the exception message for debugging */
             Log::error($e);

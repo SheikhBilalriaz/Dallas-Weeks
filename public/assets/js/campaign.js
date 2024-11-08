@@ -214,6 +214,7 @@ $(document).ready(function () {
                             html += `<li><span><img src="/assets/img/mailmsg.svg" alt=""><span id="email_message_count_${campaign['id']}">` + campaign['email_action_count'] + `</span></span></li>`;
                             html += `</td>`;
                             if (is_manage_allowed) {
+                                var newEditCampaignRoute = editCampaignRoute;
                                 html += `<td><a type="button" class="setting setting_btn" id=""><i class="fa-solid fa-gear"></i></a>`;
                                 html += `<ul class="setting_list" style="display: none;">`;
                                 html +=

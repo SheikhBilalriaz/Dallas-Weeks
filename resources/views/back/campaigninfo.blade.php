@@ -357,7 +357,7 @@
                                             </div>
                                             <div class="cmp_btns d-flex justify-content-center align-items-center">
                                                 <a href="{{ route('createCampaignPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}" class="btn"><i
-                                                    class="fa-solid fa-arrow-left"></i>Back</a>
+                                                        class="fa-solid fa-arrow-left"></i>Back</a>
                                                 <a href="javascript:;" class="btn next_tab nxt_btn">Next<i
                                                         class="fa-solid fa-arrow-right"></i></a>
                                             </div>
@@ -422,18 +422,6 @@
                                                     <div id="collapse1" class="accordion-collapse collapse"
                                                         aria-labelledby="headingOne" data-bs-parent="#accordionExample">
                                                         <div class="accordion-body">
-                                                            <div class="linked_set d-flex justify-content-between">
-                                                                <p> Include leads that replied to your messages
-                                                                    <span
-                                                                        title="Include all leads you previously had a conversation with via Linkedin messages, inMails, or email">!</span>
-                                                                </p>
-                                                                <div class="switch_box"><input type="checkbox"
-                                                                        name="global_settings_include_leads_that_replied_to_your_messages"
-                                                                        class="linkedin_setting_switch"
-                                                                        id="include_leads_that_replied_to_your_messages"><label
-                                                                        for="include_leads_that_replied_to_your_messages">Toggle</label>
-                                                                </div>
-                                                            </div>
                                                             <div class="linked_set d-flex justify-content-between">
                                                                 <p> Include leads also found in campaigns across your team
                                                                     seats

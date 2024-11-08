@@ -101,7 +101,8 @@ Route::middleware(['userAuth'])->group(function () {
                             Route::post('/post-campaign', [CampaignElementController::class, 'createCampaign'])->name('postCampaign'); //Done
                             Route::get('/campaign-details/{campaign_id}', [CampaignController::class, 'getCampaignDetails'])->name('campaignDetailsPage'); //Done
                             Route::get('/edit-campaign/{campaign_id}', [CampaignController::class, 'editCampaign'])->name('editCampaign'); //Done
-                            Route::post('/edit-campaign-Info/{campaign_id}', [CampaignController::class, 'editCampaignInfo'])->name('editCampaignInfo'); //Done
+                            Route::post('/edit-campaign-info/{campaign_id}', [CampaignController::class, 'editCampaignInfo'])->name('editCampaignInfo'); //Done
+                            Route::post('/edit-campaign-sequence/{campaign_id}', [CampaignController::class, 'editCampaignSequence'])->name('editCampaignSequence');
                             Route::get('delete-campaign/{campaign_id}', [CampaignController::class, 'deleteCampaign'])->name('deleteCampaign'); //Done
                             Route::get('/change-campaign-status/{campaign_id}', [CampaignController::class, 'changeCampaignStatus'])->name('changeCampaignStatus'); //Done
                             Route::get('/archive/{campaign_id}', [CampaignController::class, 'archiveCampaign'])->name('archiveCampaign'); //Done

@@ -66,7 +66,7 @@
                                                             <td class="title_cont">{{ $webhook->name }}</td>
                                                             <td>
                                                                 <a
-                                                                    href="{{ $webhook->webhook['request_url'] }}">{{ $webhook->webhook['request_url'] }}</a>
+                                                                    href="{{ $webhook->webhook['request_url'] ?? '' }}">{{ $webhook->webhook['request_url'] ?? '' }}</a>
                                                             </td>
                                                             <td>
                                                                 {{ $webhook->reason }}

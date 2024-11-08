@@ -13,7 +13,7 @@
                 <div class="col-lg-11 col-sm-12">
                     <div class="row crt_cmp_r sequence-steps">
                         <div class="col-lg-9 drop-pad" id="capture">
-                            {{-- <h5>Sequence Steps</h5>
+                            <h5>Sequence Steps</h5>
                             <div class="custom-center">
                                 <div class="cmp_opt_link d-flex">
                                     <ul class="d-flex list-unstyled justify-content-end align-items-center">
@@ -25,8 +25,7 @@
                                     </ul>
                                 </div>
                             </div>
-                            <div class="task-list"></div> --}}
-                            <img src="{{ $img }}" alt="">
+                            <div class="task-list"></div>
                         </div>
                         <div class="col-lg-3 add-elements">
                             <div class="element-tab">
@@ -43,8 +42,8 @@
                                                 @foreach ($campaigns as $campaign)
                                                     <li>
                                                         <div class="element element_item"
-                                                            id="{{ $campaign['element_slug'] }}" data-filter-item
-                                                            data-filter-name="{{ $campaign['element_slug'] }}">
+                                                            id="{{ $campaign['slug'] }}" data-filter-item
+                                                            data-filter-name="{{ $campaign['slug'] }}">
                                                             <div
                                                                 class="element_change_input attach-elements attach-elements-in">
                                                             </div>
@@ -52,10 +51,10 @@
                                                                 <i class="fa-solid fa-x"></i>
                                                             </div>
                                                             <div class="list-icon">
-                                                                {!! $campaign['element_icon'] !!}
+                                                                {!! $campaign['icon'] !!}
                                                             </div>
                                                             <div class="item_details">
-                                                                <p class="item_name">{{ $campaign['element_name'] }}</p>
+                                                                <p class="item_name">{{ $campaign['name'] }}</p>
                                                                 <p class="item_desc"><i class="fa-solid fa-clock"></i>Wait
                                                                     for: <span class="item_days">0</span> days <span
                                                                         class="item_hours">0</span> hours</p>
@@ -86,8 +85,8 @@
                                                 @foreach ($conditional_campaigns as $campaign)
                                                     <li>
                                                         <div class="element element_item"
-                                                            id="{{ $campaign['element_slug'] }}" data-filter-item
-                                                            data-filter-name="{{ $campaign['element_slug'] }}">
+                                                            id="{{ $campaign['slug'] }}" data-filter-item
+                                                            data-filter-name="{{ $campaign['slug'] }}">
                                                             <div
                                                                 class="element_change_input conditional-elements conditional-elements-in">
                                                             </div>
@@ -95,10 +94,10 @@
                                                                 <i class="fa-solid fa-x"></i>
                                                             </div>
                                                             <div class="list-icon">
-                                                                {!! $campaign['element_icon'] !!}
+                                                                {!! $campaign['icon'] !!}
                                                             </div>
                                                             <div class="item_details">
-                                                                <p class="item_name">{{ $campaign['element_name'] }}</p>
+                                                                <p class="item_name">{{ $campaign['name'] }}</p>
                                                                 <p class="item_desc"><i class="fa-solid fa-clock"></i>Check
                                                                     after: <span class="item_days">0</span> days <span
                                                                         class="item_hours">0</span> hours</p>

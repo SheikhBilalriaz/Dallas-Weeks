@@ -37,6 +37,11 @@ class SeatWebhookController extends Controller
                 }
             } while (isset($webhooks['cursor']) && $webhooks['cursor'] !== null);
             $final_webhooks = $seat_webhook_map->values();
+
+            $final_webhooks = $final_webhooks->filter(function ($final_webhook) {
+                return isset($final_webhook->webhook);
+            });
+            
             /* Retrieve all email integrations for the seat */
             $integrated_emails = Email_Integraion::where('seat_id', $seat->id)->get();
 

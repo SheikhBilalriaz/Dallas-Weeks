@@ -46,7 +46,7 @@
                                     </div>
                                 </nav>
                                 <form id="settings" method="POST"
-                                    action="{{ route('updateCampaign', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'campaign_id' => $campaign_id]) }}">
+                                    action="{{ route('editCampaignSequence', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'campaign_id' => $campaign_id]) }}">
                                     @csrf
                                     <div class="tab-content" id="nav-tabContent">
                                         <div class="tab-pane fade show active" id="nav-email" role="tabpanel"
@@ -421,8 +421,7 @@
                                             <div class="cmp_btns d-flex justify-content-center align-items-center">
                                                 <a href="javascript:;" class="btn prev_tab"><i
                                                         class="fa-solid fa-arrow-left"></i>Back</a>
-                                                <a id="create_sequence" type="button" class="btn nxt_btn">Edit
-                                                    sequence<i class="fa-solid fa-arrow-right"></i></a>
+                                                <a id="create_sequence" type="button" class="btn nxt_btn">Update Sequence<i class="fa-solid fa-arrow-right"></i></a>
                                             </div>
                                         </div>
                                     </div>

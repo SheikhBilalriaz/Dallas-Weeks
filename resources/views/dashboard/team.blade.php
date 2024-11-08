@@ -56,6 +56,12 @@
             pointer-events: none;
             cursor: default;
         }
+        
+        .un-disabled {
+            opacity: 1;
+            pointer-events: auto;
+            cursor: pointer;
+        }
 
         .no-pointer {
             cursor: default;
@@ -352,6 +358,12 @@
                                                 </div>
                                             </div>
                                         @endforeach
+                                    @else
+                                        <div class="un-disabled mb-5">
+                                            <i class="fa-solid fa-triangle-exclamation" style="color: #ff0000;"></i>
+                                            You don't have any listed role
+                                            <a href="{{ route('rolesPermissionPage', ['slug' => $team->slug]) }}">Create role -></a>
+                                        </div>
                                     @endif
                                 </div>
                                 <div class="col-lg-6 edit_able {{ !session()->has('invite_error') ? 'disabled' : '' }}">
@@ -438,11 +450,6 @@
                                                 </div>
                                             </div>
                                         @endforeach
-                                    @else
-                                        <div>
-                                            <i class="fa-solid fa-triangle-exclamation" style="color: #ff0000;"></i>
-                                            You don't have any listed role
-                                        </div>
                                     @endif
                                 </div>
                                 <div
@@ -493,7 +500,8 @@
     @if (session('is_creator'))
         <script>
             var deleteTeamMemberRoute = "{{ route('deleteTeamMember', ['slug' => $team->slug, 'id' => ':id']) }}";
-            var getTeamMemberRoute = "{{ route('getTeamMember', ['slug' => $team->slug, 'id' => ':id']) }}"
+            var getTeamMemberRoute = "{{ route('getTeamMember', ['slug' => $team->slug, 'id' => ':id']) }}";
+            var createSeatRoute = "{{ route('dashboardPage', ['slug' => $team->slug]) }}";
         </script>
     @endif
 @endsection

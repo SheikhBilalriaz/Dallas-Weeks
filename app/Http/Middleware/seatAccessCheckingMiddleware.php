@@ -126,19 +126,25 @@ class seatAccessCheckingMiddleware
                 $requestData = ['account_id' => $linkedin_integrations['account_id']];
 
                 /* Create a new Request object using the array of data */
-                $request = new \Illuminate\Http\Request();
-                $request->replace($requestData);
+                $request = new \Illuminate\Http\Request($requestData);
 
                 /* Initialize the UnipileController */
                 $uc = new UnipileController();
 
-                /* Call retrieve_an_account method with the properly formatted Request object */
-                $account = $uc->retrieve_an_account($request)->getData(true);
-                session(['seat_linkedin' => $account['account']]);
+                /* Check if the LinkedIn session data is absent or outdated, then retrieve account data if necessary */
+                if (!session()->has('seat_linkedin') || $linkedin_integrations['account_id'] != session('seat_linkedin')['id']) {
+                    /* Call retrieve_an_account method with the properly formatted Request object */
+                    $account = $uc->retrieve_an_account($request)->getData(true);
+                    session(['seat_linkedin' => $account['account']]);
+                    Log::info(session('seat_linkedin'));
+                }
 
-                /* Call retrieve_own_profile method with the same Request object */
-                $account_profile = $uc->retrieve_own_profile($request)->getData(true);
-                session(['linkedin_profile' => $account_profile['profile']]);
+                if (!session()->has('linkedin_profile') || session('seat_linkedin')['connection_params']['im']['id'] != session('linkedin_profile')['provider_id']) {
+                    /* Call retrieve_own_profile method with the same Request object */
+                    $account_profile = $uc->retrieve_own_profile($request)->getData(true);
+                    session(['linkedin_profile' => $account_profile['profile']]);
+                    Log::info(session('linkedin_profile'));
+                }
             } else {
                 /* Clear specific session variables if no LinkedIn integration found */
                 session()->forget(['seat_linkedin', 'linkedin_profile']);

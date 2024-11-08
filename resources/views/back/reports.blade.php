@@ -23,6 +23,12 @@
                                 <div class="border_box">
                                     <div class="chart_filter d-flex justify-content-between">
                                         <h4>Main graph</h4>
+                                        <div class="chart_cont">
+                                            <div class="btn_box d-flex">
+                                                <a href="{{ route('generateReport', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}" class="theme_btn">Export Excel</a>
+                                                <a href="{{ route('generatePdf', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}" class="theme_btn">Export PDF</a>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="chart_canvas_report">
                                         <div id="chartContainer" style="height: 388px; width: 100%;"></div>

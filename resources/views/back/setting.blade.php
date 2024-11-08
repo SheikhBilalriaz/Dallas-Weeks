@@ -34,7 +34,7 @@
                                     <p>
                                         Customize settings for your account. Highest limits are imposed by
                                         <br>
-                                        LinkedIn system itself and very by type of premium account.
+                                        LinkedIn system itself and vary by type of premium account.
                                     </p>
                                 </div>
                             </div>
@@ -106,7 +106,7 @@
                                                 @endif
                                                 @if ($manage_linkedin_integrations)
                                                     <li class="nav-item">
-                                                        <a class="nav-link linkedin_setting {{ $manage_global_limits || $manage_linkedin_integrations ? '' : 'active' }}"
+                                                        <a class="nav-link linkedin_setting {{ $manage_global_limits || $manage_global_health ? '' : 'active' }}"
                                                             data-bs-toggle="tab" href="#integrations" role="tab">
                                                             LinkedIn integration
                                                         </a>
@@ -156,7 +156,7 @@
                                                                     start with lower limits than maximum, otherwise set
                                                                     limits at range 20 to 30.
                                                                 </div>
-                                                                <div class="slider col-lg-4">
+                                                                <div class="col-lg-4">
                                                                     <label for="profile_views">Profile Views:
                                                                         <span
                                                                             id="profile_views_val">{{ $profile_views->value }}</span></label>
@@ -181,11 +181,16 @@
                                                                     advice to start with lower limits than maximum,
                                                                     otherwise set limits at range 20 to 30.
                                                                 </div>
-                                                                <div class="slider col-lg-4">
-                                                                    <div class="cont">
-                                                                        <span>50</span>
-                                                                        <span>100</span>
-                                                                    </div>
+                                                                <div class="col-lg-4">
+                                                                    <label for="follows">Follows:
+                                                                        <span
+                                                                            id="follows_val">{{ $follows->value }}</span></label>
+                                                                    <input type="range" name="follows"
+                                                                        id="follows" min="0" max="160"
+                                                                        step="10" value="{{ $follows->value }}"
+                                                                        data-span="follows_val"
+                                                                        class="global_limit_ranges"
+                                                                        @disabled(true)>
                                                                 </div>
                                                             </div>
                                                             <div class="row grey_box d-flex align-items-center">
@@ -199,11 +204,16 @@
                                                                     recommend keeping your connect limits in the range
                                                                     between 10 and 25 per day.
                                                                 </div>
-                                                                <div class="slider col-lg-4">
-                                                                    <div class="cont">
-                                                                        <span>50</span>
-                                                                        <span>100</span>
-                                                                    </div>
+                                                                <div class="col-lg-4">
+                                                                    <label for="invite">Invites:
+                                                                        <span
+                                                                            id="invite_val">{{ $invite->value }}</span></label>
+                                                                    <input type="range" name="invite"
+                                                                        id="invite" min="0" max="15"
+                                                                        step="1" value="{{ $invite->value }}"
+                                                                        data-span="invite_val"
+                                                                        class="global_limit_ranges"
+                                                                        @disabled(true)>
                                                                 </div>
                                                             </div>
                                                             <div class="row grey_box d-flex align-items-center">
@@ -218,11 +228,16 @@
                                                                     start with lower limits than maximum, otherwise set
                                                                     limits at range 30 to 40.
                                                                 </div>
-                                                                <div class="slider col-lg-4">
-                                                                    <div class="cont">
-                                                                        <span>50</span>
-                                                                        <span>100</span>
-                                                                    </div>
+                                                                <div class="col-lg-4">
+                                                                    <label for="message">Messages:
+                                                                        <span
+                                                                            id="message_val">{{ $message->value }}</span></label>
+                                                                    <input type="range" name="message"
+                                                                        id="message" min="0" max="120"
+                                                                        step="1" value="{{ $message->value }}"
+                                                                        data-span="message_val"
+                                                                        class="global_limit_ranges"
+                                                                        @disabled(true)>
                                                                 </div>
                                                             </div>
                                                             <div class="row grey_box d-flex align-items-center">
@@ -237,11 +252,16 @@
                                                                     advice to start with lower limits than maximum,
                                                                     otherwise set limits at range 15 to 25.
                                                                 </div>
-                                                                <div class="slider col-lg-4">
-                                                                    <div class="cont">
-                                                                        <span>50</span>
-                                                                        <span>100</span>
-                                                                    </div>
+                                                                <div class="col-lg-4">
+                                                                    <label for="inmail">Inmail Messages:
+                                                                        <span
+                                                                            id="inmail_val">{{ $inmail->value }}</span></label>
+                                                                    <input type="range" name="inmail"
+                                                                        id="inmail" min="0" max="45"
+                                                                        step="1" value="{{ $inmail->value }}"
+                                                                        data-span="inmail_val"
+                                                                        class="global_limit_ranges"
+                                                                        @disabled(true)>
                                                                 </div>
                                                             </div>
                                                             <div class="row grey_box d-flex align-items-center">
@@ -255,11 +275,16 @@
                                                                     discover from the search results. Recommend range is
                                                                     between 40 and 60
                                                                 </div>
-                                                                <div class="slider col-lg-4">
-                                                                    <div class="cont">
-                                                                        <span>50</span>
-                                                                        <span>100</span>
-                                                                    </div>
+                                                                <div class="col-lg-4">
+                                                                    <label for="discover">Discover:
+                                                                        <span
+                                                                            id="discover_val">{{ $discover->value }}</span></label>
+                                                                    <input type="range" name="discover"
+                                                                        id="discover" min="0" max="100"
+                                                                        step="1" value="{{ $discover->value }}"
+                                                                        data-span="discover_val"
+                                                                        class="global_limit_ranges"
+                                                                        @disabled(true)>
                                                                 </div>
                                                             </div>
                                                             <div class="row grey_box d-flex align-items-center">
@@ -274,11 +299,17 @@
                                                                     advise to start with lower limits than maximum,
                                                                     otherwise set limits of 20 and 40.
                                                                 </div>
-                                                                <div class="slider col-lg-4">
-                                                                    <div class="cont">
-                                                                        <span>50</span>
-                                                                        <span>100</span>
-                                                                    </div>
+                                                                <div class="col-lg-4">
+                                                                    <label for="email_message">Email:
+                                                                        <span
+                                                                            id="email_message_val">{{ $email_message->value }}</span></label>
+                                                                    <input type="range" name="email_message"
+                                                                        id="email_message" min="0"
+                                                                        max="100" step="1"
+                                                                        value="{{ $email_message->value }}"
+                                                                        data-span="email_message_val"
+                                                                        class="global_limit_ranges"
+                                                                        @disabled(true)>
                                                                 </div>
                                                             </div>
                                                             <div class="row grey_box d-flex align-items-center">
@@ -293,11 +324,17 @@
                                                                     email is going to be sent each 5 minutes from the tool.
                                                                     The recommended value is 5 or more.
                                                                 </div>
-                                                                <div class="slider col-lg-4">
-                                                                    <div class="cont">
-                                                                        <span>50</span>
-                                                                        <span>100</span>
-                                                                    </div>
+                                                                <div class="col-lg-4">
+                                                                    <label for="email_delay">Email Delay:
+                                                                        <span
+                                                                            id="email_delay_val">{{ $email_delay->value }}</span></label>
+                                                                    <input type="range" name="email_delay"
+                                                                        id="email_delay" min="0"
+                                                                        max="60" step="1"
+                                                                        value="{{ $email_delay->value }}"
+                                                                        data-span="email_delay_val"
+                                                                        class="global_limit_ranges"
+                                                                        @disabled(true)>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -684,7 +721,7 @@
                                                     </div>
                                                 @endif
                                                 @if (session('manage_linkedin_integrations') === 'view_only')
-                                                    <div class="tab-pane linkedin_pane integrations_tab {{ $manage_global_limits || $manage_linkedin_integrations ? '' : 'active' }}"
+                                                    <div class="tab-pane linkedin_pane integrations_tab {{ $manage_global_limits || $manage_global_health ? '' : 'active' }}"
                                                         id="integrations" role="tabpanel">
                                                         @if (session()->has('seat_linkedin') && session()->has('linkedin_profile'))
                                                             @php
@@ -711,39 +748,54 @@
                                                                 @endif
                                                             </div>
                                                             <div class="grey_box d-flex align-items-center">
-                                                                <h6>Change your LinkedIn subscription</h6>
+                                                                <h6>LinkedIn subscription</h6>
                                                                 <div class="radio-buttons">
                                                                     <label for="premium">
                                                                         <input type="radio"
-                                                                            name="linkedinSubscription[]" id="premium"
+                                                                            name="linkedinSubscription[]"
+                                                                            id="premium"
                                                                             value="premium"
-                                                                            {{ $account_profile['premium'] || in_array('premium', $account['connection_params']['im']['premiumFeatures'])
-                                                                                ? 'checked'
-                                                                                : '' }}>
+                                                                            {{
+                                                                                ($account_profile['premium']
+                                                                                &&
+                                                                                !isset($account_profile['sales_navigator'])
+                                                                                &&
+                                                                                !isset($account_profile['recruiter']))
+                                                                                ?
+                                                                                'checked'
+                                                                                :
+                                                                                ''
+                                                                            }}
+                                                                        >
                                                                         <span></span>
                                                                         LinkedIn Premium
                                                                     </label>
                                                                     <label for="salesNavigator">
                                                                         <input type="radio"
                                                                             name="linkedinSubscription[]"
-                                                                            id="salesNavigator" value="salesNavigator"
-                                                                            {{ $account_profile['sales_navigator'] ||
-                                                                            in_array('sales_navigator', $account['connection_params']['im']['premiumFeatures'])
-                                                                                ? 'checked'
-                                                                                : '' }}>
-                                                                        Sales Navigator
+                                                                            id="salesNavigator"
+                                                                            value="salesNavigator"
+                                                                            {{ 
+                                                                                (isset($account_profile['sales_navigator'])
+                                                                                &&
+                                                                                !isset($account_profile['recruiter']))
+                                                                                ?
+                                                                                'checked'
+                                                                                :
+                                                                                ''
+                                                                            }}
+                                                                        >
                                                                         <span></span>
+                                                                        Sales Navigator
                                                                     </label>
                                                                     <label for="recruiter">
                                                                         <input type="radio"
-                                                                            name="linkedinSubscription[]" id="recruiter"
+                                                                            name="linkedinSubscription[]"
+                                                                            id="recruiter"
                                                                             value="recruiter"
-                                                                            {{ $account_profile['sales_navigator'] ||
-                                                                            in_array('sales_navigator', $account['connection_params']['im']['premiumFeatures'])
-                                                                                ? 'checked'
-                                                                                : '' }}>
-                                                                        LinkedIn Recruiter
+                                                                            {{ isset($account_profile['recruiter']) ? 'checked' : '' }}>
                                                                         <span></span>
+                                                                        LinkedIn Recruiter
                                                                     </label>
                                                                 </div>
                                                             </div>
@@ -762,7 +814,7 @@
                                                         @endif
                                                     </div>
                                                 @elseif (session('manage_linkedin_integrations') === true)
-                                                    <div class="tab-pane linkedin_pane integrations_tab {{ $manage_global_limits || $manage_linkedin_integrations ? '' : 'active' }}"
+                                                    <div class="tab-pane linkedin_pane integrations_tab {{ $manage_global_limits || $manage_global_health ? '' : 'active' }}"
                                                         id="integrations" role="tabpanel">
                                                         @if (session()->has('seat_linkedin') && session()->has('linkedin_profile'))
                                                             @php
@@ -798,39 +850,54 @@
                                                                 @endif
                                                             </div>
                                                             <div class="grey_box d-flex align-items-center">
-                                                                <h6>Change your LinkedIn subscription</h6>
+                                                                <h6>LinkedIn subscription</h6>
                                                                 <div class="radio-buttons">
                                                                     <label for="premium">
                                                                         <input type="radio"
-                                                                            name="linkedinSubscription[]" id="premium"
+                                                                            name="linkedinSubscription[]"
+                                                                            id="premium"
                                                                             value="premium"
-                                                                            {{ $account_profile['premium'] || in_array('premium', $account['connection_params']['im']['premiumFeatures'])
-                                                                                ? 'checked'
-                                                                                : '' }}>
+                                                                            {{
+                                                                                ($account_profile['premium']
+                                                                                &&
+                                                                                !isset($account_profile['sales_navigator'])
+                                                                                &&
+                                                                                !isset($account_profile['recruiter']))
+                                                                                ?
+                                                                                'checked'
+                                                                                :
+                                                                                ''
+                                                                            }}
+                                                                        >
                                                                         <span></span>
                                                                         LinkedIn Premium
                                                                     </label>
                                                                     <label for="salesNavigator">
                                                                         <input type="radio"
                                                                             name="linkedinSubscription[]"
-                                                                            id="salesNavigator" value="salesNavigator"
-                                                                            {{ $account_profile['sales_navigator'] ||
-                                                                            in_array('sales_navigator', $account['connection_params']['im']['premiumFeatures'])
-                                                                                ? 'checked'
-                                                                                : '' }}>
-                                                                        Sales Navigator
+                                                                            id="salesNavigator"
+                                                                            value="salesNavigator"
+                                                                            {{ 
+                                                                                (isset($account_profile['sales_navigator'])
+                                                                                &&
+                                                                                !isset($account_profile['recruiter']))
+                                                                                ?
+                                                                                'checked'
+                                                                                :
+                                                                                ''
+                                                                            }}
+                                                                        >
                                                                         <span></span>
+                                                                        Sales Navigator
                                                                     </label>
                                                                     <label for="recruiter">
                                                                         <input type="radio"
-                                                                            name="linkedinSubscription[]" id="recruiter"
+                                                                            name="linkedinSubscription[]"
+                                                                            id="recruiter"
                                                                             value="recruiter"
-                                                                            {{ $account_profile['sales_navigator'] ||
-                                                                            in_array('sales_navigator', $account['connection_params']['im']['premiumFeatures'])
-                                                                                ? 'checked'
-                                                                                : '' }}>
-                                                                        LinkedIn Recruiter
+                                                                            {{ isset($account_profile['recruiter']) ? 'checked' : '' }}>
                                                                         <span></span>
+                                                                        LinkedIn Recruiter
                                                                     </label>
                                                                 </div>
                                                             </div>

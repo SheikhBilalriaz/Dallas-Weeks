@@ -268,7 +268,6 @@
                                                                 <input type="file" id="campaign_url"
                                                                     class="file-input__input" class="campaign_url"
                                                                     name="campaign_url" placeholder="LinkedIn search URL"
-                                                                    value="{{ $campaign->url }}"
                                                                     required>
                                                                 <label class="file-input__label" for="file-input">
                                                                     <svg aria-hidden="true" focusable="false"
@@ -400,7 +399,7 @@
                             <div class="cmp_btns d-flex justify-content-center align-items-center">
                                 <a href="{{ route('campaignPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}"
                                     class="btn"><i class="fa-solid fa-arrow-left"></i>Back</a>
-                                <a class="btn nxt_btn">Next<i class="fa-solid fa-arrow-right"></i></a>
+                                <a class="btn nxt_btn">Update Info<i class="fa-solid fa-arrow-right"></i></a>
                             </div>
                         </div>
                     </div>
