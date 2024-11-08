@@ -3240,8 +3240,11 @@ h4 {
     width: 45px;
     height: 45px;
     border-radius: 100%;
-    background: #7d7d7d;
+    /* background: #7d7d7d; */
     margin-right: 20px;
+}
+.dummy_attach_img img {
+    margin: 0 !important;
 }
 
 .conversation .mesasges ul li span {
@@ -6965,9 +6968,9 @@ body.light-mode .lead_sec .filt_opt>.filt_opt select {
 }
 
 .skel_latest_message_timestamp {
-    width: 40px;
-    height: 20px;
-    display: inline-block;
+    /* width: 40px; */
+    /* height: 20px; */
+    /* display: inline-block; */
 }
 
 .skel_text {
@@ -7008,11 +7011,11 @@ body.light-mode .skel_user_email {
 .skel_head,
 .skel_user_name,
 .skel_user_email {
-    background: unset;
-    background: linear-gradient(110deg, #ccc 8%, #fff 18%, #ccc 33%);
-    border-radius: 5px;
-    background-size: 200% 100%;
-    animation: 2s shine linear infinite;
+    /* background: unset; */
+    /* background: linear-gradient(110deg, #ccc 8%, #fff 18%, #ccc 33%); */
+    /* border-radius: 5px; */
+    /* background-size: 200% 100%; */
+    /* animation: 2s shine linear infinite; */
 }
 
 @keyframes shine {
@@ -10665,7 +10668,7 @@ h4 {
 }
 
 .date {
-    color: #16adcb;
+    /* color: #16adcb; */
 }
 
 .messages_box ul li .linkedin a {
@@ -10702,7 +10705,7 @@ h4 {
     width: 45px;
     height: 45px;
     border-radius: 100%;
-    background: #7d7d7d;
+    /* background: #7d7d7d; */
     margin-right: 20px;
 }
 
@@ -10725,7 +10728,7 @@ h4 {
     margin-left: auto;
     margin-right: 0;
     display: flex;
-    margin-bottom: 15px;
+    margin-bottom: 30px;
     width: 70%;
 }
 
@@ -14427,9 +14430,9 @@ body.light-mode .lead_sec .filt_opt>.filt_opt select {
 }
 
 .skel_latest_message_timestamp {
-    width: 40px;
-    height: 20px;
-    display: inline-block;
+    /* width: 40px; */
+    /* height: 20px; */
+    /* display: inline-block; */
 }
 
 .skel_text {
@@ -14470,7 +14473,7 @@ body.light-mode .skel_user_email {
 .skel_head,
 .skel_user_name,
 .skel_user_email {
-    background: unset;
+    /* background: unset; */
     background: linear-gradient(110deg, #ccc 8%, #fff 18%, #ccc 33%);
     border-radius: 5px;
     background-size: 200% 100%;
@@ -14920,4 +14923,12 @@ input[type="range"]::-moz-range-thumb {
 
 input[type="range"]::-ms-thumb {
     border: solid 3px #a2f0ff !important;
+}
+
+.dummy_attach_img {
+        background: unset;
+        background: linear-gradient(110deg, #ccc 8%, #fff 18%, #ccc 33%);
+        border-radius: 50%;
+        background-size: 200% 100%;
+        animation: 2s shine linear infinite;
 }

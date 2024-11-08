@@ -15,6 +15,9 @@ $(document).ready(function () {
     $('.chat-list').on('scroll', updateChatListLoader);
     $('#search_message').on('input', debounce(search_message, 300));
     $('#send_btn').on('click', sendMessage);
+    $(document).on('change', '#attachment', function () {
+        console.log("File selected:", $(this).val());
+    });
     $('.user_profile').on('click', function () {
         if ($('.conversation_info').hasClass('col-lg-4')) {
             $('.conversation_info').css('display', 'none');
@@ -229,7 +232,8 @@ function getMessages() {
             <input type="file" name="attachment" id="attachment" style="display: none;">
             <label for="attachment" class="custom-file-label"></label>
             <textarea placeholder="Send a message" name="sendMessage" class="sendMessage" id="sendMessage"></textarea>
-            <input type="button" class="send_btn" id="send_btn" value="send">`);
+            <input type="button" class="send_btn" id="send_btn" value="send">
+        `);
     } else {
         $send_form.html(``);
     }
@@ -294,7 +298,17 @@ function getMessages() {
                             if (message.attachments) {
                                 message.attachments.forEach(attachment => {
                                     if (attachment.type == "img") {
-                                        messageContent += `<img style={width:"${attachment.size.width}"; height:"${attachment.size.height}";} id="${attachment.id}" data-mimeType="${attachment.type}" data-fileName="" class="attach_img dummy_attach_img" src="${attachment.url}">`;
+                                        messageContent += `<div class="dummy_attach_img"><img 
+                                            style = "
+                                                width: ${attachment.size.width}px;
+                                                height: ${attachment.size.height}px;
+                                            "
+                                            id="${attachment.id}"
+                                            data-mimeType="${attachment.type}"
+                                            data-fileName=""
+                                            class="attach_img"
+                                            src="${attachment.url}"
+                                        ></div>`;
                                     } else {
                                         messageContent += `<span class="attach_file" id="${attachment.id}">${attachment.file_name}<a href="${attachment.url}" download></a></span>`;
                                     }
@@ -668,7 +682,17 @@ function updateMessageLoader($chatMessage) {
                             if (message.attachments) {
                                 message.attachments.forEach(attachment => {
                                     if (attachment.type == "img") {
-                                        messageContent += `<img style={width:"${attachment.size.width}"; height:"${attachment.size.height}";} id="${attachment.id}" data-mimeType="${attachment.type}" data-fileName="" class="attach_img dummy_attach_img" src="${attachment.url}">`;
+                                        messageContent += `<div class="dummy_attach_img"><img
+                                            style = "
+                                                width: ${attachment.size.width}px;
+                                                height: ${attachment.size.height}px;
+                                            "
+                                            id="${attachment.id}"
+                                            data-mimeType="${attachment.type}"
+                                            data-fileName=""
+                                            class="attach_img"
+                                            src="${attachment.url}"
+                                        ></div>`;
                                     } else {
                                         messageContent += `<span class="attach_file" id="${attachment.id}">${attachment.file_name}<a href="${attachment.url}" download></a></span>`;
                                     }
@@ -979,7 +1003,17 @@ function getLatestMessageInChat() {
                             if (message.attachments) {
                                 message.attachments.forEach(attachment => {
                                     if (attachment.type == "img") {
-                                        messageContent += `<img style="width:${attachment.size.width}px; height:${attachment.size.height}px;" id="${attachment.id}" data-mimeType="${attachment.type}" data-fileName="" class="attach_img dummy_attach_img" src="${attachment.url}">`;
+                                        messageContent += `<div class="dummy_attach_img"><img 
+                                            style = "
+                                                width:${attachment.size.width}px;
+                                                height:${attachment.size.height}px;
+                                            "
+                                            id="${attachment.id}"
+                                            data-mimeType="${attachment.type}"
+                                            data-fileName=""
+                                            class="attach_img"
+                                            src="${attachment.url}"
+                                        ></div>`;
                                     } else {
                                         messageContent += `<span class="attach_file" id="${attachment.id}">${attachment.file_name}<a href="${attachment.url}" download></a></span>`;
                                     }
@@ -1126,7 +1160,7 @@ function getUnreadMessage() {
 }
 
 function getImages() {
-    const images = $('.dummy_attach_img');
+    const images = $('.dummy_attach_img').find('img');
     images.each(function (index, image) {
         var $image = $(image);
         var attachment_id = $image.prop('id');

@@ -25,7 +25,19 @@
                                     </ul>
                                 </div>
                             </div>
-                            <div class="task-list"></div>
+                            <div class="task-list">
+                                <div class="step-1 element_item" id="step-1">
+                                    <div class="list-icon">
+                                        <i class="fa-solid fa-certificate"></i>
+                                    </div>
+                                    <div class="item_details">
+                                        <p class="item_name">Lead Source (Step 1)</p>
+                                        <p class="item_desc"><i class="fa-solid fa-clock"></i>Wait for: <span
+                                                class="item_days">0</span> days <span class="item_hours">0</span> hours</p>
+                                    </div>
+                                    <div class="element_change_output attach-elements-out condition_true"></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-lg-3 add-elements">
                             <div class="element-tab">
@@ -41,9 +53,8 @@
                                             <ul class='drop-list'>
                                                 @foreach ($campaigns as $campaign)
                                                     <li>
-                                                        <div class="element element_item"
-                                                            id="{{ $campaign['slug'] }}" data-filter-item
-                                                            data-filter-name="{{ $campaign['slug'] }}">
+                                                        <div class="element element_item" id="{{ $campaign['slug'] }}"
+                                                            data-filter-item data-filter-name="{{ $campaign['slug'] }}">
                                                             <div
                                                                 class="element_change_input attach-elements attach-elements-in">
                                                             </div>
@@ -84,9 +95,8 @@
                                             <ul class='drop-list'>
                                                 @foreach ($conditional_campaigns as $campaign)
                                                     <li>
-                                                        <div class="element element_item"
-                                                            id="{{ $campaign['slug'] }}" data-filter-item
-                                                            data-filter-name="{{ $campaign['slug'] }}">
+                                                        <div class="element element_item" id="{{ $campaign['slug'] }}"
+                                                            data-filter-item data-filter-name="{{ $campaign['slug'] }}">
                                                             <div
                                                                 class="element_change_input conditional-elements conditional-elements-in">
                                                             </div>
@@ -141,9 +151,12 @@
     <script>
         var campaign_id = {!! $campaign_id !!};
         var settings = {!! $settings !!};
-        var updateCampaignRoute = "{{ route('updateCampaign', ['slug' => $team->slug, 'seat_slug' => $seat->slug, ':campaign_id']) }}";
-        var getElementsRoute = "{{ route('getElements', ['slug' => $team->slug, 'seat_slug' => $seat->slug, ':campaign_id']) }}";
-        var getElementByIdRoute = "{{ route('getcampaignelementbyid', ['slug' => $team->slug, 'seat_slug' => $seat->slug, ':element_id']) }}";
+        var updateCampaignRoute =
+            "{{ route('updateCampaign', ['slug' => $team->slug, 'seat_slug' => $seat->slug, ':campaign_id']) }}";
+        var getElementsRoute =
+            "{{ route('getElements', ['slug' => $team->slug, 'seat_slug' => $seat->slug, ':campaign_id']) }}";
+        var getElementByIdRoute =
+            "{{ route('getcampaignelementbyid', ['slug' => $team->slug, 'seat_slug' => $seat->slug, ':element_id']) }}";
         var campaignRoute = "{{ route('campaignPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}";
     </script>
 @endsection

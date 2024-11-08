@@ -4,18 +4,178 @@ $(document).ready(function () {
     var inputElement = null;
     var outputElement = null;
     var condition = "";
-    var elements_data_array = {};
-    var elements_array = {};
+    var elements_array = sessionStorage.getItem("elements_array");
+    var elements_data_array = JSON.parse(sessionStorage.getItem("elements_data_array") || "{}");
     var choosedElement = null;
     var message = "";
 
+    if (elements_array) {
+        elements_array = JSON.parse(elements_array);
+        var maxDropPadHeight = 0;
+        for (var key in elements_array) {
+            if (elements_array.hasOwnProperty(key) && key != "step-1") {
+                var value = elements_array[key];
+                var hyphenIndex = key.lastIndexOf("_");
+                var new_key = key.slice(0, hyphenIndex);
+                var clone = $("#" + new_key).clone();
+                clone.css({
+                    position: "absolute",
+                });
+                clone.attr("id", key);
+                clone.addClass("drop_element");
+                clone.addClass("drop-pad-element");
+                clone.addClass("placedElement");
+                clone.removeClass("drop_element");
+                clone.removeClass("element");
+                $(".task-list").append(clone);
+                $(".cancel-icon").on("click", removeElement);
+                $(".element_change_output").on("click", attachOutputElement);
+                $(".element_change_input").on("click", attachInputElement);
+                $(".drop-pad-element").on("click", elementProperties);
+                if (elements_data_array.hasOwnProperty(key)) {
+                    var element_data = elements_data_array[key];
+                    for (var prop_key in element_data) {
+                        $("#loader").show();
+                        $.ajax({
+                            url: getPropertyRequiredPath.replace(
+                                ":id",
+                                prop_key
+                            ),
+                            async: false,
+                            type: "GET",
+                            success: function (response) {
+                                if (response.success) {
+                                    var property = response.property;
+                                    if (property["property_name"] == "Days") {
+                                        if (
+                                            elements_data_array[key][
+                                            prop_key
+                                            ] == ""
+                                        ) {
+                                            clone.find(".item_days").html("0");
+                                        } else {
+                                            clone
+                                                .find(".item_days")
+                                                .html(
+                                                    elements_data_array[key][
+                                                    prop_key
+                                                    ]
+                                                );
+                                        }
+                                    } else if (
+                                        property["property_name"] == "Hours"
+                                    ) {
+                                        if (
+                                            elements_data_array[key][
+                                            prop_key
+                                            ] == ""
+                                        ) {
+                                            clone.find(".item_hours").html("0");
+                                        } else {
+                                            clone
+                                                .find(".item_hours")
+                                                .html(
+                                                    elements_data_array[key][
+                                                    prop_key
+                                                    ]
+                                                );
+                                        }
+                                    }
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error(xhr.responseText);
+                            },
+                            complete: function () {
+                                $("#loader").hide();
+                            }
+                        });
+                    }
+                }
+                clone.on("mousedown", startDragging);
+                clone.css({
+                    left: value["position_x"] - 214,
+                    top: value["position_y"] - 345,
+                    border: "none",
+                });
+                var newDropPadHeight =
+                    parseInt(clone.css("top")) +
+                    parseInt(clone.css("height")) +
+                    30;
+                if (maxDropPadHeight < newDropPadHeight) {
+                    maxDropPadHeight = newDropPadHeight;
+                    $(".drop-pad").css("height", maxDropPadHeight + "px");
+                }
+            }
+        }
+
+        for (var key in elements_array) {
+            current_element = key;
+            $("#" + current_element)
+                .find(".attach-elements-out")
+                .removeClass("selected");
+            if (elements_array[current_element]["0"] != "") {
+                $("#" + current_element)
+                    .find(".condition_false")
+                    .on("click", function (e) {
+                        e.stopPropagation();
+                        attachOutputElement();
+                    })
+                    .trigger("click");
+                $("#" + elements_array[current_element]["0"])
+                    .find(".element_change_input")
+                    .on("click", function (e) {
+                        e.stopPropagation();
+                        attachInputElement();
+                    })
+                    .trigger("click");
+            }
+            if (elements_array[current_element]["1"] != "") {
+                $("#" + current_element)
+                    .find(".condition_true")
+                    .on("click", function (e) {
+                        e.stopPropagation();
+                        attachOutputElement();
+                    })
+                    .trigger("click");
+                $("#" + elements_array[current_element]["1"])
+                    .find(".element_change_input")
+                    .on("click", function (e) {
+                        e.stopPropagation();
+                        attachInputElement();
+                    })
+                    .trigger("click");
+            }
+            $("#" + current_element).css({
+                left: "-=20px",
+            });
+            if ($("#" + current_element).width() > 365) {
+                $("#" + current_element).css({
+                    left: "-=10px",
+                });
+            }
+            $("#properties").removeClass("active");
+            $("#properties-btn").removeClass("active");
+            $("#element-list-btn").addClass("active");
+            $("#element-list").addClass("active");
+        }
+    } else {
+        elements_array = {};
+        elements_data_array = {};
+        elements_array["step-1"] = {};
+        elements_array["step-1"][0] = "";
+        elements_array["step-1"][1] = "";
+        sessionStorage.setItem(
+            "elements_array",
+            JSON.stringify(elements_array)
+        );
+        sessionStorage.setItem(
+            "elements_data_array",
+            JSON.stringify(elements_data_array)
+        );
+    }
+
     placeElement();
-    $(".placedElement").css({
-        border: "none",
-    });
-    $(".placedElement .cancel-icon").css({
-        display: "none",
-    });
 
     function placeElement(e) {
         $(".element").on("mousedown", function (e) {
@@ -34,211 +194,179 @@ $(document).ready(function () {
             choosedElement.addClass("drop-pad-element");
             choosedElement.removeClass("element");
             $(document).on("mousemove", function (e) {
-                var cursor_x = e.pageX;
-                var cursor_y = e.pageY;
-                var drop_pad = $(".drop-pad").offset();
-                var drop_pad_x = drop_pad.left;
-                var drop_pad_max_x =
-                    drop_pad_x + $(".drop-pad").outerWidth();
-                var drop_pad_y = drop_pad.top;
-                var drop_pad_max_y =
-                    drop_pad_y + $(".drop-pad").outerHeight();
-                if (
-                    cursor_y < drop_pad_y &&
-                    cursor_x > drop_pad_x &&
-                    cursor_x < drop_pad_max_x
-                ) {
-                    var subtract =
-                        cursor_x - choosedElement.outerWidth(true);
-                    if (subtract < drop_pad_x) {
-                        choosedElement.css({
-                            left: drop_pad_x,
-                            top: drop_pad_y,
-                        });
-                    } else {
-                        choosedElement.css({
-                            left: subtract,
-                            top: drop_pad_y,
-                        });
-                    }
-                } else if (
-                    cursor_x < drop_pad_x &&
-                    cursor_y > drop_pad_y &&
-                    cursor_y < drop_pad_max_y
-                ) {
-                    var subtract =
-                        cursor_y - choosedElement.outerHeight(true);
-                    if (subtract < drop_pad_y) {
-                        choosedElement.css({
-                            left: drop_pad_x,
-                            top: drop_pad_y,
-                        });
-                    } else {
-                        choosedElement.css({
-                            left: drop_pad_x,
-                            top: subtract,
-                        });
-                    }
-                } else if (
-                    cursor_x > drop_pad_max_x &&
-                    cursor_y > drop_pad_y &&
-                    cursor_y < drop_pad_max_y
-                ) {
-                    var subtract =
-                        cursor_y - choosedElement.outerHeight(true);
-                    if (subtract < drop_pad_y) {
-                        choosedElement.css({
-                            left:
-                                drop_pad_max_x -
-                                choosedElement.outerWidth(true),
-                            top: drop_pad_y,
-                        });
-                    } else {
-                        choosedElement.css({
-                            left:
-                                drop_pad_max_x -
-                                choosedElement.outerWidth(true),
-                            top: subtract,
-                        });
-                    }
-                } else if (cursor_x < drop_pad_x && cursor_y < drop_pad_y) {
+                var x = e.pageX;
+                var y = e.pageY;
+                var element = $(".drop-pad").offset();
+                var element_x = element.left;
+                var max_x =
+                    element_x +
+                    $(".drop-pad").outerWidth() -
+                    choosedElement.width();
+                var element_y = element.top;
+                var max_y =
+                    element_y +
+                    $(".drop-pad").outerHeight() -
+                    choosedElement.height();
+                if (x < element_x && y < element_y) {
                     choosedElement.css({
-                        left: drop_pad_x,
-                        top: drop_pad_y,
+                        left: element_x,
+                        top: element_y,
                     });
-                } else if (
-                    cursor_y < drop_pad_y &&
-                    cursor_x > drop_pad_max_x
-                ) {
+                } else if (x < element_x && y > max_y) {
                     choosedElement.css({
-                        left:
-                            drop_pad_max_x -
-                            choosedElement.outerWidth(true),
-                        top: drop_pad_y,
+                        left: element_x,
+                        top: max_y - 20,
                     });
-                } else if (cursor_y > drop_pad_max_y) {
-                    if (
-                        cursor_x > drop_pad_x &&
-                        cursor_x < drop_pad_max_x
-                    ) {
-                        if (
-                            cursor_x + choosedElement.outerWidth(true) >
-                            drop_pad_max_x
-                        ) {
-                            choosedElement.css({
-                                left:
-                                    drop_pad_max_x -
-                                    choosedElement.outerWidth(true),
-                                top:
-                                    drop_pad_max_y -
-                                    choosedElement.outerHeight(true),
-                            });
-                        } else {
-                            choosedElement.css({
-                                left: cursor_x,
-                                top:
-                                    drop_pad_max_y -
-                                    choosedElement.outerHeight(true),
-                            });
-                        }
-                    } else if (cursor_x < drop_pad_x) {
-                        choosedElement.css({
-                            left: drop_pad_x,
-                            top:
-                                drop_pad_max_y -
-                                choosedElement.outerHeight(true),
-                        });
-                    } else if (cursor_x > drop_pad_max_x) {
-                        choosedElement.css({
-                            left:
-                                drop_pad_max_x -
-                                choosedElement.outerWidth(true),
-                            top:
-                                drop_pad_max_y -
-                                choosedElement.outerHeight(true),
-                        });
-                    }
                     var newDropPadHeight =
-                        $(".task-list").outerHeight() +
-                        choosedElement.outerHeight();
-                    $(".task-list").css({
-                        height: newDropPadHeight,
+                        $(".drop-pad").height() + choosedElement.height();
+                    $(".drop-pad").css("height", newDropPadHeight + "px");
+                    var choosedElementOffset = choosedElement.offset();
+                    window.scrollTo({
+                        top: choosedElementOffset.top,
+                        left: choosedElementOffset.left,
                     });
-                    $("#capture").scrollTop($("#capture")[0].scrollHeight);
+                } else if (x < element_x && y > element_y && y < max_y) {
+                    choosedElement.css({
+                        left: element_x,
+                        top: y,
+                    });
+                } else if (y < element_y && x > element_x && x < max_x) {
+                    choosedElement.css({
+                        left: x,
+                        top: element_y,
+                    });
+                } else if (y > max_y && x > element_x && x < max_x) {
+                    choosedElement.css({
+                        left: element_x,
+                        top: max_y - 20,
+                    });
+                    var newDropPadHeight =
+                        $(".drop-pad").height() + choosedElement.height();
+                    $(".drop-pad").css("height", newDropPadHeight + "px");
+                    var choosedElementOffset = choosedElement.offset();
+                    window.scrollTo({
+                        top: choosedElementOffset.top,
+                        left: choosedElementOffset.left,
+                    });
+                } else if (
+                    x > element_x &&
+                    x < max_x &&
+                    y > element_y &&
+                    y < max_y
+                ) {
+                    choosedElement.css({
+                        left: x,
+                        top: y,
+                    });
+                } else if (x > max_x && y > max_y) {
+                    choosedElement.css({
+                        left: element_x - 20,
+                        top: max_y - 20,
+                    });
+                    var newDropPadHeight =
+                        $(".drop-pad").height() + choosedElement.height();
+                    $(".drop-pad").css("height", newDropPadHeight + "px");
+                    var choosedElementOffset = choosedElement.offset();
+                    window.scrollTo({
+                        top: choosedElementOffset.top,
+                        left: choosedElementOffset.left,
+                    });
+                } else if (x > max_x && y < element_y) {
+                    choosedElement.css({
+                        left: max_x - 20,
+                        top: element_y,
+                    });
+                } else if (x > max_x && y > element_y && y < max_y) {
+                    choosedElement.css({
+                        left: max_x - 20,
+                        top: y,
+                    });
                 } else {
-                    if (
-                        cursor_x + choosedElement.outerWidth(true) >
-                            drop_pad_max_x &&
-                        cursor_y + choosedElement.outerHeight(true) <
-                            drop_pad_max_y
-                    ) {
-                        choosedElement.css({
-                            left:
-                                drop_pad_max_x -
-                                choosedElement.outerWidth(true),
-                            top: cursor_y,
-                        });
-                    } else if (
-                        cursor_y + choosedElement.outerHeight(true) >
-                            drop_pad_max_y &&
-                        cursor_x + choosedElement.outerWidth(true) <
-                            drop_pad_max_x
-                    ) {
-                        choosedElement.css({
-                            left: cursor_x,
-                            top:
-                                drop_pad_max_y -
-                                choosedElement.outerHeight(true),
-                        });
-                    } else if (
-                        cursor_x + choosedElement.outerWidth(true) >
-                            drop_pad_max_x &&
-                        cursor_y + choosedElement.outerHeight(true) >
-                            drop_pad_max_y
-                    ) {
-                        choosedElement.css({
-                            left:
-                                drop_pad_max_x -
-                                choosedElement.outerWidth(true),
-                            top:
-                                drop_pad_max_y -
-                                choosedElement.outerHeight(true),
-                        });
-                    } else {
-                        choosedElement.css({
-                            left: cursor_x,
-                            top: cursor_y,
-                        });
-                    }
+                    choosedElement.css({
+                        left: element_x,
+                        top: element_y,
+                    });
                 }
             });
         });
+
         $(document).on("mouseup", function (e) {
             if (choosedElement) {
                 choosedElement.addClass("placedElement");
                 choosedElement.removeClass("drop_element");
-                var drop_pad = $(".drop-pad").offset();
-                var drop_pad_x = drop_pad.left;
-                var drop_pad_y = drop_pad.top;
-                var scrollTopValue = $("#capture").scrollTop();
-                var scrollLeftValue = $("#capture").scrollLeft();
-                choosedElement.css({
-                    left:
-                        choosedElement.offset().left -
-                        drop_pad_x +
-                        scrollLeftValue,
-                    top:
-                        choosedElement.offset().top -
-                        drop_pad_y +
-                        scrollTopValue,
-                });
+                var x = e.pageX;
+                var y = e.pageY;
+                var element = $(".drop-pad").offset();
+                var element_x = element.left;
+                var max_x =
+                    element_x +
+                    $(".drop-pad").outerWidth() -
+                    choosedElement.width();
+                var element_y = element.top;
+                var max_y =
+                    element_y +
+                    $(".drop-pad").outerHeight() -
+                    choosedElement.height();
+                if (x < element_x && y < element_y) {
+                    choosedElement.css({
+                        left: 0,
+                        top: 0,
+                    });
+                } else if (x < element_x && y > max_y) {
+                    choosedElement.css({
+                        left: 0,
+                        top: max_y - 310,
+                    });
+                } else if (x > max_x && y > max_y) {
+                    choosedElement.css({
+                        left: max_x - 130,
+                        top: max_y - 310,
+                    });
+                } else if (x < element_x && y > element_y && y < max_y) {
+                    choosedElement.css({
+                        left: 0,
+                        top: y - 330,
+                    });
+                } else if (y < element_y && x > element_x && x < max_x) {
+                    choosedElement.css({
+                        left: x - 210,
+                        top: 0,
+                    });
+                } else if (y > max_y && x > element_x && x < max_x) {
+                    choosedElement.css({
+                        left: x - 210,
+                        top: max_y - 310,
+                    });
+                } else if (
+                    x > element_x &&
+                    x < max_x &&
+                    y > element_y &&
+                    y < max_y
+                ) {
+                    choosedElement.css({
+                        left: x - 210,
+                        top: y - 330,
+                    });
+                } else if (x > max_x && y < element_y) {
+                    choosedElement.css({
+                        left: max_x - 130,
+                        top: 0,
+                    });
+                } else if (x > max_x && y > element_y && y < max_y) {
+                    choosedElement.css({
+                        left: max_x - 130,
+                        top: y - 330,
+                    });
+                } else {
+                    choosedElement.css({
+                        left: 0,
+                        top: 0,
+                    });
+                }
                 $(document).off("mousemove");
                 $(".task-list").append(choosedElement);
                 $(".cancel-icon").on("click", removeElement);
-                $(".element_change_output").on(
-                    "click",
-                    attachOutputElement
-                );
+                $(".element_change_output").on("click", attachOutputElement);
                 $(".element_change_input").on("click", attachInputElement);
                 $(".drop-pad-element").on("click", elementProperties);
                 choosedElement.on("mousedown", startDragging);
@@ -246,10 +374,8 @@ $(document).ready(function () {
                 elements_array[id] = {};
                 elements_array[id][0] = "";
                 elements_array[id][1] = "";
-                elements_array[id]["position_x"] =
-                    choosedElement.position().left;
-                elements_array[id]["position_y"] =
-                    choosedElement.position().top;
+                elements_array[id]["position_x"] = choosedElement.offset().left;
+                elements_array[id]["position_y"] = choosedElement.offset().top;
                 sessionStorage.setItem(
                     "elements_array",
                     JSON.stringify(elements_array)
@@ -277,9 +403,7 @@ $(document).ready(function () {
             $("#" + id + "-to-" + next_false).remove();
             var next_true = elements_array[id][1];
             if (next_true != "") {
-                next_element = $("#" + next_true).find(
-                    ".element_change_input"
-                );
+                next_element = $("#" + next_true).find(".element_change_input");
                 next_element.closest(".selected").removeClass("selected");
             }
             $("#" + id + "-to-" + next_true).remove();
@@ -349,6 +473,323 @@ $(document).ready(function () {
             JSON.stringify(elements_data_array)
         );
         $(this).parent().remove();
+    }
+
+    function attachOutputElement(e) {
+        if (!$(this).hasClass("selected")) {
+            if (inputElement == null && outputElement == null) {
+                var attachDiv = $(this);
+                attachDiv.addClass("selected");
+                if (attachDiv.hasClass("condition_true")) {
+                    condition = "True";
+                } else if (attachDiv.hasClass("condition_false")) {
+                    condition = "False";
+                } else {
+                    condition = "";
+                }
+                outputElement = attachDiv.closest(".element_item");
+            }
+        }
+    }
+
+    function attachInputElement(e) {
+        if (!$(this).hasClass("selected")) {
+            if (
+                outputElement != null &&
+                outputElement.attr("id") != $(this).parent().attr("id")
+            ) {
+                var attachDiv = $(this);
+                attachDiv.addClass("selected");
+                inputElement = attachDiv.closest(".element_item");
+                if (outputElement && inputElement) {
+                    var outputElementId = outputElement.attr("id");
+                    var inputElementId = inputElement.attr("id");
+                    if (condition == "True") {
+                        elements_array[outputElementId][1] = inputElementId;
+                        var attachOutputElement = $(outputElement).find(
+                            ".element_change_output.condition_true"
+                        );
+                    } else if (condition == "False") {
+                        elements_array[outputElementId][0] = inputElementId;
+                        var attachOutputElement = $(outputElement).find(
+                            ".element_change_output.condition_false"
+                        );
+                    } else {
+                        $("#" + inputElementId).css({
+                            border: "1px solid red",
+                        });
+                    }
+                    $(".drop-pad").append(
+                        '<div class="line" id="' +
+                        outputElement.attr("id") +
+                        "-to-" +
+                        inputElement.attr("id") +
+                        '"><div class="path-cancel-icon"><i class="fa-solid fa-xmark"></i></div></div>'
+                    );
+                    $(".path-cancel-icon").on("click", removePath);
+                    var attachInputElement = $(inputElement).find(
+                        ".element_change_input"
+                    );
+                    if (attachInputElement && attachOutputElement) {
+                        var inputPosition = attachInputElement.offset();
+                        var outputPosition = attachOutputElement.offset();
+
+                        var x1 = inputPosition.left;
+                        var y1 = inputPosition.top;
+                        var x2 = outputPosition.left;
+                        var y2 = outputPosition.top;
+
+                        var distance = Math.sqrt(
+                            Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)
+                        );
+                        var angle =
+                            Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
+
+                        var lineId =
+                            outputElement.attr("id") +
+                            "-to-" +
+                            inputElement.attr("id");
+                        var line = $("#" + lineId);
+                        line.css({
+                            width: distance + "px",
+                            transform: "rotate(" + angle + "deg)",
+                            top: y1 - 320 + "px",
+                            left: x1 - 207 + "px",
+                        });
+                        inputElement = null;
+                        outputElement = null;
+                    }
+                }
+                sessionStorage.setItem(
+                    "elements_array",
+                    JSON.stringify(elements_array)
+                );
+                sessionStorage.setItem(
+                    "elements_data_array",
+                    JSON.stringify(elements_data_array)
+                );
+            }
+        }
+    }
+
+    $(".element-btn").on("click", function () {
+        var targetTab = $(this).data("tab");
+        $(".element-content").removeClass("active");
+        $("#" + targetTab).addClass("active");
+        $(".element-btn").removeClass("active");
+        $(this).addClass("active");
+    });
+
+    function elementProperties(e) {
+        $("#element-list").removeClass("active");
+        $("#properties").addClass("active");
+        $("#element-list-btn").removeClass("active");
+        $("#properties-btn").addClass("active");
+        $(this).removeClass("error");
+        $(this).find(".item_name").removeClass("error");
+        $(".drop-pad-element .cancel-icon").css({
+            display: "none",
+        });
+        $("#properties").empty();
+        $(".drop-pad-element").css({
+            "z-index": "0",
+            border: "none",
+        });
+        $(this).css({
+            "z-index": "999",
+            border: "1px solid rgb(23, 172, 203)",
+        });
+        $(this).find(".cancel-icon").css({
+            display: "flex",
+        });
+        $(this).find(".item_name").css({
+            color: "#fff",
+        });
+        var item_slug = $(this).data("filterName");
+        var item_name = $(this).find(".item_name").text();
+        var list_icon = $(this).find(".list-icon").html();
+        var item_id = $(this).attr("id");
+        var name_html = "";
+        if (elements_data_array[item_id] == null) {
+            $("#loader").show();
+            $.ajax({
+                url: getCampaignElementPath.replace(":slug", item_slug),
+                type: "GET",
+                dataType: "json",
+                success: function (response) {
+                    if (response.success) {
+                        name_html += '<div class="element_properties">';
+                        name_html +=
+                            '<div class="element_name" data-bs-target="' +
+                            item_id +
+                            '">' +
+                            list_icon +
+                            "<p>" +
+                            item_name +
+                            "</p></div>";
+                        arr = {};
+                        response.properties.forEach((property) => {
+                            name_html += '<div class="property_item">';
+                            name_html +=
+                                "<p>" + property["property_name"] + "</p>";
+                            name_html +=
+                                '<input type="' +
+                                property["data_type"] +
+                                '" placeholder="Enter the ' +
+                                property["property_name"] +
+                                '" class="property_input" name="' +
+                                property["id"] +
+                                '"';
+                            if (property["optional"] == 1) {
+                                name_html += "required";
+                            }
+                            name_html += ">";
+                            name_html += "</div>";
+                            arr[property["id"]] = "";
+                        });
+                        elements_data_array[item_id] = arr;
+                        sessionStorage.setItem(
+                            "elements_data_array",
+                            JSON.stringify(elements_data_array)
+                        );
+                        name_html += "</div>";
+                    } else {
+                        name_html += '<div class="element_properties">';
+                        name_html +=
+                            '<div class="element_name">' +
+                            list_icon +
+                            "<p>" +
+                            item_name +
+                            "</p></div>";
+                        name_html +=
+                            '<div class="text-center">' +
+                            response.message +
+                            "</div></div>";
+                    }
+                    $("#properties").html(name_html);
+                    $(".property_input").on("input", propertyInput);
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                },
+                complete: function () {
+                    $("#loader").hide();
+                }
+            });
+        } else {
+            name_html += '<div class="element_properties">';
+            name_html +=
+                '<div class="element_name" data-bs-target="' +
+                item_id +
+                '">' +
+                list_icon +
+                "<p>" +
+                item_name +
+                "</p></div>";
+            elements = elements_data_array[item_id];
+            var ajaxRequests = [];
+            for (const key in elements) {
+                ajaxRequests.push(
+                    $.ajax({
+                        url: getPropertyDatatypePath
+                            .replace(":id", key)
+                            .replace(":element_slug", item_slug),
+                        type: "GET",
+                        dataType: "json",
+                    }).then(function (response) {
+                        if (response.success) {
+                            const value = elements[key];
+                            name_html += '<div class="property_item">';
+                            name_html +=
+                                "<p>" +
+                                response.property["property_name"] +
+                                "</p>";
+                            name_html +=
+                                '<input type="' +
+                                response.property["data_type"];
+                            if (value == "") {
+                                name_html +=
+                                    '" placeholder="Enter the ' +
+                                    response.property["property_name"] +
+                                    '" class="property_input" name="' +
+                                    key +
+                                    '"';
+                            } else {
+                                name_html +=
+                                    '" value="' +
+                                    value +
+                                    '" class="property_input"';
+                            }
+                            if (response.optional == "1") {
+                                name_html += "required";
+                            }
+                            name_html += ">";
+                            name_html += "</div>";
+                        } else {
+                            name_html += '<div class="property_item">';
+                            name_html += "<p>" + key + "</p>";
+                            name_html +=
+                                '<input type="text" placeholder="' +
+                                value +
+                                '" class="property_input" name="' +
+                                key +
+                                '">';
+                            name_html += "</div>";
+                        }
+                    })
+                );
+            }
+            $.when.apply($, ajaxRequests).then(function () {
+                name_html += "</div>";
+                $("#properties").html(name_html);
+                $(".property_input").on("input", propertyInput);
+            });
+        }
+    }
+
+    function propertyInput(e) {
+        var element_id = $(this)
+            .parent()
+            .parent()
+            .find(".element_name")
+            .data("bs-target");
+        if (element_id != undefined) {
+            var properties = $(this).attr("name");
+            elements_data_array[element_id][properties] = $(this).val();
+            sessionStorage.setItem(
+                "elements_data_array",
+                JSON.stringify(elements_data_array)
+            );
+            $("#" + element_id).css({
+                border: "1px solid rgb(23, 172, 203)",
+            });
+            $("#" + element_id)
+                .find(".item_name")
+                .css({
+                    color: "#fff",
+                });
+            if ($(this).parent().find("p").text() == "Days") {
+                if ($(this).val() != "") {
+                    $("#" + element_id)
+                        .find(".item_days")
+                        .html($(this).val());
+                } else {
+                    $("#" + element_id)
+                        .find(".item_days")
+                        .html(0);
+                }
+            } else if ($(this).parent().find("p").text() == "Hours") {
+                if ($(this).val() != "") {
+                    $("#" + element_id)
+                        .find(".item_hours")
+                        .html($(this).val());
+                } else {
+                    $("#" + element_id)
+                        .find(".item_hours")
+                        .html(0);
+                }
+            }
+        }
     }
 
     function startDragging(e) {
@@ -473,10 +914,8 @@ $(document).ready(function () {
                 JSON.stringify(elements_data_array)
             );
             var current_element_id = currentElement.attr("id");
-            var next_false_element_id =
-                elements_array[current_element_id][0];
-            var next_true_element_id =
-                elements_array[current_element_id][1];
+            var next_false_element_id = elements_array[current_element_id][0];
+            var next_true_element_id = elements_array[current_element_id][1];
             var prev_element_id = find_element(currentElement.attr("id"));
             if (prev_element_id && current_element_id) {
                 if (
@@ -484,20 +923,18 @@ $(document).ready(function () {
                         "#" + prev_element_id + "-to-" + current_element_id
                     ).length > 0
                 ) {
-                    var attachInputElement = $(
-                        "#" + current_element_id
-                    ).find(".element_change_input");
+                    var attachInputElement = $("#" + current_element_id).find(
+                        ".element_change_input"
+                    );
                     var attachOutputElement;
                     if (
-                        elements_array[prev_element_id][0] ==
-                        current_element_id
+                        elements_array[prev_element_id][0] == current_element_id
                     ) {
                         attachOutputElement = $("#" + prev_element_id).find(
                             ".element_change_output.condition_false"
                         );
                     } else if (
-                        elements_array[prev_element_id][1] ==
-                        current_element_id
+                        elements_array[prev_element_id][1] == current_element_id
                     ) {
                         attachOutputElement = $("#" + prev_element_id).find(
                             ".element_change_output.condition_true"
@@ -533,37 +970,34 @@ $(document).ready(function () {
             if (current_element_id && next_true_element_id) {
                 if (
                     $(".drop-pad").find(
-                        "#" +
-                            current_element_id +
-                            "-to-" +
-                            next_true_element_id
+                        "#" + current_element_id + "-to-" + next_true_element_id
                     ).length > 0
                 ) {
-                    var attachInputElement = $(
-                        "#" + next_true_element_id
-                    ).find(".element_change_input");
-                    var attachOutputElement = $(
-                        "#" + current_element_id
-                    ).find(".element_change_output.condition_true");
+                    var attachInputElement = $("#" + next_true_element_id).find(
+                        ".element_change_input"
+                    );
+                    var attachOutputElement = $("#" + current_element_id).find(
+                        ".element_change_output.condition_true"
+                    );
                     if (
                         attachInputElement.length &&
                         attachOutputElement.length
                     ) {
                         var inputPosition = attachInputElement.offset();
                         var outputPosition = attachOutputElement.offset();
+
                         var x1 = inputPosition.left;
                         var y1 = inputPosition.top;
                         var x2 = outputPosition.left;
                         var y2 = outputPosition.top;
+
                         var distance = Math.sqrt(
                             Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)
                         );
                         var angle =
                             Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
                         var lineId =
-                            current_element_id +
-                            "-to-" +
-                            next_true_element_id;
+                            current_element_id + "-to-" + next_true_element_id;
                         var line = $("#" + lineId);
                         line.css({
                             width: distance + "px",
@@ -578,36 +1012,36 @@ $(document).ready(function () {
                 if (
                     $(".drop-pad").find(
                         "#" +
-                            current_element_id +
-                            "-to-" +
-                            next_false_element_id
+                        current_element_id +
+                        "-to-" +
+                        next_false_element_id
                     ).length > 0
                 ) {
                     var attachInputElement = $(
                         "#" + next_false_element_id
                     ).find(".element_change_input");
-                    var attachOutputElement = $(
-                        "#" + current_element_id
-                    ).find(".element_change_output.condition_false");
+                    var attachOutputElement = $("#" + current_element_id).find(
+                        ".element_change_output.condition_false"
+                    );
                     if (
                         attachInputElement.length &&
                         attachOutputElement.length
                     ) {
                         var inputPosition = attachInputElement.offset();
                         var outputPosition = attachOutputElement.offset();
+
                         var x1 = inputPosition.left;
                         var y1 = inputPosition.top;
                         var x2 = outputPosition.left;
                         var y2 = outputPosition.top;
+
                         var distance = Math.sqrt(
                             Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)
                         );
                         var angle =
                             Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
                         var lineId =
-                            current_element_id +
-                            "-to-" +
-                            next_false_element_id;
+                            current_element_id + "-to-" + next_false_element_id;
                         var line = $("#" + lineId);
                         line.css({
                             width: distance + "px",
@@ -682,442 +1116,5 @@ $(document).ready(function () {
         } else {
             toastr.error("Properties can not be updated");
         }
-    }
-
-    function propertyInput(e) {
-        var element_id = $(this)
-            .parent()
-            .parent()
-            .find(".element_name")
-            .data("bs-target");
-        if (element_id != undefined) {
-            if ($(this).parent().find("p").text() == "Days") {
-                if ($(this).val() != "") {
-                    $("#" + element_id)
-                        .find(".item_days")
-                        .html($(this).val());
-                } else {
-                    $("#" + element_id)
-                        .find(".item_days")
-                        .html(0);
-                }
-            } else if ($(this).parent().find("p").text() == "Hours") {
-                if ($(this).val() != "") {
-                    $("#" + element_id)
-                        .find(".item_hours")
-                        .html($(this).val());
-                } else {
-                    $("#" + element_id)
-                        .find(".item_hours")
-                        .html(0);
-                }
-            }
-        }
-    }
-
-    $(".element-btn").on("click", function () {
-        var targetTab = $(this).data("tab");
-        $(".element-content").removeClass("active");
-        $("#" + targetTab).addClass("active");
-        $(".element-btn").removeClass("active");
-        $(this).addClass("active");
-    });
-
-    // $.ajax({
-    //     url: getElementsRoute.replace(":campaign_id", campaign_id),
-    //     method: "GET",
-    //     success: function (response) {
-    //         if (response.success) {
-    //             elements_array = response.elements_array;
-    //             path = response.path;
-    //             if (elements_array) {
-    //                 var maxDropPadHeight = 0;
-    //                 html = ``;
-    //                 html += `<div class="step-1 element_item" id="step-1"><div class="list-icon">`;
-    //                 html += `<i class="fa-solid fa-certificate"></i></div><div class="item_details">`;
-    //                 html += `<p class="item_name">Lead Source (Step 1)</p><p class="item_desc">`;
-    //                 html += `<i class="fa-solid fa-clock"></i>Wait for: <span class="item_days">0</span>`;
-    //                 html += ` days <span class="item_hours">0</span> hours</p></div>`;
-    //                 html += `<div class="element_change_output attach-elements-out condition_true"></div></div>`;
-    //                 $(".task-list").append(html);
-    //                 for (var i = 0; i < elements_array.length; i++) {
-    //                     var element = elements_array[i]["original_element"];
-    //                     var original_properties =
-    //                         elements_array[i]["properties"];
-    //                     var days = 0;
-    //                     var hours = 0;
-    //                     for (var j = 0; j < original_properties.length; j++) {
-    //                         if (
-    //                             original_properties[j]["original_properties"][
-    //                                 "property_name"
-    //                             ] == "Hours"
-    //                         ) {
-    //                             hours = original_properties[j]["value"];
-    //                         } else if (
-    //                             original_properties[j]["original_properties"][
-    //                                 "property_name"
-    //                             ] == "Days"
-    //                         ) {
-    //                             days = original_properties[j]["value"];
-    //                         }
-    //                     }
-    //                     html = ``;
-    //                     if (element["is_conditional"] == "1") {
-    //                         html += `<div class="element_item drop-pad-element placedElement" id="`;
-    //                         html += elements_array[i]["id"] + `"`;
-    //                         html +=
-    //                             `data-filter-name="` + element["element_name"];
-    //                         html += `" style="position: absolute;">`;
-    //                         html += `<div class="element_change_input conditional-elements conditional-elements-in"></div>`;
-    //                         html += `<div class="cancel-icon"><i class="fa-solid fa-x"></i></div>`;
-    //                         html +=
-    //                             `<div class="list-icon">` +
-    //                             element["element_icon"] +
-    //                             `</div>`;
-    //                         html += `<div class="item_details"><p class="item_name">`;
-    //                         html += element["element_name"] + `</p>`;
-    //                         html += `<p class="item_desc"><i class="fa-solid fa-clock"></i>Check after: `;
-    //                         html +=
-    //                             `<span class="item_days">` +
-    //                             days +
-    //                             `</span> days `;
-    //                         html +=
-    //                             `<span class="item_hours">` +
-    //                             hours +
-    //                             `</span> hours`;
-    //                         html += `</p></div>`;
-    //                         html += `<div class="menu-icon"><i class="fa-solid fa-bars"></i></div>`;
-    //                         html += `<div class="conditional-elements conditional-elements-out">`;
-    //                         html += `<div class="element_change_output condition_true"><i class="fa-solid fa-check"></i>`;
-    //                         html += `</div><div class="element_change_output condition_false">`;
-    //                         html += `<i class="fa-solid fa-xmark"></i></div></div></div>`;
-    //                     } else {
-    //                         html += `<div class="element_item drop-pad-element placedElement" id="`;
-    //                         html += elements_array[i]["id"] + `"`;
-    //                         html +=
-    //                             `data-filter-name="` + element["element_name"];
-    //                         html += `" style="position: absolute;">`;
-    //                         html += `<div class="element_change_input attach-elements attach-elements-in"></div>`;
-    //                         html += `<div class="cancel-icon"><i class="fa-solid fa-x"></i></div>`;
-    //                         html +=
-    //                             `<div class="list-icon">` +
-    //                             element["element_icon"] +
-    //                             `</div>`;
-    //                         html += `<div class="item_details"><p class="item_name">`;
-    //                         html += element["element_name"] + `</p>`;
-    //                         html += `<p class="item_desc"><i class="fa-solid fa-clock"></i>Wait for: `;
-    //                         html +=
-    //                             `<span class="item_days">` +
-    //                             days +
-    //                             `</span> days `;
-    //                         html +=
-    //                             `<span class="item_hours">` +
-    //                             hours +
-    //                             `</span> hours</p></div>`;
-    //                         html += `<div class="menu-icon"><i class="fa-solid fa-bars"></i></div>`;
-    //                         html += `<div class="element_change_output attach-elements attach-elements-out condition_true">`;
-    //                         html += `</div></div>`;
-    //                     }
-    //                     $(".task-list").append(html);
-    //                     var clone = $("#" + elements_array[i]["id"]);
-    //                     clone.css({
-    //                         position: "absolute",
-    //                     });
-    //                     var left = elements_array[i]["position_x"];
-    //                     var top = elements_array[i]["position_y"];
-    //                     // var left = elements_array[i]["position_x"];
-    //                     // var step1_left = $("#step-1").position().left;
-    //                     // var subtract =
-    //                     //     parseInt(elements_array[0]["position_x"]) -
-    //                     //     step1_left;
-    //                     // if (parseInt(left) - subtract < 0) {
-    //                     //     left = 0;
-    //                     // } else if (
-    //                     //     parseInt(left) + $(clone).width() <
-    //                     //     $(".drop-pad").width()
-    //                     // ) {
-    //                     //     left = parseInt(left) - subtract;
-    //                     // } else {
-    //                     //     left =
-    //                     //         $(".drop-pad").width() -
-    //                     //         $(clone).width() -
-    //                     //         step1_top;
-    //                     // }
-    //                     // var top = elements_array[i]["position_y"];
-    //                     // var step1_top = $("#step-1").position().top;
-    //                     // var step1_height = $("#step-1").outerHeight(true);
-    //                     // subtract =
-    //                     //     parseInt(elements_array[0]["position_y"]) -
-    //                     //     step1_height -
-    //                     //     step1_top;
-    //                     // if (parseInt(top) - subtract < 0) {
-    //                     //     top = 0;
-    //                     // } else {
-    //                     //     top = parseInt(top) - subtract;
-    //                     // }
-    //                     clone.css({
-    //                         left: left,
-    //                         top: top,
-    //                     });
-    //                     // var newDropPadHeight =
-    //                     //     parseInt($(clone).css("top")) +
-    //                     //     parseInt($(clone).css("height")) +
-    //                     //     step1_top;
-    //                     // if (maxDropPadHeight < newDropPadHeight) {
-    //                     //     maxDropPadHeight = newDropPadHeight;
-    //                     //     $(".drop-pad").css(
-    //                     //         "height",
-    //                     //         maxDropPadHeight + "px"
-    //                     //     );
-    //                     // }
-    //                 }
-    //                 $("#step-1")
-    //                     .find(".condition_true")
-    //                     .on("click", attachOutputElement)
-    //                     .trigger("click");
-    //                 var first_element = path[0]["current_element_id"];
-    //                 $("#" + first_element)
-    //                     .find(".element_change_input")
-    //                     .on("click", attachInputElement)
-    //                     .trigger("click");
-    //                 for (var i = 0; i < path.length; i++) {
-    //                     current_element = path[i]["current_element_id"];
-    //                     if (path[i]["next_false_element_id"] != "") {
-    //                         $("#" + current_element)
-    //                             .find(".condition_false")
-    //                             .on("click", attachOutputElement)
-    //                             .trigger("click");
-    //                         $("#" + path[i]["next_false_element_id"])
-    //                             .find(".element_change_input")
-    //                             .on("click", attachInputElement)
-    //                             .trigger("click");
-    //                     }
-    //                     if (path[i]["next_true_element_id"] != "") {
-    //                         $("#" + current_element)
-    //                             .find(".condition_true")
-    //                             .on("click", attachOutputElement)
-    //                             .trigger("click");
-    //                         $("#" + path[i]["next_true_element_id"])
-    //                             .find(".element_change_input")
-    //                             .on("click", attachInputElement)
-    //                             .trigger("click");
-    //                     }
-    //                 }
-    //                 $(".drop-pad-element").on("click", elementProperties);
-    //             }
-    //         }
-    //     },
-    //     error: function (xhr, status, error) {
-    //         console.error(error);
-    //     },
-    // });
-
-    function attachOutputElement(e) {
-        if (inputElement == null && outputElement == null) {
-            var attachDiv = $(this);
-            attachDiv.addClass("selected");
-            if (attachDiv.hasClass("condition_true")) {
-                condition = "True";
-            } else if (attachDiv.hasClass("condition_false")) {
-                condition = "False";
-            } else {
-                condition = "";
-            }
-            outputElement = attachDiv.closest(".element_item");
-        }
-    }
-
-    function attachInputElement(e) {
-        if (
-            outputElement != null &&
-            outputElement.attr("id") != $(this).parent().attr("id")
-        ) {
-            var attachDiv = $(this);
-            attachDiv.addClass("selected");
-            inputElement = attachDiv.closest(".element_item");
-            if (outputElement && inputElement) {
-                var outputElementId = outputElement.attr("id");
-                var inputElementId = inputElement.attr("id");
-                if (condition == "True") {
-                    var attachOutputElement = $(outputElement).find(
-                        ".element_change_output.condition_true"
-                    );
-                } else if (condition == "False") {
-                    var attachOutputElement = $(outputElement).find(
-                        ".element_change_output.condition_false"
-                    );
-                } else {
-                    $("#" + inputElementId).css({
-                        border: "1px solid red",
-                    });
-                }
-                var attachInputElement = $(inputElement).find(
-                    ".element_change_input"
-                );
-                if (attachInputElement && attachOutputElement) {
-                    var lineId =
-                        outputElement.attr("id") +
-                        "-to-" +
-                        inputElement.attr("id");
-                    $("body").append(
-                        '<div class="line" id="' + lineId + '"></div>'
-                    );
-                    var x1 =
-                        attachOutputElement.offset().left +
-                        attachOutputElement.outerWidth() / 2;
-                    var y1 =
-                        attachOutputElement.offset().top +
-                        attachOutputElement.outerHeight() / 2;
-                    var x2 =
-                        attachInputElement.offset().left +
-                        attachInputElement.outerWidth() / 2;
-                    var y2 =
-                        attachInputElement.offset().top +
-                        attachInputElement.outerHeight() / 2;
-                    var distance = Math.sqrt(
-                        Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)
-                    );
-                    var extra_left =
-                        ($(".drop-pad").outerWidth(true) -
-                            $(".drop-pad").width()) /
-                        2;
-                    var angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
-                    var line = $("#" + lineId);
-                    line.css({
-                        width: distance + "px",
-                        transform: "rotate(" + angle + "deg)",
-                        top: y1 + "px",
-                        left: x1 + extra_left + "px",
-                    });
-                    inputElement = null;
-                    outputElement = null;
-                }
-            }
-        }
-    }
-
-    function elementProperties(e) {
-        $("#element-list").removeClass("active");
-        $("#properties").addClass("active");
-        $("#element-list-btn").removeClass("active");
-        $("#properties-btn").addClass("active");
-        $(this).removeClass("error");
-        $(this).find(".item_name").removeClass("error");
-        $(".drop-pad-element .cancel-icon").css({
-            display: "none",
-        });
-        $("#properties").empty();
-        $(".drop-pad-element").css({
-            "z-index": "0",
-            border: "none",
-        });
-        $(this).css({
-            "z-index": "999",
-            border: "1px solid rgb(23, 172, 203)",
-        });
-        $(this).find(".cancel-icon").css({
-            display: "flex",
-        });
-        $(this).find(".item_name").css({
-            color: "#fff",
-        });
-        var item_name = $(this).find(".item_name").text();
-        var list_icon = $(this).find(".list-icon").html();
-        var item_id = $(this).attr("id");
-        var name_html = "";
-        $("#loader").show();
-        $.ajax({
-            url: getElementByIdRoute.replace(":element_id", item_id),
-            type: "GET",
-            dataType: "json",
-            success: function (response) {
-                if (response.success) {
-                    name_html += '<div class="element_properties">';
-                    name_html +=
-                        '<div class="element_name" data-bs-target="' +
-                        item_id +
-                        '">';
-                    name_html += list_icon + "<p>" + item_name + "</p></div>";
-                    properties = response.properties;
-                    arr = {};
-                    for (var i = 0; i < properties.length; i++) {
-                        original_properties =
-                            properties[i]["original_properties"];
-                        arr[properties[i]["id"]] = properties[i]["value"];
-                        name_html += '<div class="property_item">';
-                        name_html +=
-                            "<p>" + original_properties["property_name"];
-                        name_html += "</p>";
-                        name_html +=
-                            '<input type="' + original_properties["data_type"];
-                        name_html +=
-                            '" placeholder="Enter the ' +
-                            original_properties["property_name"];
-                        name_html +=
-                            '" class="property_input" name="' +
-                            properties[i]["id"];
-                        name_html += '" value="' + properties[i]["value"] + '"';
-                        if (original_properties["optional"] == "1") {
-                            name_html += "required";
-                        }
-                        if (message != "") {
-                            name_html += " readonly";
-                        }
-                        name_html += ">";
-                        name_html += "</div>";
-                    }
-                    elements_data_array[item_id] = arr;
-                    name_html += "</div>";
-                    if (message != "") {
-                        name_html += '<div class="text-danger text-center">';
-                        name_html += message + "</div>";
-                    }
-                } else {
-                    name_html += '<div class="element_properties">';
-                    name_html +=
-                        '<div class="element_name" data-bs-target="' +
-                        item_id +
-                        '">';
-                    name_html += list_icon + "<p>" + item_name + "</p></div>";
-                    properties = response.properties;
-                    arr = {};
-                    for (var i = 0; i < properties.length; i++) {
-                        arr[properties[i]["id"]] = "";
-                        name_html += '<div class="property_item">';
-                        name_html += "<p>" + properties[i]["property_name"];
-                        name_html += "</p>";
-                        name_html +=
-                            '<input type="' + properties[i]["data_type"];
-                        name_html +=
-                            '" placeholder="Enter the ' +
-                            properties[i]["property_name"];
-                        name_html +=
-                            '" class="property_input" name="' + item_id;
-                        name_html += '"';
-                        if (properties[i]["optional"] == "1") {
-                            name_html += "required";
-                        }
-                        name_html += ">";
-                        name_html += "</div>";
-                    }
-                    elements_data_array[item_id] = arr;
-                    sessionStorage.setItem(
-                        "elements_data_array",
-                        JSON.stringify(elements_data_array)
-                    );
-                    name_html += "</div>";
-                    name_html +=
-                        '<div class="save-btns"><button id="save">Save</button></div>';
-                }
-                $("#properties").html(name_html);
-                $("#save").on("click", onSave);
-            },
-            error: function (xhr, status, error) {
-                console.error(xhr.responseText);
-            },
-            complete: function () {
-                $("#loader").hide();
-            }
-        });
     }
 });
