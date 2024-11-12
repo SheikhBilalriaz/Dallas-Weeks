@@ -4,23 +4,6 @@ let filterGlobalBlacklistAjax = null;
 let filterEmailBlacklistAjax = null;
 
 $(document).ready(function () {
-    toastr.options = {
-        "closeButton": true,
-        "debug": false,
-        "newestOnTop": false,
-        "progressBar": true,
-        "positionClass": "toast-bottom-right",
-        "preventDuplicates": false,
-        "onclick": null,
-        "showDuration": "300",
-        "hideDuration": "1000",
-        "timeOut": "5000",
-        "extendedTimeOut": "1000",
-        "showEasing": "swing",
-        "hideEasing": "linear",
-        "showMethod": "fadeIn",
-        "hideMethod": "fadeOut"
-    };
     $(document).on('click', '.global_blacklist_type', function () {
         $('.global_blacklist_type').siblings('input').prop('checked', false);
         let comparisonType = $('.global_comparison_type').parent().parent();

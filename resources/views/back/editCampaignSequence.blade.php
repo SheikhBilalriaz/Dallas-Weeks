@@ -11,6 +11,13 @@
                     @include('back/partials/sidebar')
                 </div>
                 <div class="col-lg-11 col-sm-12">
+                    <div class="row crt_cmp_r" bis_skin_checked="1">
+                        <div class="col-12" bis_skin_checked="1">
+                            <div class="d-flex align-items-center justify-content-between w-100" bis_skin_checked="1">
+                                <h3>Smart sequence</h3>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row crt_cmp_r sequence-steps">
                         <div class="col-lg-9 drop-pad" id="capture">
                             <h5>Sequence Steps</h5>
@@ -150,13 +157,33 @@
     </section>
     <script>
         var campaign_id = {!! $campaign_id !!};
+        var elements_array = {!! json_encode($element_array) !!};
+        var element_data_array = {!! json_encode($element_data_array) !!};
+        if (!sessionStorage.getItem('elements_array') || JSON.parse(sessionStorage.getItem('elements_array')).length === 0) {
+            sessionStorage.setItem(
+                "elements_array",
+                JSON.stringify(elements_array)
+            );
+        }
+        if (!sessionStorage.getItem('elements_data_array') || JSON.parse(sessionStorage.getItem('elements_data_array')).length === 0) {
+            sessionStorage.setItem(
+                "elements_data_array",
+                JSON.stringify(element_data_array)
+            );
+        }
         var settings = {!! $settings !!};
+        var campaignsPath = "{{ route('campaignPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}";
         var updateCampaignRoute =
             "{{ route('updateCampaign', ['slug' => $team->slug, 'seat_slug' => $seat->slug, ':campaign_id']) }}";
         var getElementsRoute =
             "{{ route('getElements', ['slug' => $team->slug, 'seat_slug' => $seat->slug, ':campaign_id']) }}";
         var getElementByIdRoute =
             "{{ route('getcampaignelementbyid', ['slug' => $team->slug, 'seat_slug' => $seat->slug, ':element_id']) }}";
-        var campaignRoute = "{{ route('campaignPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}";
+        var getCampaignElementPath =
+            "{{ route('getCampaignElementBySlug', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'element_slug' => ':slug']) }}";
+        var getPropertyDatatypePath =
+            "{{ route('getPropertyDatatype', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'id' => ':id', 'element_slug' => ':element_slug']) }}";
+        var getPropertyRequiredPath =
+            "{{ route('getPropertyRequired', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'id' => ':id']) }}";
     </script>
 @endsection

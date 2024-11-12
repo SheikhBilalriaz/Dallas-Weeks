@@ -243,11 +243,30 @@
                             <input type="hidden" name="stripe_token" id="stripe_token">
                             <div class="progress-bar" id="progress-bar">
                                 <div class="progress" id="progress"></div>
-                                <div class="progress-step active" data-title="Company Info"></div>
+                                <div class="progress-step active" data-title="Add Subscription"></div>
+                                <div class="progress-step" data-title="Company Info"></div>
                                 <div class="progress-step" data-title="Seat Info"></div>
                                 <div class="progress-step" data-title="Payment"></div>
                             </div>
                             <div class="form-step active">
+                                <div class="form_row row promo_row">
+                                    <div class="col-lg-12">
+                                        <div class="promo-code">
+                                            <label for="promo_code">Promo code</label>
+                                            <input type="text" name="promo_code" id="promo_code"
+                                                placeholder="eg. t3N95M"
+                                                class="{{ $errors->has('promo_code') ? 'error' : '' }}"
+                                                value="{{ old('promo_code') }}">
+                                            <span class="text-danger">{{ $errors->first('promo_code') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="btn-group">
+                                    <a class="btn btn-prev disabled">Previous</a>
+                                    <a class="btn btn-next">Next</a>
+                                </div>
+                            </div>
+                            <div class="form-step">
                                 <div class="form_row row">
                                     <div class="col-lg-12 required">
                                         <label for="street_address">Street Address</label>
@@ -404,8 +423,7 @@
                 var hasEmailError = "{{ $errors->has('email') }}" === "1";
                 var hasPhoneNumberError = "{{ $errors->has('phone_number') }}" === "1";
                 if (hasStreetAddressError || hasCityError || hasStateError || hasPostalCodeError ||
-                    hasCountryError || hasCompanyError) {} 
-                else if (hasEmailError || hasPhoneNumberError) {
+                    hasCountryError || hasCompanyError) {} else if (hasEmailError || hasPhoneNumberError) {
                     $('.btn-next').trigger('click');
                 } else {
                     $('.btn-next').trigger('click');
@@ -429,6 +447,7 @@
             var getSeatAccessRoute = "{{ route('getSeatAccess', ['slug' => $team->slug, ':seat_id']) }}";
             var seatDashboardRoute = "{{ route('seatDashboard', ['slug' => $team->slug]) }}";
             var updateNameRoute = "{{ route('updateName', ['slug' => $team->slug, ':seat_id', ':seat_name']) }}";
+            var checkPromoCodeRoute = "{{ route('checkPromoCode', ['slug' => $team->slug]) }}";
         </script>
     @endif
     <script>

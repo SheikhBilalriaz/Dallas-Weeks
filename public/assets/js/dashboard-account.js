@@ -28,8 +28,40 @@ function btnPrev(e) {
     changeStep(false);
 }
 
-function btnNext(e) {
+async function btnNext(e) {
+    const $formRow = $(this).parent().siblings('.form_row');
+    var code = $('input[name="promo_code"]').val().trim();
+    if ($formRow.hasClass('promo_row') && code !== "") {
+        const isValidPromo = await checkPromoCode(code);
+        if (!isValidPromo) {
+            return;
+        }
+    }
     changeStep(true);
+}
+
+async function checkPromoCode(code) {
+    try {
+        const response = await $.ajax({
+            url: checkPromoCodeRoute,
+            type: 'POST',
+            data: { promo_code: code },
+            headers: {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
+            }
+        });
+        if (response.valid) {
+            return true;
+        } else {
+            $('#promo_code').addClass('error');
+            $('#promo_code').siblings('.text-danger').html(response.coupon_error);
+            return false;
+        }
+    } catch (xhr) {
+        const errorMessage = xhr.responseJSON?.coupon_error || 'Something went wrong.';
+        toastr.error(errorMessage);
+        return false;
+    }
 }
 
 function changeStep(isNext) {

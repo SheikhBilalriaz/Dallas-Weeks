@@ -17,6 +17,7 @@ use App\Models\Lead;
 use App\Models\Lead_Action;
 use App\Models\Linkedin_Integration;
 use App\Models\Linkedin_Setting;
+use App\Models\Properties;
 use App\Models\Schedule;
 use Illuminate\Http\Request;
 use Exception;
@@ -445,6 +446,29 @@ class CampaignController extends Controller
             foreach ($all as $key => $value) {
                 $campaign_details[$key] = $value;
             }
+            $campaign_elements = Campaign_Element::where('campaign_id', $campaign_id)->orderBy('id')->get();
+            $element_array['step-1'] = [
+                '0' => '',
+                '1' => $campaign_elements->first()->slug,
+            ];
+            $element_data_array = [];
+            foreach ($campaign_elements as $element) {
+                $path = Campaign_Path::where('current_element_id', $element->id)->first();
+                $element_array[$element->slug] = [
+                    '0' => Campaign_Element::where('id', $path->next_false_element_id)->value('slug') ?? '',
+                    '1' => Campaign_Element::where('id', $path->next_true_element_id)->value('slug') ?? '',
+                    'position_x' => $element->position_x ?? 0,
+                    'position_y' => $element->position_y ?? 0,
+                ];
+                $element_data_array[$element->slug] = [];
+                $properties = Properties::where('element_id', $element->element_id)->get();
+                foreach ($properties as $property) {
+                    $campaign_property = Campaign_Property::where('campaign_element_id', $element->id)
+                        ->where('property_id', $property->id)
+                        ->first();
+                    $element_data_array[$element->slug][$property->id] = $campaign_property->value ?? 0;
+                }
+            }
             $data = [
                 'title' => 'Dashboard - Campaign Sequence',
                 'team' => $team,
@@ -455,6 +479,8 @@ class CampaignController extends Controller
                 'campaign_id' => $campaign_id,
                 'campaign_time' => Campaign::where('id', $campaign_id)->first(),
                 'img' => Campaign::select('img_path')->where('id', $campaign_id)->first()->img_path,
+                'element_array' => $element_array,
+                'element_data_array' => $element_data_array,
             ];
             return view('back.editCampaignSequence', $data);
         } catch (Exception $e) {
@@ -470,9 +496,15 @@ class CampaignController extends Controller
     function updateCampaign($slug, $seat_slug, Request $request, $campaign_id)
     {
         try {
+            $user_id = Auth::user()->id;
             $team = Team::where('slug', $slug)->first();
             $seat = Seat::where('slug', $seat_slug)->first();
-            $settings = $request->except('_token');
+            $data = $request->all();
+            $final_array = $data['final_array'];
+            unset($request['final_array']);
+            $final_data = $data['final_data'];
+            unset($request['final_data']);
+            $settings = $data['settings'];
             $campaign = Campaign::where('id', $campaign_id)->first();
             $campaign->name = $settings['campaign_name'];
             unset($settings['campaign_name']);
@@ -504,8 +536,9 @@ class CampaignController extends Controller
                     $setting->value = $value;
                     $setting->save();
                 }
-                return redirect()->route('campaignPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug])
-                    ->with(['success' => 'Campaign succesfully updated!']);
+                $this->saveCampaignElements($final_array, $final_data, $campaign->id, $user_id);
+                $request->session()->flash('success', 'Campaign succesfully updated!');
+                return response()->json(['success' => true]);
             }
         } catch (Exception $e) {
             /* Log the exception message for debugging */
@@ -515,5 +548,77 @@ class CampaignController extends Controller
             return redirect()->route('seatDashboardPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
                 ->withErrors(['error' => 'Something went wrong']);
         }
+    }
+
+
+
+    private function saveCampaignElements($final_array, $final_data, $campaign_id, $user_id)
+    {
+        $time = now();
+        $path_array = [];
+        foreach ($final_array as $key => $value) {
+            if ($key != 'step' && $key != 'step-1') {
+                $element = Element::where('slug', $this->remove_prefix($key))->first();
+                if ($element) {
+                    $element_item = Campaign_Element::create([
+                        'element_id' => $element->id,
+                        'campaign_id' => $campaign_id,
+                        'user_id' => $user_id,
+                        'seat_id' => 1,
+                        'position_x' => $value['position_x'],
+                        'position_y' => $value['position_y'],
+                        'slug' => $key,
+                    ]);
+                    $path_array[$key] = $element_item->id;
+                    if (isset($final_data[$key])) {
+                        $this->saveElementProperties($element_item->id, $final_data[$key], $campaign_id, $time);
+                    }
+                }
+            }
+        }
+        foreach ($final_array as $key => $value) {
+            if (isset($path_array[$key])) {
+                Campaign_Path::create([
+                    'campaign_id' => $campaign_id,
+                    'current_element_id' => $path_array[$key],
+                    'next_false_element_id' => $final_array[$key]['0'] ? $path_array[$value['0']] : null,
+                    'next_true_element_id' => $final_array[$key]['1'] ? $path_array[$value['1']] : null,
+                ]);
+            }
+        }
+    }
+
+    private function saveElementProperties($element_item_id, $property_item, $campaign_id, &$time)
+    {
+        foreach ($property_item as $property_id => $value) {
+            $property = Properties::find($property_id);
+
+            if ($property) {
+                $element_property = Campaign_Property::create([
+                    'campaign_element_id' => $element_item_id,
+                    'property_id' => $property_id,
+                    'campaign_id' => $campaign_id,
+                    'value' => $value ?? '',
+                ]);
+
+                if ($element_property->value) {
+                    $timeToAdd = intval($element_property->value);
+                    if ($property->property_name == 'Hours') {
+                        $time->addHours($timeToAdd);
+                    } elseif ($property->property_name == 'Days') {
+                        $time->addDays($timeToAdd);
+                    }
+                }
+            }
+        }
+    }
+
+    private function remove_prefix($value)
+    {
+        $reverse = strrev($value);
+        $first_index = strpos($reverse, '_');
+        $second_index = strlen($value) - $first_index - 1;
+        $string = substr($value, 0, $second_index);
+        return $string;
     }
 }

@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Stripe\Stripe;
+use Stripe\Coupon;
 
 class StripePaymentController extends Controller
 {
@@ -53,6 +55,31 @@ class StripePaymentController extends Controller
             /* Get the current timezone from the configuration */
             $currentTimezone = config('app.timezone');
 
+            /* Initialize the promo code ID (if provided) */
+            $couponId = null;
+            if ($request->has('promo_code') && $request->input('promo_code') !== '') {
+                try {
+                    /* Retrieve promo code */
+                    $promoCodes = $stripe->promotionCodes->all([
+                        'code' => $request->input('promo_code'),
+                        'active' => true,
+                        'limit' => 1,
+                    ]);
+                    if (!empty($promoCodes->data) && $promoCode = $promoCodes->data[0]) {
+                        /* Valid promo code */
+                        $couponId = $promoCode->coupon->id;
+                    } else {
+                        return back()->withErrors(['promo_code' => 'Invalid or expired promo code.'])
+                            ->with('payment_error', true)
+                            ->withInput();
+                    }
+                } catch (\Stripe\Exception\ApiErrorException $e) {
+                    return back()->withErrors(['promo_code' => 'Error validating promo code. Please try again.'])
+                        ->with('payment_error', true)
+                        ->withInput();
+                }
+            }
+
             /* Create a Stripe customer */
             $customer = $stripe->customers->create([
                 'address' => [
@@ -91,12 +118,19 @@ class StripePaymentController extends Controller
             ]);
 
             /* Create a subscription for the customer */
-            $stripe->subscriptions->create([
+            $subscriptionParams = [
                 'customer' => $customer->id,
                 'items' => [
                     ['price' => config('services.stripe.seat_price_id')],
                 ],
-            ]);
+            ];
+
+            if ($couponId) {
+                $subscriptionParams['coupon'] = $couponId;
+            }
+
+            /* Create subscription */
+            $subscription = $stripe->subscriptions->create($subscriptionParams);
 
             return redirect()->route('dashboardPage', ['slug' => $slug])->with('success', 'You will be notified on email when subscription created');
         } catch (\Stripe\Exception\ApiErrorException $e) {
@@ -107,6 +141,36 @@ class StripePaymentController extends Controller
             Log::error('General Error: ' . $e);
             return back()->withErrors(['payment_error' => 'Something went wrong'])
                 ->withInput();
+        }
+    }
+
+    public function checkPromoCode($slug, Request $request)
+    {
+        try {
+            $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+            $promo_code = $request->input('promo_code');
+            $promoCodes = $stripe->promotionCodes->all([
+                'code' => $promo_code,
+                'active' => true,
+                'limit' => 1,
+            ]);
+            if (!empty($promoCodes->data) && $promoCode = $promoCodes->data[0]) {
+                return response()->json([
+                    'valid' => true,
+                    'promo_code' => [
+                        'id' => $promoCode->id,
+                        'coupon_id' => $promoCode->coupon->id,
+                    ],
+                ]);
+            } else {
+                return response()->json(['valid' => false, 'coupon_error' => 'Invalid Promotion Code']);
+            }
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            Log::error('Stripe API Error: ' . $e);
+            return response()->json(['valid' => false, 'coupon_error' => $e->getMessage()]);
+        } catch (Exception $e) {
+            Log::error('General Error: ' . $e);
+            return response()->json(['valid' => false, 'coupon_error' => 'Something went wrong'], 500);
         }
     }
 }

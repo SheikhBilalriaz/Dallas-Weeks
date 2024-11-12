@@ -17,23 +17,6 @@ $(document).ready(function () {
             type: "GET",
             success: function (response) {
                 if (response.success && response.active == 1) {
-                    toastr.options = {
-                        closeButton: true,
-                        debug: false,
-                        newestOnTop: false,
-                        progressBar: true,
-                        positionClass: "toast-bottom-right",
-                        preventDuplicates: false,
-                        onclick: null,
-                        showDuration: "300",
-                        hideDuration: "1000",
-                        timeOut: "3000",
-                        extendedTimeOut: "1000",
-                        showEasing: "swing",
-                        hideEasing: "linear",
-                        showMethod: "fadeIn",
-                        hideMethod: "fadeOut",
-                    };
                     toastr.success("Campaign successfully Activated");
                 } else {
                     toastr.info("Campaign successfully Deactivated");
@@ -68,23 +51,6 @@ $(document).ready(function () {
                 type: "GET",
                 success: function (response) {
                     if (response.success) {
-                        toastr.options = {
-                            closeButton: true,
-                            debug: false,
-                            newestOnTop: false,
-                            progressBar: true,
-                            positionClass: "toast-bottom-rightghtght",
-                            preventDuplicates: false,
-                            onclick: null,
-                            showDuration: "300",
-                            hideDuration: "1000",
-                            timeOut: "3000",
-                            extendedTimeOut: "1000",
-                            showEasing: "swing",
-                            hideEasing: "linear",
-                            showMethod: "fadeIn",
-                            hideMethod: "fadeOut",
-                        };
                         toastr.success("Campaign successfully Deleted");
                     } else {
                         toastr.error("Campaign cannot be Deleted");
@@ -118,23 +84,6 @@ $(document).ready(function () {
                 type: "GET",
                 success: function (response) {
                     if (response.success && response.archive == 1) {
-                        toastr.options = {
-                            closeButton: true,
-                            debug: false,
-                            newestOnTop: false,
-                            progressBar: true,
-                            positionClass: "toast-bottom-right",
-                            preventDuplicates: false,
-                            onclick: null,
-                            showDuration: "300",
-                            hideDuration: "1000",
-                            timeOut: "3000",
-                            extendedTimeOut: "1000",
-                            showEasing: "swing",
-                            hideEasing: "linear",
-                            showMethod: "fadeIn",
-                            hideMethod: "fadeOut",
-                        };
                         toastr.success("Campaign successfully Archived");
                     } else {
                         toastr.info("Campaign successfully Archived");

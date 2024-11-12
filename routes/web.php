@@ -80,6 +80,8 @@ Route::middleware(['userAuth'])->group(function () {
 
     Route::prefix('/team/{slug}')->middleware(['teamChecker'])->group(function () {
         Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboardPage'); //Done
+        
+        Route::post('/check-promo', [StripePaymentController::class, 'checkPromoCode'])->name('checkPromoCode');
 
         Route::get('/seat-dashboard', [SeatDashboardController::class, 'toSeatDashboard'])->name('seatDashboard'); //Done
 

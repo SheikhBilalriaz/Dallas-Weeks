@@ -159,6 +159,8 @@ $(document).ready(function () {
             $("#element-list-btn").addClass("active");
             $("#element-list").addClass("active");
         }
+        console.log(elements_array);
+        console.log(elements_data_array);
     } else {
         elements_array = {};
         elements_data_array = {};
@@ -1095,26 +1097,118 @@ $(document).ready(function () {
                 color: "#fff",
             });
         if (true) {
-            toastr.options = {
-                closeButton: true,
-                debug: false,
-                newestOnTop: false,
-                progressBar: true,
-                positionClass: "toast-bottom-right",
-                preventDuplicates: false,
-                onclick: null,
-                showDuration: "300",
-                hideDuration: "1000",
-                timeOut: "5000",
-                extendedTimeOut: "1000",
-                showEasing: "swing",
-                hideEasing: "linear",
-                showMethod: "fadeIn",
-                hideMethod: "fadeOut",
-            };
             toastr.success("Properties updated succesfully");
         } else {
             toastr.error("Properties can not be updated");
         }
+    }
+
+    $("#save-changes").on("click", function () {
+        html2canvas(document.getElementById("capture")).then(function (canvas) {
+            var img = canvas.toDataURL();
+            elements_array = JSON.parse(JSON.stringify(elements_array));
+            elements_data_array = JSON.parse(
+                JSON.stringify(elements_data_array)
+            );
+            $(".drop-pad-element .cancel-icon").css({
+                display: "none",
+            });
+            $(".drop-pad-element").css({
+                "z-index": "0",
+                border: "none",
+            });
+            if (check_elements()) {
+                $.ajax({
+                    url: updateCampaignRoute.replace(':campaign_id', campaign_id),
+                    type: "POST",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        final_data: elements_data_array,
+                        final_array: elements_array,
+                        settings: settings,
+                        img_url: img,
+                    }),
+                    headers: {
+                        "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr(
+                            "content"
+                        ),
+                    },
+                    beforeSend: function () {
+                        $("#loader").show();
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            window.location = campaignsPath;
+                        } else {
+                            toastr.error(response.message);
+                            console.log(response);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.responseText);
+                    },
+                    complete: function () {
+                        $("#loader").hide();
+                    }
+                });
+            }
+        });
+    });
+
+    function capitalize(str) {
+        if (typeof str !== "string") {
+            return "";
+        }
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    }
+
+    function check_elements() {
+        const promises = [];
+    
+        for (var key in elements_array) {
+            if (key !== "step-1") {
+                if (find_element(key) == undefined) {
+                    $("#" + key).addClass("error");
+                    $("#" + key)
+                        .find(".item_name")
+                        .addClass("error");
+                    key = key.replace(/[0-9]/g, "").replace(/_/g, " ");
+                    key = capitalize(key);
+                    toastr.error(key + " is not connected as campaign sequence.");
+                    return Promise.resolve(false);
+                } else {
+                    var element_data = elements_data_array[key];
+                    for (var prop_key in element_data) {
+                        const promise = $.ajax({
+                            url: getPropertyRequiredPath.replace(":id", prop_key),
+                            type: "GET",
+                        }).then(response => {
+                            if (response.success) {
+                                var property = response.property;
+                                if (element_data[prop_key] === "" && property["optional"] === 1) {
+                                    $("#" + key).addClass("error");
+                                    $("#" + key)
+                                        .find(".item_name")
+                                        .addClass("error");
+                                    toastr.error(property["property_name"] + " is not filled as required.");
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }).catch(xhr => {
+                            console.error(xhr.responseText);
+                            return false;
+                        });
+    
+                        promises.push(promise);
+                    }
+                }
+            }
+        }
+    
+        return Promise.all(promises).then(results => {
+            return results.every(result => result === true);
+        });
     }
 });
