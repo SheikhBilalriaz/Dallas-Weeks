@@ -198,6 +198,62 @@ class CampaignController extends Controller
         }
     }
 
+    public function fromtempelate($slug, $seat_slug, Request $request)
+    {
+        try {
+            $seat = Seat::where('slug', $seat_slug)->first();
+            $team = Team::where('slug', $slug)->first();
+            $all = $request->except('_token');
+            $settings = [];
+            foreach ($all as $key => $value) {
+                $settings[$key] = $value;
+            }
+            $element_array['step-1'] = [
+                '0' => '',
+                '1' => 'invite_to_connect_789',
+                'position_x' => 484,
+                'position_y' => 150,
+            ];
+            $element_array['invite_to_connect_789'] = [
+                '0' => '',
+                '1' => 'message_484',
+                'position_x' => 789,
+                'position_y' => 190,
+            ];
+            $element_array['message_484'] = [
+                '0' => '',
+                '1' => 'follow_963',
+                'position_x' => 963,
+                'position_y' => 250,
+            ];
+            $element_data_array = [];
+            foreach ($element_array as $element) {
+                $new_element = Element::where('slug', $this->remove_prefix($element['1']))->first();
+                $properties = Properties::where('element_id', $new_element->id)->get();
+                foreach ($properties as $property) {
+                }
+            }
+            $data = [
+                'campaigns' => Element::where('is_conditional', '0')->orderBy('id')->get(),
+                'conditional_campaigns' => Element::where('is_conditional', '1')->orderBy('id')->get(),
+                'title' => 'Dashboard - Campaign From Scratch',
+                'settings' => $settings,
+                'team' => $team,
+                'seat' => $seat,
+                'element_array' => $element_array
+            ];
+            dd($data);
+            return view('back.fromtemplate', $data);
+        } catch (Exception $e) {
+            /* Log the exception message for debugging */
+            Log::error($e);
+
+            /* Redirect to the dashboard with a generic error message if an exception occurs */
+            return redirect()->route('seatDashboardPage', ['slug' => $slug, 'seat_slug' => $seat_slug])
+                ->withErrors(['error' => 'Something went wrong']);
+        }
+    }
+
     function archiveCampaign($slug, $seat_slug, $campaign_id)
     {
         try {
@@ -446,7 +502,30 @@ class CampaignController extends Controller
             foreach ($all as $key => $value) {
                 $campaign_details[$key] = $value;
             }
-            $campaign_elements = Campaign_Element::where('campaign_id', $campaign_id)->orderBy('id')->get();
+            $previous_element = null;
+            $current_element = Campaign_Path::where('campaign_id', $campaign_id)
+                ->where('next_true_element_id', null)
+                ->where('next_false_element_id', null)
+                ->latest('created_at')
+                ->first();
+            while ($current_element != null) {
+                $previous_element = $current_element;
+                $current_element = Campaign_Path::where('next_true_element_id', $current_element->current_element_id)
+                    ->orWhere('next_false_element_id', $current_element->current_element_id)
+                    ->first();
+            }
+            $final_elements_array = [];
+            array_push($final_elements_array, $previous_element->current_element_id);
+            $next_elements = Campaign_Path::where('current_element_id', $previous_element->current_element_id)->get();
+            while ($next_elements->isNotEmpty()) {
+                $paths = array_merge(
+                    $next_elements->pluck('next_true_element_id')->toArray(),
+                    $next_elements->pluck('next_false_element_id')->toArray()
+                );
+                $next_elements = Campaign_Path::whereIn('current_element_id', $paths)->get();
+                $final_elements_array = array_merge($final_elements_array, $next_elements->pluck('current_element_id')->toArray());
+            }
+            $campaign_elements = Campaign_Element::whereIn('id', $final_elements_array)->orderBy('id')->get();
             $element_array['step-1'] = [
                 '0' => '',
                 '1' => $campaign_elements->first()->slug,

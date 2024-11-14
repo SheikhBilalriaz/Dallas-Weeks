@@ -83,6 +83,28 @@ $(document).ready(function () {
             settings[input_name] = input_value;
         });
         sessionStorage.setItem("settings", JSON.stringify(settings));
+        form.attr("action", campaignFromScratchPagePath);
+        form.submit();
+    });
+    $('#create_template').on("click", function (e) {
+        e.preventDefault();
+        var form = $("#settings");
+        var inputs = form.find(".linkedin_setting_switch");
+        inputs.each(function () {
+            if ($(this).is(":checked")) {
+                $(this).attr("value", "yes");
+                input_name = $(this).attr("name");
+                input_value = "yes";
+            } else {
+                $(this).prop("checked", true);
+                $(this).attr("value", "no");
+                input_name = $(this).attr("name");
+                input_value = "no";
+            }
+            settings[input_name] = input_value;
+        });
+        sessionStorage.setItem("settings", JSON.stringify(settings));
+        form.attr("action", campaignFromTempelatePagePath);
         form.submit();
     });
     $(".next_tab").on("click", function (e) {

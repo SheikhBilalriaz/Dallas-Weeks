@@ -331,9 +331,20 @@ class ActionCampaignCron extends Command
             $lead->save();
             if ($lead->id) {
                 $lead_action = new Lead_Action();
-                $campaign_path = Campaign_Path::where('campaign_id', $campaign->id)->first();
+                $previous_element = null;
+                $current_element = Campaign_Path::where('campaign_id', $campaign->id)
+                    ->where('next_true_element_id', null)
+                    ->where('next_false_element_id', null)
+                    ->latest('created_at')
+                    ->first();
+                while ($current_element != null) {
+                    $previous_element = $current_element;
+                    $current_element = Campaign_Path::where('next_true_element_id', $current_element->current_element_id)
+                        ->orWhere('next_false_element_id', $current_element->current_element_id)
+                        ->first();
+                }
                 $lead_action->current_element_id = null;
-                $lead_action->next_true_element_id = $campaign_path->current_element_id;
+                $lead_action->next_true_element_id = $previous_element->current_element_id;
                 $lead_action->next_false_element_id = null;
                 $lead_action->status = 'inprogress';
                 $lead_action->lead_id = $lead->id;

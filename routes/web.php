@@ -81,7 +81,7 @@ Route::middleware(['userAuth'])->group(function () {
     Route::prefix('/team/{slug}')->middleware(['teamChecker'])->group(function () {
         Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboardPage'); //Done
         
-        Route::post('/check-promo', [StripePaymentController::class, 'checkPromoCode'])->name('checkPromoCode');
+        Route::post('/check-promo', [StripePaymentController::class, 'checkPromoCode'])->name('checkPromoCode'); //Done
 
         Route::get('/seat-dashboard', [SeatDashboardController::class, 'toSeatDashboard'])->name('seatDashboard'); //Done
 
@@ -96,6 +96,7 @@ Route::middleware(['userAuth'])->group(function () {
                             Route::get('/create-campaign', [CampaignController::class, 'createCampaign'])->name('createCampaignPage'); //Done
                             Route::post('/campaign-info', [CampaignController::class, 'campaignInfo'])->name('campaignInfoPage'); //Done
                             Route::post('/campaign-from-scratch', [CampaignController::class, 'fromscratch'])->name('campaignFromScratchPage'); //Done
+                            Route::post('/campaign-from-tempelate', [CampaignController::class, 'fromtempelate'])->name('campaignFromTempelatePage');
                             Route::post('/create-schedule', [ScheduleController::class, 'createSchedule'])->name('createSchedule'); //Done
                             Route::get('/get-campaign-element-by-slug/{element_slug}', [CampaignElementController::class, 'campaignElement'])->name('getCampaignElementBySlug'); //Done
                             Route::get('/get-property-datatype/{id}/{element_slug}', [PropertiesController::class, 'getPropertyDatatype'])->name('getPropertyDatatype'); //Done

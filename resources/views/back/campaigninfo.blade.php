@@ -51,8 +51,7 @@
                                             aria-controls="nav-global" aria-selected="false">Global settings</button>
                                     </div>
                                 </nav>
-                                <form id="settings" method="POST"
-                                    action="{{ route('campaignFromScratchPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}">
+                                <form id="settings" method="POST">
                                     @csrf
                                     <div class="tab-content" id="nav-tabContent">
                                         <div class="tab-pane fade show active" id="nav-email" role="tabpanel"
@@ -623,7 +622,7 @@
                         <div class="col-6">
                             <div class="border_box">
                                 <img src="{{ asset('assets/img/temp.png') }}" alt="">
-                                <a href="javascript:;" class="btn">From template</a>
+                                <a id="create_template" class="btn">From template</a>
                                 <p>Create a sequence from our suggested templates.</p>
                             </div>
                         </div>
@@ -752,6 +751,10 @@
             "{{ route('filterSchedule', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'search' => ':search']) }}";
         var filterTeamSchedulePath =
             "{{ route('filterTeamSchedule', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'search' => ':search']) }}";
+        var campaignFromTempelatePagePath = 
+            "{{ route('campaignFromTempelatePage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}";
+        var campaignFromScratchPagePath = 
+            "{{ route('campaignFromScratchPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}";
         $(window).on('pageshow', function(event) {
             if (event.originalEvent.persisted || window.performance && window.performance.navigation.type === 2) {
                 applySettings();

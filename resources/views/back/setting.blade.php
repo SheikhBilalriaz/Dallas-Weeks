@@ -34,7 +34,7 @@
                                     <p>
                                         Customize settings for your account. Highest limits are imposed by
                                         <br>
-                                        LinkedIn system itself and vary by type of premium account.
+                                        LinkedIn settings itself and vary by type of premium account.
                                     </p>
                                 </div>
                             </div>
