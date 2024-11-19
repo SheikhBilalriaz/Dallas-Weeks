@@ -94,8 +94,8 @@ $(document).ready(function () {
                 }
                 clone.on("mousedown", startDragging);
                 clone.css({
-                    left: value["position_x"] - 214,
-                    top: value["position_y"] - 345,
+                    left: value["position_x"] - 20,
+                    top: value["position_y"] - 10,
                     border: "none",
                 });
                 var newDropPadHeight =
@@ -159,8 +159,6 @@ $(document).ready(function () {
             $("#element-list-btn").addClass("active");
             $("#element-list").addClass("active");
         }
-        console.log(elements_array);
-        console.log(elements_data_array);
     } else {
         elements_array = {};
         elements_data_array = {};

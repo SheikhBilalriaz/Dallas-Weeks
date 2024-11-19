@@ -210,27 +210,37 @@ class CampaignController extends Controller
             }
             $element_array['step-1'] = [
                 '0' => '',
-                '1' => 'invite_to_connect_789',
-                'position_x' => 484,
-                'position_y' => 150,
+                '1' => 'invite_to_connect_170',
+                'position_x' => 170,
+                'position_y' => 170,
             ];
-            $element_array['invite_to_connect_789'] = [
+            $element_array['invite_to_connect_170'] = [
                 '0' => '',
-                '1' => 'message_484',
-                'position_x' => 789,
-                'position_y' => 190,
+                '1' => 'message_230',
+                'position_x' => 500,
+                'position_y' => 246.59375,
             ];
-            $element_array['message_484'] = [
+            $element_array['message_230'] = [
                 '0' => '',
-                '1' => 'follow_963',
-                'position_x' => 963,
-                'position_y' => 250,
+                '1' => 'follow_347',
+                'position_x' => 500,
+                'position_y' => 406.984375,
+            ];
+            $element_array['follow_347'] = [
+                '0' => '',
+                '1' => '',
+                'position_x' => 560,
+                'position_y' => 560,
             ];
             $element_data_array = [];
-            foreach ($element_array as $element) {
-                $new_element = Element::where('slug', $this->remove_prefix($element['1']))->first();
-                $properties = Properties::where('element_id', $new_element->id)->get();
-                foreach ($properties as $property) {
+            foreach ($element_array as $key => $element) {
+                if ($key != 'step-1') {
+                    $new_element = Element::where('slug', $this->remove_prefix($key))->first();
+                    $properties = Properties::where('element_id', $new_element->id)->get();
+                    foreach ($properties as $property) {
+                        $campaign_property = Properties::where('element_id', $new_element->id)->first();
+                        $element_data_array[$key][$property->id] = $campaign_property->value ?? "";
+                    }
                 }
             }
             $data = [
@@ -240,9 +250,9 @@ class CampaignController extends Controller
                 'settings' => $settings,
                 'team' => $team,
                 'seat' => $seat,
-                'element_array' => $element_array
+                'element_array' => $element_array,
+                'element_data_array' => $element_data_array
             ];
-            dd($data);
             return view('back.fromtemplate', $data);
         } catch (Exception $e) {
             /* Log the exception message for debugging */
