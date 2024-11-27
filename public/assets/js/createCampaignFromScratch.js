@@ -1131,7 +1131,7 @@ $(document).ready(function () {
 
     function check_elements() {
         const promises = [];
-    
+
         for (var key in elements_array) {
             if (key !== "step-1") {
                 if (find_element(key) == undefined) {
@@ -1166,13 +1166,13 @@ $(document).ready(function () {
                             console.error(xhr.responseText);
                             return false;
                         });
-    
+
                         promises.push(promise);
                     }
                 }
             }
         }
-    
+
         return Promise.all(promises).then(results => {
             return results.every(result => result === true);
         });
