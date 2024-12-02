@@ -35,10 +35,10 @@ class seatAccessCheckingMiddleware
             /* Retrieve the slug and seat_slug from the request */
             $slug = $request->route('slug');
             $seat_slug = $request->route('seat_slug');
-            
+
             session(['slug' => $slug]);
             session(['seat_slug' => $seat_slug]);
-            
+
             /* Find the seat and team by their slugs */
             $seat = Seat::where('slug', $seat_slug)->first();
             $team = Team::where('slug', $slug)->first();
@@ -135,15 +135,22 @@ class seatAccessCheckingMiddleware
                 if (!session()->has('seat_linkedin') || $linkedin_integrations['account_id'] != session('seat_linkedin')['id']) {
                     /* Call retrieve_an_account method with the properly formatted Request object */
                     $account = $uc->retrieve_an_account($request)->getData(true);
-                    session(['seat_linkedin' => $account['account']]);
-                    Log::info(session('seat_linkedin'));
+                    if (isset($account['account'])) {
+                        session(['seat_linkedin' => $account['account']]);
+                    } else {
+                        throw new Exception($account['error']);
+                    }
                 }
 
                 if (!session()->has('linkedin_profile') || session('seat_linkedin')['connection_params']['im']['id'] != session('linkedin_profile')['provider_id']) {
                     /* Call retrieve_own_profile method with the same Request object */
                     $account_profile = $uc->retrieve_own_profile($request)->getData(true);
-                    session(['linkedin_profile' => $account_profile['profile']]);
-                    Log::info(session('linkedin_profile'));
+                    if (isset($account_profile['profile'])) {
+                        session(['linkedin_profile' => $account_profile['profile']]);
+                        Log::info(session('linkedin_profile'));
+                    } else {
+                        throw new Exception($account_profile['error']);
+                    }
                 }
             } else {
                 /* Clear specific session variables if no LinkedIn integration found */

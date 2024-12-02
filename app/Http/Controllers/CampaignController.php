@@ -57,7 +57,7 @@ class CampaignController extends Controller
                 'team' => $team,
                 'seat' => $seat,
                 'campaigns' => $campaigns,
-                'profile' => $profile['user_profile'] ?? [],
+                'profile' => $profile['user_profile'],
                 'total_profile_views' => $total_profile_views,
             ];
             return view('back.campaign', $data);

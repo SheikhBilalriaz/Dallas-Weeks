@@ -192,7 +192,8 @@ function filterSearch(e) {
         success: function (response) {
             if (response.success) {
                 var seats = response.seats;
-                const html = seats.map(seat => `
+                const seatArray = Array.isArray(seats) ? seats : Object.values(seats);
+                const html = seatArray.map(seat => `
                     <tr title="${emailVerified ? 'Verify your email first to view seat' : ''}"
                         style="opacity:${!emailVerified ? 0.7 : 1};"
                         id="${'table_row_' + seat.id}" class="seat_table_row">
@@ -225,6 +226,9 @@ function filterSearch(e) {
                         </td>
                     </tr>
                 `).join('');
+                $("#campaign_table_body").html(html);
+            } else {
+                const html = getEmptyBlacklistHTML();
                 $("#campaign_table_body").html(html);
             }
         },
@@ -363,11 +367,12 @@ function toSeat(e) {
     const button = $(this);
     button.prop('disabled', true);
 
+    $('.seat_table_data').addClass('disabled');
+
     toSeatAjax = $.ajax({
         url: getSeatAccessRoute.replace(':seat_id', id),
         type: "GET",
         success: function (response) {
-            toSeatAjax = null;
             if (response.success) {
                 if (response.access) {
                     if (response.active) {
@@ -385,6 +390,7 @@ function toSeat(e) {
         error: function (xhr) {
             const errorMessage = xhr.responseJSON?.error || 'Something went wrong. Please try again.';
             toastr.error(errorMessage);
+            $('.seat_table_data').removeClass('disabled');
         },
         complete: function () {
             /* Hide the loading indicator and re-enable the button after request completion */
