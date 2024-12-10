@@ -82,8 +82,10 @@ $(document).ready(function () {
         /* Process all ".linkedin_setting_switch" inputs */
         form.find(".linkedin_setting_switch").each(function () {
             const $input = $(this);
+            
             const inputName = $input.attr("name");
             const inputValue = $input.is(":checked") ? "yes" : "no";
+            $input.prop("checked", true);
 
             /* Set input value and update settings object */
             $input.val(inputValue);
@@ -106,8 +108,10 @@ $(document).ready(function () {
         /* Process all ".linkedin_setting_switch" inputs */
         form.find(".linkedin_setting_switch").each(function () {
             const $input = $(this);
+            
             const inputName = $input.attr("name");
             const inputValue = $input.is(":checked") ? "yes" : "no";
+            $input.prop("checked", true);
 
             /* Set input value accordingly */
             $input.val(inputValue);
