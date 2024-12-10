@@ -310,13 +310,13 @@ $(document).ready(function () {
                     }
                     nameHtml += "</div>";
                     $properties.html(nameHtml);
-                    $(".property_input").on("input", propertyInput);
                 },
                 error: function (xhr) {
                     console.error(xhr.responseText);
                 },
                 complete: function () {
                     $loader.hide();
+                    $(".property_input").on("input", propertyInput);
                 }
             });
         }
@@ -325,7 +325,8 @@ $(document).ready(function () {
     function propertyInput(e) {
         const $this = $(this);
         const $parent = $this.closest(".property_item");
-        const elementId = $parent.find(".element_name").data("bs-target");
+        const elementId = $parent.siblings(".element_name").data("bs-target");
+        
         if (elementId === undefined) return;
 
         const propertyName = $this.attr("name");
@@ -369,10 +370,6 @@ $(document).ready(function () {
         /* Capture the screenshot and then proceed with the rest of the actions */
         html2canvas(document.getElementById("capture")).then(function (canvas) {
             const img = canvas.toDataURL();
-
-            /* Only clone the arrays if necessary (if they are being mutated elsewhere) */
-            const elementsArrayCopy = [...elements_array];
-            const elementsDataArrayCopy = [...elements_data_array];
 
             /* Hide cancel icons and reset element styles */
             $cancelIcon.css("display", "none");
