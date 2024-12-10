@@ -581,6 +581,9 @@ $(document).ready(function () {
     });
 
     $("#save-changes").on("click", function () {
+        const isElementsValid = check_elements();
+        if (!isElementsValid) return;
+
         html2canvas(document.getElementById("capture")).then(function (canvas) {
             var img = canvas.toDataURL();
             elements_array = JSON.parse(JSON.stringify(elements_array));
@@ -594,42 +597,40 @@ $(document).ready(function () {
                 "z-index": "0",
                 border: "none",
             });
-            if (check_elements()) {
-                $.ajax({
-                    url: createCampaignPath,
-                    type: "POST",
-                    dataType: "json",
-                    contentType: "application/json",
-                    data: JSON.stringify({
-                        final_data: elements_data_array,
-                        final_array: elements_array,
-                        settings: campaign_details,
-                        img_url: img,
-                    }),
-                    headers: {
-                        "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr(
-                            "content"
-                        ),
-                    },
-                    beforeSend: function () {
-                        $("#loader").show();
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            window.location = campaignsPath;
-                        } else {
-                            toastr.error(response.message);
-                            console.log(response);
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error(xhr.responseText);
-                    },
-                    complete: function () {
-                        $("#loader").hide();
+            $.ajax({
+                url: createCampaignPath,
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    final_data: elements_data_array,
+                    final_array: elements_array,
+                    settings: campaign_details,
+                    img_url: img,
+                }),
+                headers: {
+                    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr(
+                        "content"
+                    ),
+                },
+                beforeSend: function () {
+                    $("#loader").show();
+                },
+                success: function (response) {
+                    if (response.success) {
+                        window.location = campaignsPath;
+                    } else {
+                        toastr.error(response.message);
+                        console.log(response);
                     }
-                });
-            }
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                },
+                complete: function () {
+                    $("#loader").hide();
+                }
+            });
         });
     });
 
@@ -1129,7 +1130,7 @@ $(document).ready(function () {
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     }
 
-    function check_elements() {
+     function check_elements() {
         const promises = [];
 
         for (var key in elements_array) {

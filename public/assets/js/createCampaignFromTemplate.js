@@ -326,7 +326,7 @@ $(document).ready(function () {
         const $this = $(this);
         const $parent = $this.closest(".property_item");
         const elementId = $parent.siblings(".element_name").data("bs-target");
-        
+
         if (elementId === undefined) return;
 
         const propertyName = $this.attr("name");
@@ -456,7 +456,16 @@ $(document).ready(function () {
         }
 
         /* Wait for all AJAX requests to complete */
-        await Promise.all(deferreds);
+        const results = await Promise.all(deferreds);
+
+        // Check if all results are true
+        for (let result of results) {
+            if (!result) {
+                allValid = false;
+                break;
+            }
+        }
+
         return allValid;
     }
 
