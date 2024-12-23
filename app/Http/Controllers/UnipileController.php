@@ -24,7 +24,7 @@ class UnipileController extends Controller
 
             /* Create a new GuzzleHttp client with SSL verification disabled */
             $client = new \GuzzleHttp\Client([
-                'verify' => false,
+                'verify' => true,
             ]);
 
             /* Construct the API URL using the account_id and DSN from the config */
@@ -62,7 +62,7 @@ class UnipileController extends Controller
 
         /* Create a new GuzzleHttp client with SSL verification disabled */
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
 
         /* Construct the API URL using the account_id and DSN from the config */
@@ -101,7 +101,7 @@ class UnipileController extends Controller
 
         /* Create a new GuzzleHttp client with SSL verification disabled */
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
 
         /* Construct the API URL using the account_id and DSN from the config */
@@ -140,7 +140,7 @@ class UnipileController extends Controller
 
         /* Create a new GuzzleHttp client with SSL verification disabled */
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
 
         /* Construct the API URL using the account_id and DSN from the config */
@@ -198,7 +198,7 @@ class UnipileController extends Controller
 
         /* Create a new GuzzleHttp client with SSL verification disabled */
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
 
         if ($request->input('sales_navigator')) {
@@ -237,7 +237,7 @@ class UnipileController extends Controller
         }
         $chat_id = $all['chat_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/chats/' . $chat_id . '/messages?';
         if (isset($all['cursor'])) {
@@ -278,7 +278,7 @@ class UnipileController extends Controller
         }
         $account_id = $all['account_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/users/relations' . '?account_id=' . $account_id . '&';
         if (isset($all['cursor'])) {
@@ -308,7 +308,7 @@ class UnipileController extends Controller
             return response()->json(['error' => 'Missing required parameters'], 400);
         }
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/accounts?';
         if (isset($all['cursor'])) {
@@ -339,7 +339,7 @@ class UnipileController extends Controller
         }
         $account_id = $all['account_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/accounts/' . $account_id . '/restart';
         try {
@@ -365,7 +365,7 @@ class UnipileController extends Controller
         $account_id = $all['account_id'];
         $attendee_id = $all['attendee_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         if (isset($all['message'])) {
             $message = $all['message'];
@@ -409,7 +409,7 @@ class UnipileController extends Controller
         }
         $chat_id = $all['chat_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/chats/' . $chat_id;
         try {
@@ -434,7 +434,7 @@ class UnipileController extends Controller
         }
         $chat_id = $all['chat_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         if (isset($all['message'])) {
             $message = $all['message'];
@@ -470,7 +470,7 @@ class UnipileController extends Controller
         }
         $chat_id = $all['chat_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/chats/' . $chat_id . '/attendees';
         try {
@@ -495,7 +495,7 @@ class UnipileController extends Controller
         }
         $chat_id = $all['chat_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/chats/' . $chat_id;
         try {
@@ -522,7 +522,7 @@ class UnipileController extends Controller
         }
         $message_id = $all['message_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/messages/' . $message_id;
         try {
@@ -547,7 +547,7 @@ class UnipileController extends Controller
         }
         $account_id = $all['account_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/messages?account_id=' . $account_id . '&';
         if (isset($all['cursor'])) {
@@ -586,7 +586,7 @@ class UnipileController extends Controller
             return response()->json(['error' => 'Missing required parameters'], 400);
         }
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $message_id = $all['message_id'];
         $attachment_id = $all['attachment_id'];
@@ -616,7 +616,7 @@ class UnipileController extends Controller
         }
         $account_id = $all['account_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/chat_attendees?account_id=' . $account_id . '&';
         if (isset($all['cursor'])) {
@@ -647,7 +647,7 @@ class UnipileController extends Controller
         }
         $attendee_id = $all['attendee_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/chat_attendees/' . $attendee_id;
         try {
@@ -672,7 +672,7 @@ class UnipileController extends Controller
         }
         $attendee_id = $all['attendee_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/chat_attendees/' . $attendee_id . '/chats?';
         if (isset($all['cursor'])) {
@@ -712,7 +712,7 @@ class UnipileController extends Controller
         }
         $attendee_id = $all['attendee_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/chat_attendees/' . $attendee_id . '/messages?';
         if (isset($all['cursor'])) {
@@ -752,7 +752,7 @@ class UnipileController extends Controller
         }
         $account_id = $all['account_id'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/users/invite/sent?account_id=' . $account_id . '&';
         if (isset($all['cursor'])) {
@@ -789,7 +789,7 @@ class UnipileController extends Controller
             $message = '';
         }
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/users/invite';
         try {
@@ -829,7 +829,7 @@ class UnipileController extends Controller
             $start = $all['start'];
         }
         $client = new Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         try {
             $response = $client->request('POST', config('services.unipile.dsn') . 'api/v1/linkedin', [
@@ -866,7 +866,7 @@ class UnipileController extends Controller
             return response()->json(['error' => 'Missing required parameters'], 400);
         }
         $client = new Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = $all['url'];
         $account_id = $all['account_id'];
@@ -931,7 +931,7 @@ class UnipileController extends Controller
             $queryParams = $this->queryToString($query);
         }
         $client = new Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         try {
             $response = $client->request('POST', config('services.unipile.dsn') . 'api/v1/linkedin', [
@@ -967,7 +967,7 @@ class UnipileController extends Controller
         $account_id = $all['account_id'];
         $identifier = $all['identifier'];
         $client = new Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/posts/' . $identifier . '?account_id=' . $account_id;
         try {
@@ -993,7 +993,7 @@ class UnipileController extends Controller
         $account_id = $all['account_id'];
         $identifier = $all['identifier'];
         $client = new Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/posts/' . $identifier . '/reactions?account_id=' . $account_id;
         if (isset($all['cursor'])) {
@@ -1022,7 +1022,7 @@ class UnipileController extends Controller
         $account_id = $all['account_id'];
         $identifier = $all['identifier'];
         $client = new Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/posts/' . $identifier . '/comments?account_id=' . $account_id;
         if (isset($all['cursor'])) {
@@ -1051,7 +1051,7 @@ class UnipileController extends Controller
         $account_id = $all['account_id'];
         $keywords = $all['keywords'];
         $client = new Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         try {
             $response = $client->request('POST', config('services.unipile.dsn') . 'api/v1/linkedin', [
@@ -1085,7 +1085,7 @@ class UnipileController extends Controller
             return response()->json(['error' => 'Missing required parameters'], 400);
         }
         $client = new Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $account_id = $all['account_id'];
         $url = config('services.unipile.dsn') . 'api/v1/linkedin/search?account_id=' . $account_id;
@@ -1118,7 +1118,7 @@ class UnipileController extends Controller
             return response()->json(['error' => 'Missing required parameters'], 400);
         }
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $account_id = $all['account_id'];
         $url = config('services.unipile.dsn') . 'api/v1/linkedin/search?account_id=' . $account_id;
@@ -1158,7 +1158,7 @@ class UnipileController extends Controller
             $message = '';
         }
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         try {
             $response = $client->request('POST', config('services.unipile.dsn') . 'api/v1/chats', [
@@ -1202,7 +1202,7 @@ class UnipileController extends Controller
             $message = '';
         }
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/users/me?account_id=' . $account_id;
         try {
@@ -1291,7 +1291,7 @@ class UnipileController extends Controller
         $account_id = $all['account_id'];
         $identifier = $all['identifier'];
         $client = new \GuzzleHttp\Client([
-            'verify' => false,
+            'verify' => true,
         ]);
         $request_url = "https://www.linkedin.com/voyager/api/feed/dash/followingStates/urn:li:fsd_followingState:urn:li:fsd_profile:" . $identifier;
         try {
@@ -1371,7 +1371,7 @@ class UnipileController extends Controller
             ];
         }
 
-        $client = new \GuzzleHttp\Client(['verify' => false]);
+        $client = new \GuzzleHttp\Client(['verify' => true]);
 
         try {
             $response = $client->request('POST', config('services.unipile.dsn') . 'api/v1/emails', [
@@ -1394,7 +1394,7 @@ class UnipileController extends Controller
             return response()->json(['error' => 'Missing required parameters'], 400);
         }
 
-        $client = new \GuzzleHttp\Client(['verify' => false]);
+        $client = new \GuzzleHttp\Client(['verify' => true]);
 
         /* Construct the API URL using the account_id and DSN from the config */
         $url = config('services.unipile.dsn') . 'api/v1/webhooks';
@@ -1422,7 +1422,7 @@ class UnipileController extends Controller
 
         $webhook_id = $all['webhook_id'];
 
-        $client = new \GuzzleHttp\Client(['verify' => false]);
+        $client = new \GuzzleHttp\Client(['verify' => true]);
 
         /* Construct the API URL using the account_id and DSN from the config */
         $url = config('services.unipile.dsn') . 'api/v1/webhooks/' . $webhook_id;
@@ -1446,7 +1446,7 @@ class UnipileController extends Controller
             return response()->json(['error' => 'Missing required parameters'], 400);
         }
 
-        $client = new \GuzzleHttp\Client(['verify' => false]);
+        $client = new \GuzzleHttp\Client(['verify' => true]);
         $events = $all['events'] ?? ['message_received', 'message_read', 'message_reaction'];
         $bodyData = [
             'source' => 'messaging',
@@ -1484,7 +1484,7 @@ class UnipileController extends Controller
             return response()->json(['error' => 'Missing required parameters'], 400);
         }
         $accountIds = is_array($all['account_id']) ? $all['account_id'] : [$all['account_id']];
-        $client = new \GuzzleHttp\Client(['verify' => false]);
+        $client = new \GuzzleHttp\Client(['verify' => true]);
         $events = $all['events'] ?? ['mail_sent', 'mail_received'];
         $bodyData = [
             'source' => 'email',
@@ -1522,7 +1522,7 @@ class UnipileController extends Controller
             return response()->json(['error' => 'Missing required parameters'], 400);
         }
         $accountIds = is_array($all['account_id']) ? $all['account_id'] : [$all['account_id']];
-        $client = new \GuzzleHttp\Client(['verify' => false]);
+        $client = new \GuzzleHttp\Client(['verify' => true]);
         $events = $all['events'] ?? ['mail_opened', 'mail_link_clicked'];
         $bodyData = [
             'source' => 'email_tracking',

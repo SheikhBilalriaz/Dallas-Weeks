@@ -1144,6 +1144,7 @@ $(document).ready(function () {
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     }
 
+    
     async function check_elements() {
         let allValid = true;
         const deferreds = [];
@@ -1162,51 +1163,53 @@ $(document).ready(function () {
                 for (let prop_key in element_data) {
                     const deferred = checkProperty(prop_key, key, element_data[prop_key]);
                     deferreds.push(deferred);
-                }
-            }
-        }
+=======
+     function check_elements() {
+        const promises = [];
 
-        /* Wait for all AJAX requests to complete */
-        const results = await Promise.all(deferreds);
-
-        // Check if all results are true
-        for (let result of results) {
-            if (!result) {
-                allValid = false;
-                break;
-            }
-        }
-
-        return true;
-    }
-
-    function handleElementError(key, originalKey) {
-        $("#" + key).addClass("error");
-        $("#" + key).find(".item_name").addClass("error");
-        const displayKey = capitalize(originalKey.replace(/[0-9]/g, "").replace(/_/g, " "));
-        toastr.error(`${displayKey} is not connected as campaign sequence.`);
-    }
-
-    function checkProperty(prop_key, key, prop_value) {
-        return $.ajax({
-            url: getPropertyRequiredPath.replace(":id", prop_key),
-            type: "GET"
-        }).then(function (response) {
-            if (response.success) {
-                const property = response.property;
-                if (property.optional === 1 && prop_value === "") {
+        for (let key in elements_array) {
+            if (key !== "step-1") {
+                if (find_element(key) == undefined) {
                     $("#" + key).addClass("error");
-                    $("#" + key).find(".item_name").addClass("error");
-                    toastr.error(`${property.property_name} is not filled as required.`);
-                    /* invalid property */
-                    return false;
+                    $("#" + key)
+                        .find(".item_name")
+                        .addClass("error");
+                    key = key.replace(/[0-9]/g, "").replace(/_/g, " ");
+                    key = capitalize(key);
+                    toastr.error(key + " is not connected as campaign sequence.");
+                    return Promise.resolve(false);
+                } else {
+                    var element_data = elements_data_array[key];
+                    for (var prop_key in element_data) {
+                        const promise = $.ajax({
+                            url: getPropertyRequiredPath.replace(":id", prop_key),
+                            type: "GET",
+                        }).then(response => {
+                            if (response.success) {
+                                var property = response.property;
+                                if (element_data[prop_key] === "" && property["optional"] === 1) {
+                                    $("#" + key).addClass("error");
+                                    $("#" + key)
+                                        .find(".item_name")
+                                        .addClass("error");
+                                    toastr.error(property["property_name"] + " is not filled as required.");
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }).catch(xhr => {
+                            console.error(xhr.responseText);
+                            return false;
+                        });
+
+                        promises.push(promise);
+                    }
                 }
             }
-        }).catch(function (xhr) {
-            console.error(xhr.responseText);
-            toastr.error("An error occurred while fetching property data.");
-            /* return false on error */
-            return false;
+        }
+
+        return Promise.all(promises).then(results => {
+            return results.every(result => result === true);
         });
     }
 });
