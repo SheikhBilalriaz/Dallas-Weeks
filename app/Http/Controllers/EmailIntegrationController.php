@@ -30,7 +30,7 @@ class EmailIntegrationController extends Controller
 
             /* Initialize a Guzzle HTTP client with SSL verification disabled */
             $client = new \GuzzleHttp\Client([
-                'verify' => false,
+                'verify' => true,
             ]);
 
             /* Make a POST request to create a new email account */

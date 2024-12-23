@@ -1,5 +1,6 @@
 var searchAjax = null;
 var deleteAjax = null;
+var toSeatAjax = null;
 
 $(document).ready(function () {
     $(document).on('click', '.btn-prev', btnPrev);
@@ -191,7 +192,8 @@ function filterSearch(e) {
         success: function (response) {
             if (response.success) {
                 var seats = response.seats;
-                const html = seats.map(seat => `
+                const seatArray = Array.isArray(seats) ? seats : Object.values(seats);
+                const html = seatArray.map(seat => `
                     <tr title="${emailVerified ? 'Verify your email first to view seat' : ''}"
                         style="opacity:${!emailVerified ? 0.7 : 1};"
                         id="${'table_row_' + seat.id}" class="seat_table_row">
@@ -224,6 +226,9 @@ function filterSearch(e) {
                         </td>
                     </tr>
                 `).join('');
+                $("#campaign_table_body").html(html);
+            } else {
+                const html = getEmptyBlacklistHTML();
                 $("#campaign_table_body").html(html);
             }
         },
@@ -327,38 +332,71 @@ function renderSeatSettings(id) {
 }
 
 function accordionItem(id, title, content, expanded = false, icon = 'fa-address-card', extraClasses = '') {
+    const collapsedClass = expanded ? '' : 'collapsed';
+    const showClass = expanded ? 'show' : '';
+    const iconClass = `fa-solid ${icon} fa-sm mr-2`;
+    const ariaExpanded = expanded ? 'true' : 'false';
+
     return `
         <div class="accordion-item ${extraClasses}">
             <h2 class="accordion-header" id="heading${id}">
-                <button class="accordion-button ${expanded ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${id}" aria-expanded="${expanded}" aria-controls="collapse${id}">
-                    <i class="fa-solid ${icon} fa-sm mr-2" style="color: #b0b0b0;"></i>${title}
+                <button class="accordion-button ${collapsedClass}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${id}" aria-expanded="${ariaExpanded}" aria-controls="collapse${id}">
+                    <i class="${iconClass}" style="color: #b0b0b0;"></i>${title}
                 </button>
             </h2>
-            <div id="collapse${id}" class="accordion-collapse collapse ${expanded ? 'show' : ''}" aria-labelledby="heading${id}" data-bs-parent="#accordionExample">
+            <div id="collapse${id}" class="accordion-collapse collapse ${showClass}" aria-labelledby="heading${id}" data-bs-parent="#accordionExample">
                 ${content}
             </div>
-        </div>`;
+        </div>
+    `;
 }
 
 function toSeat(e) {
-    var id = $(this).parent().attr("id").replace("table_row_", "");
-    $.ajax({
+    e.preventDefault();
+
+    if (toSeatAjax) return;
+
+    const seatRow = $(this).closest("tr");
+    const id = seatRow.attr("id").replace("table_row_", "");
+
+    /* Show loading indicator to improve UX */
+    const loadingIndicator = seatRow.find('.loading-indicator');
+    loadingIndicator.show();
+
+    /* Disable button to prevent multiple clicks */
+    const button = $(this);
+    button.prop('disabled', true);
+
+    $('.seat_table_data').addClass('disabled');
+
+    toSeatAjax = $.ajax({
         url: getSeatAccessRoute.replace(':seat_id', id),
         type: "GET",
         success: function (response) {
-            if (response.success && response.access) {
-                if (response.active) {
-                    renderSeatDashboard(id);
+            if (response.success) {
+                if (response.access) {
+                    if (response.active) {
+                        renderSeatDashboard(id);
+                    } else {
+                        toastr.error('Your subscription payment is not updated.');
+                    }
                 } else {
-                    toastr.error('You subscription payment is not updated');
+                    toastr.error('You do not have access to this seat.');
                 }
             } else {
-                toastr.error('You do not have access to this seat');
+                toastr.error('Failed to fetch seat data.');
             }
         },
-        error: function (xhr, status, error) {
-            const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
+        error: function (xhr) {
+            const errorMessage = xhr.responseJSON?.error || 'Something went wrong. Please try again.';
             toastr.error(errorMessage);
+            $('.seat_table_data').removeClass('disabled');
+        },
+        complete: function () {
+            /* Hide the loading indicator and re-enable the button after request completion */
+            loadingIndicator.hide();
+            button.prop('disabled', false);
+            toSeatAjax = null;
         }
     });
 }
@@ -368,6 +406,7 @@ function renderSeatDashboard(id) {
         method: "GET",
         action: seatDashboardRoute
     });
+
     form.append(
         $("<input>", {
             type: "hidden",
@@ -380,18 +419,31 @@ function renderSeatDashboard(id) {
             value: id
         })
     );
+
+    /* Disable any related buttons to prevent multiple submissions */
+    $('#view_seat_dashboard').prop('disabled', true);
+
     form.appendTo("body").submit();
+
+    /* Optionally remove form after submission (if needed) */
+    form.remove();
 }
 
 function updateSeatName(e) {
     e.preventDefault();
     var id = $(this).attr('id').replace('update_seat_name_', '');
     var name = $('#seat_input_name').val();
+
     if (!name.trim()) {
         $('#seat_input_name_error').html('Seat name cannot be empty.');
         $('#seat_input_name').addClass('error');
         return;
     }
+
+    /* Show loading state */
+    $('#seat_input_name').prop('disabled', true);
+    $('#seat_input_name_error').html('');
+
     $.ajax({
         url: getSeatAccessRoute.replace(':seat_id', id),
         type: "GET",
@@ -405,11 +457,20 @@ function updateSeatName(e) {
         error: function (xhr, status, error) {
             const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
             toastr.error(errorMessage);
+        },
+        complete: function () {
+            /* Hide loading state and re-enable input */
+            $('#seat_input_name').prop('disabled', false);
         }
     });
 }
 
 function renderSeatNameUpdate(id, name) {
+    if (!name.trim()) {
+        toastr.error('Seat name cannot be empty.');
+        return;
+    }
+
     $.ajax({
         url: updateNameRoute.replace(':seat_id', id).replace(':seat_name', name),
         type: "GET",
@@ -444,7 +505,7 @@ function getEmptyBlacklistHTML() {
         <tr>
             <td colspan="4">
                 <div style="width: 50%; margin: 0 auto;" class="empty_blacklist text-center">
-                    <img src="${emptyImage}" alt="">
+                    <img src="${emptyImage}" alt="No results">
                     <p>Sorry, no results for that query</p>
                 </div>
             </td>
@@ -453,6 +514,7 @@ function getEmptyBlacklistHTML() {
 }
 
 function deleteSeat(e) {
+    e.preventDefault();
     if (confirm('Are you sure to delete the seat?')) {
         window.location = $(this).data('to');
     }

@@ -124,19 +124,19 @@
                                             placeholder="Enter callback URL here" name="call_back"
                                             value="{{ old('call_back') }}">
                                         @error('call_back')
-                                            <span class="text-danger text-left">{{ $message }}</span>
+                                            <div class="text-danger text-left">{{ $message }}</div>
                                         @enderror
                                         <p>Name</p>
                                         <input class="{{ $errors->has('name') ? 'error' : '' }}" type="text"
                                             placeholder="Enter name here" name="name" value="{{ old('name') }}">
                                         @error('name')
-                                            <span class="text-danger text-left">{{ $message }}</span>
+                                            <div class="text-danger text-left">{{ $message }}</div>
                                         @enderror
                                         <p>Description</p>
                                         <input class="{{ $errors->has('desc') ? 'error' : '' }}" type="text"
                                             placeholder="Enter name here" name="desc" value="{{ old('desc') }}">
                                         @error('desc')
-                                            <span class="text-danger text-left">{{ $message }}</span>
+                                            <div class="text-danger text-left">{{ $message }}</div>
                                         @enderror
                                         <h6 class="text-center">What type of updates to send</h6>
                                         <ul class="webhook_check d-flex flex-wrap list-unstyled">
@@ -169,7 +169,7 @@
                                     </div>
                                 </div>
                                 <div class="btn_row d-flex justify-content-center">
-                                    <a href="javascript:;" class="crt_btn submit" id="submit_webhook"
+                                    <a href="javascript:;" class="crt_btn submit disabled" id="submit_webhook"
                                         type="submit">Submit<i class="fa-solid fa-arrow-right"></i></a>
                                 </div>
                             </div>
@@ -188,5 +188,7 @@
         var emails = @json($emails);
         var deleteWebhookRoute =
             "{{ route('deleteWebhook', ['slug' => $team->slug, 'seat_slug' => $seat->slug, 'id' => ':id']) }}";
+        var seatSettingsRoute = 
+            "{{ route('seatSettingPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}";
     </script>
 @endsection

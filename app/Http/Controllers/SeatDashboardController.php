@@ -106,6 +106,9 @@ class SeatDashboardController extends Controller
             $lc = new LeadsController();
             $request = ['account_id' => $linkedin_integrations['account_id'], 'profile_url' => session('linkedin_profile')['provider_id'],];
             $profile = $uc->view_profile(new \Illuminate\Http\Request($request))->getData(true);
+            if (isset($profile['error'])) {
+                throw new Exception($profile['error']);
+            }
             $campaigns = Campaign::where('seat_id', $seat->id)->where('is_archive', 0)->get();
             foreach ($campaigns as $campaign) {
                 $campaign['lead_count'] = $lc->getLeadsCountByCampaign($campaign->id);
