@@ -257,7 +257,7 @@
             <a class="navbar-brand"
                 href="{{ route('seatDashboardPage', ['slug' => $team->slug, 'seat_slug' => $seat->slug]) }}">
                 <img style="width: 65px; background-color: #fff; margin-right: 7px; border-radius: 10px; padding: 6px;"
-                    src="{{ asset('assets/images/logo.png') }}">Networked
+                    src="{{ asset('assets/images/logo.png') }}">
             </a>
             <div class="right_nav">
                 <ul class="d-flex list-unstyled">

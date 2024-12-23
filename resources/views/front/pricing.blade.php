@@ -102,7 +102,7 @@
             </div>
         </div>
     </section>
-    <section class="logoSec reveal">
+    <section class="logoSec ">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
@@ -136,11 +136,11 @@
     <section class="pricingPageSec">
         <div class="container">
             <div class="row">
-                <div class="col-md-12 reveal">
+                <div class="col-md-12 ">
                     <h2>Pricing Details</h2>
                     <p>See our subscription details below. Email admin@networked.site with any questions.</p>
                 </div>
-                <div class="col-md-4 revealleft">
+                <div class="col-md-4">
                     <div class="pricingInner">
                         <div class="pricingPrice">
                             <h3>Monthly Package</h3>
@@ -157,7 +157,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 revealright">
+                <div class="col-md-4">
                     <div class="pricingInner">
                         <div class="pricingPrice">
                             <h3>Semiannual Package</h3>
@@ -180,7 +180,7 @@
     <section class="getInSec">
         <div class="container">
             <div class="row">
-                <div class="col-md-6 revealleft">
+                <div class="col-md-6">
                     <h3>Compliance Friendly</h3>
                     <p>Our team works closely with compliance within the financial advising space to insure we are
                         implementing successful strategies to create a safe environment for communication for both clients
@@ -189,7 +189,7 @@
                         <a href="javascript:;"><i class="fa-regular fa-comment"></i>Start Chat</a>
                     </div>
                 </div>
-                <div class="col-md-6 reveal">
+                <div class="col-md-6 ">
                     <img src="{{ asset('assets/images/getimg.png') }}" alt="">
                 </div>
             </div>
@@ -199,9 +199,9 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
-                    <h2 class="reveal">Testimonials</h2>
-                    <p class="reveal">Hear from the users of our platform!</p>
-                    <div class="testimonialInner owl-carousel owl-item revealleft">
+                    <h2 class="">Testimonials</h2>
+                    <p class="">Hear from the users of our platform!</p>
+                    <div class="testimonialInner owl-carousel owl-item">
                         <div class="item">
                             <div class="testimonialBox">
                                 <div class="titleImg">

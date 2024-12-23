@@ -86,6 +86,11 @@
             font-size: 18px;
             color: #8e99a8;
         }
+
+        .seat_table_data.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
     </style>
     <script src="{{ asset('assets/js/dashboard-account.js') }}"></script>
     <section class="dashboard">

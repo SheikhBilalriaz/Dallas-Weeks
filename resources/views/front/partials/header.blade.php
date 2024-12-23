@@ -23,43 +23,43 @@
 
 <body>
     <style>
-    .quick_links ul li .active {
-        color: #16abcd !important;
-    }
-
-    #loader {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.7);
-        z-index: 9999;
-        display: none;
-    }
-
-    .loader-inner {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        border: 5px solid #f3f3f3;
-        border-radius: 50%;
-        border-top: 5px solid #3498db;
-        width: 50px;
-        height: 50px;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
+        .quick_links ul li .active {
+            color: #16abcd !important;
         }
 
-        100% {
-            transform: rotate(360deg);
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 9999;
+            display: none;
         }
-    }
+
+        .loader-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 5px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 5px solid #3498db;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
     <header id="masthead">
         <div class="container-fluid">
@@ -97,26 +97,26 @@
                         </button>
                         <div class="collapse navbar-collapse" id="navbarSupportedContent">
                             @php
-                            $navItems = [
-                            ['name' => 'Home', 'route' => 'homePage'],
-                            ['name' => 'About Us', 'route' => 'aboutPage'],
-                            ['name' => 'Services', 'route' => null],
-                            ['name' => 'Pricing', 'route' => 'pricingPage'],
-                            ['name' => "FAQ's", 'route' => 'faqPage'],
-                            ];
+                                $navItems = [
+                                    ['name' => 'Home', 'route' => 'homePage'],
+                                    ['name' => 'About Us', 'route' => 'aboutPage'],
+                                    ['name' => 'Services', 'route' => null],
+                                    ['name' => 'Pricing', 'route' => 'pricingPage'],
+                                    ['name' => "FAQ's", 'route' => 'faqPage'],
+                                ];
                             @endphp
                             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                                 @foreach ($navItems as $item)
-                                <li class="nav-item">
-                                    @if ($item['route'])
-                                    <a class="nav-link {{ request()->routeIs($item['route']) ? 'active' : '' }}"
-                                        href="{{ route($item['route']) }}">
-                                        {{ $item['name'] }}
-                                    </a>
-                                    @else
-                                    <a class="nav-link">{{ $item['name'] }}</a>
-                                    @endif
-                                </li>
+                                    <li class="nav-item">
+                                        @if ($item['route'])
+                                            <a class="nav-link {{ request()->routeIs($item['route']) ? 'active' : '' }}"
+                                                href="{{ route($item['route']) }}">
+                                                {{ $item['name'] }}
+                                            </a>
+                                        @else
+                                            <a class="nav-link">{{ $item['name'] }}</a>
+                                        @endif
+                                    </li>
                                 @endforeach
                             </ul>
                         </div>
@@ -146,4 +146,4 @@
         </div>
     </header>
     @yield('content')
-    @extends('front/partials/footer')
+    @extends('front.partials.footer')

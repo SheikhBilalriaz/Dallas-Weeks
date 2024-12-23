@@ -67,7 +67,7 @@ class InvoiceController extends Controller
         /* Check if the invoice exists */
         if (!$invoice) {
             /* Redirect to globalInvoicePage with an error message if an exception occurs. */
-            return redirect()->route('globalInvoicePage')->withErrors(['error' => 'Invoice not found']);
+            return redirect()->route('globalInvoicePage', ['slug' => $slug])->withErrors(['error' => 'Invoice not found']);
         }
 
         /* Build the file path using the invoice URL stored in the database */
@@ -76,7 +76,7 @@ class InvoiceController extends Controller
         /* Check if the file exists in the 'public' disk storage */
         if (!Storage::disk('public')->exists($filePath)) {
             /* Redirect to globalInvoicePage with an error message if an exception occurs. */
-            return redirect()->route('globalInvoicePage')->withErrors(['error' => 'File not found']);
+            return redirect()->route('globalInvoicePage', ['slug' => $slug])->withErrors(['error' => 'File not found']);
         }
 
         /* Return the file for download */
@@ -125,7 +125,7 @@ class InvoiceController extends Controller
             Log::error($e);
 
             /* Redirect to globalInvoicePage with an error message if an exception occurs. */
-            return redirect()->route('globalInvoicePage')->withErrors(['error' => $e->getMessage()]);
+            return redirect()->route('globalInvoicePage', ['slug' => $slug])->withErrors(['error' => $e->getMessage()]);
         }
     }
 }

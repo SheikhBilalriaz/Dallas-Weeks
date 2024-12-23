@@ -57,7 +57,7 @@ class StripePaymentController extends Controller
 
             /* Initialize the promo code ID (if provided) */
             $couponId = null;
-            if ($request->has('promo_code') && $request->input('promo_code') !== '') {
+            if ($request->has('promo_code') && !empty($request->input('promo_code')) && trim($request->input('promo_code')) !== '') {
                 try {
                     /* Retrieve promo code */
                     $promoCodes = $stripe->promotionCodes->all([
