@@ -222,11 +222,11 @@ class CampaignController extends Controller
             ];
             $element_array['message_230'] = [
                 '0' => '',
-                '1' => 'follow_347',
+                '1' => 'message_345',
                 'position_x' => 500,
                 'position_y' => 406.984375,
             ];
-            $element_array['follow_347'] = [
+            $element_array['message_345'] = [
                 '0' => '',
                 '1' => '',
                 'position_x' => 560,

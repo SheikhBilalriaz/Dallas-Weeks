@@ -1,66 +1,113 @@
+// Declare variables to hold AJAX requests for managing concurrent operations
 var searchAjax = null;
 var deleteAjax = null;
+var toSeatAjax = null;
 
 $(document).ready(function () {
+    // Event handler for navigating to the previous step in a multi-step form
     $(document).on('click', '.btn-prev', btnPrev);
+
+    // Event handler for navigating to the next step in a multi-step form
     $(document).on('click', '.btn-next', btnNext);
+
+    // Event handler to clear error messages and remove error classes when input is changed
     $(document).on('input', '.error', function () {
-        const $requiredFields = $(this).parent();
-        $requiredFields.find('.text-danger').html('');
-        $requiredFields.find('.error').removeClass('error');
+        const $requiredFields = $(this).parent(); // Parent container of the input field
+        $requiredFields.find('.text-danger').html(''); // Clear error message text
+        $requiredFields.find('.error').removeClass('error'); // Remove error class from input fields
     });
+
+    // Event handler for the form submission in the payment process
     $('#payment-form').bind('submit', paymentForm);
+
+    // Event handler for filtering seats when input is entered in the search field
     $(document).on('input', '#search_seat', filterSearch);
+
+    // Event handler to toggle the settings list
     $(document).on('click', '.setting_btn', settingList);
+
+    // Event handler for selecting a seat from the table data
     $(document).on('click', '.seat_table_data', toSeat);
+
+    // Event handler for updating the name of a seat
     $(document).on('click', '.update_seat_name', updateSeatName);
+
+    // Event handler for canceling a subscription
     $(document).on('click', '.cancel_subscription', cancelSubscription);
+
+    // Event handler for deleting an entire seat
     $(document).on('click', '.delet_whole_seat', deleteSeat);
 });
 
+// Function to handle subscription cancellation
 function cancelSubscription() {
+    // Display a confirmation dialog to the user
     if (confirm('Are you sure to cancel the subscription?')) {
+        // Redirect to the URL specified in the 'data-to' attribute of the clicked element
         window.location = $(this).data('to');
     }
 }
 
+// Function to handle the "Previous" button click in a multi-step form
 function btnPrev(e) {
+    // Move to the previous step in the form
     changeStep(false);
 }
 
+// Async function to handle the "Next" button click in a multi-step form
 async function btnNext(e) {
+    // Find the sibling element with the class 'form_row' within the parent container
     const $formRow = $(this).parent().siblings('.form_row');
+
+    // Get the value of the promo code input field and remove any whitespace
     var code = $('input[name="promo_code"]').val().trim();
+
+    // Check if the current form row is for the promo code and the promo code is not empty
     if ($formRow.hasClass('promo_row') && code !== "") {
+        // Validate the promo code by calling the asynchronous function 'checkPromoCode'
         const isValidPromo = await checkPromoCode(code);
+
+        // If the promo code is invalid, exit the function and do not proceed
         if (!isValidPromo) {
-            return;
+            return false;
         }
     }
+
+    // Move to the next step in the form
     changeStep(true);
 }
 
+// Function to validate a promo code by making an AJAX request
 async function checkPromoCode(code) {
     try {
+        // Send an AJAX POST request to the promo code validation route
         const response = await $.ajax({
-            url: checkPromoCodeRoute,
-            type: 'POST',
-            data: { promo_code: code },
+            url: checkPromoCodeRoute, // The URL for the server-side route to validate the promo code
+            type: 'POST', // HTTP method for the request
+            data: { promo_code: code }, // Data payload containing the promo code to be validated
             headers: {
+                // Include CSRF token in the request headers for security
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
             }
         });
+
+        // Check the response for validation status
         if (response.valid) {
+            // Promo code is valid
             return true;
         } else {
-            $('#promo_code').addClass('error');
-            $('#promo_code').siblings('.text-danger').html(response.coupon_error);
-            return false;
+            // Promo code is invalid, show an error message
+            $('#promo_code').addClass('error'); // Add error class to the promo code input field
+            $('#promo_code')
+                .siblings('.text-danger') // Find the sibling element to display the error message
+                .html(response.coupon_error); // Display the error message from the server response
+            return false; // Return false since the promo code is invalid
         }
     } catch (xhr) {
-        const errorMessage = xhr.responseJSON?.coupon_error || 'Something went wrong.';
-        toastr.error(errorMessage);
-        return false;
+        // Handle errors that occur during the AJAX request
+        const errorMessage = xhr.responseJSON?.coupon_error || 'Something went wrong.'; // Default error message
+        toastr.error(errorMessage); // Display the error message using Toastr notifications
+        return false; // Return false as the promo code validation failed
     }
 }
 
@@ -191,7 +238,8 @@ function filterSearch(e) {
         success: function (response) {
             if (response.success) {
                 var seats = response.seats;
-                const html = seats.map(seat => `
+                const seatArray = Array.isArray(seats) ? seats : Object.values(seats);
+                const html = seatArray.map(seat => `
                     <tr title="${emailVerified ? 'Verify your email first to view seat' : ''}"
                         style="opacity:${!emailVerified ? 0.7 : 1};"
                         id="${'table_row_' + seat.id}" class="seat_table_row">
@@ -224,6 +272,9 @@ function filterSearch(e) {
                         </td>
                     </tr>
                 `).join('');
+                $("#campaign_table_body").html(html);
+            } else {
+                const html = getEmptyBlacklistHTML();
                 $("#campaign_table_body").html(html);
             }
         },
@@ -327,38 +378,71 @@ function renderSeatSettings(id) {
 }
 
 function accordionItem(id, title, content, expanded = false, icon = 'fa-address-card', extraClasses = '') {
+    const collapsedClass = expanded ? '' : 'collapsed';
+    const showClass = expanded ? 'show' : '';
+    const iconClass = `fa-solid ${icon} fa-sm mr-2`;
+    const ariaExpanded = expanded ? 'true' : 'false';
+
     return `
         <div class="accordion-item ${extraClasses}">
             <h2 class="accordion-header" id="heading${id}">
-                <button class="accordion-button ${expanded ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${id}" aria-expanded="${expanded}" aria-controls="collapse${id}">
-                    <i class="fa-solid ${icon} fa-sm mr-2" style="color: #b0b0b0;"></i>${title}
+                <button class="accordion-button ${collapsedClass}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${id}" aria-expanded="${ariaExpanded}" aria-controls="collapse${id}">
+                    <i class="${iconClass}" style="color: #b0b0b0;"></i>${title}
                 </button>
             </h2>
-            <div id="collapse${id}" class="accordion-collapse collapse ${expanded ? 'show' : ''}" aria-labelledby="heading${id}" data-bs-parent="#accordionExample">
+            <div id="collapse${id}" class="accordion-collapse collapse ${showClass}" aria-labelledby="heading${id}" data-bs-parent="#accordionExample">
                 ${content}
             </div>
-        </div>`;
+        </div>
+    `;
 }
 
 function toSeat(e) {
-    var id = $(this).parent().attr("id").replace("table_row_", "");
-    $.ajax({
+    e.preventDefault();
+
+    if (toSeatAjax) return;
+
+    const seatRow = $(this).closest("tr");
+    const id = seatRow.attr("id").replace("table_row_", "");
+
+    /* Show loading indicator to improve UX */
+    const loadingIndicator = seatRow.find('.loading-indicator');
+    loadingIndicator.show();
+
+    /* Disable button to prevent multiple clicks */
+    const button = $(this);
+    button.prop('disabled', true);
+
+    $('.seat_table_data').addClass('disabled');
+
+    toSeatAjax = $.ajax({
         url: getSeatAccessRoute.replace(':seat_id', id),
         type: "GET",
         success: function (response) {
-            if (response.success && response.access) {
-                if (response.active) {
-                    renderSeatDashboard(id);
+            if (response.success) {
+                if (response.access) {
+                    if (response.active) {
+                        renderSeatDashboard(id);
+                    } else {
+                        toastr.error('Your subscription payment is not updated.');
+                    }
                 } else {
-                    toastr.error('You subscription payment is not updated');
+                    toastr.error('You do not have access to this seat.');
                 }
             } else {
-                toastr.error('You do not have access to this seat');
+                toastr.error('Failed to fetch seat data.');
             }
         },
-        error: function (xhr, status, error) {
-            const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
+        error: function (xhr) {
+            const errorMessage = xhr.responseJSON?.error || 'Something went wrong. Please try again.';
             toastr.error(errorMessage);
+            $('.seat_table_data').removeClass('disabled');
+        },
+        complete: function () {
+            /* Hide the loading indicator and re-enable the button after request completion */
+            loadingIndicator.hide();
+            button.prop('disabled', false);
+            toSeatAjax = null;
         }
     });
 }
@@ -368,6 +452,7 @@ function renderSeatDashboard(id) {
         method: "GET",
         action: seatDashboardRoute
     });
+
     form.append(
         $("<input>", {
             type: "hidden",
@@ -380,18 +465,31 @@ function renderSeatDashboard(id) {
             value: id
         })
     );
+
+    /* Disable any related buttons to prevent multiple submissions */
+    $('#view_seat_dashboard').prop('disabled', true);
+
     form.appendTo("body").submit();
+
+    /* Optionally remove form after submission (if needed) */
+    form.remove();
 }
 
 function updateSeatName(e) {
     e.preventDefault();
     var id = $(this).attr('id').replace('update_seat_name_', '');
     var name = $('#seat_input_name').val();
+
     if (!name.trim()) {
         $('#seat_input_name_error').html('Seat name cannot be empty.');
         $('#seat_input_name').addClass('error');
         return;
     }
+
+    /* Show loading state */
+    $('#seat_input_name').prop('disabled', true);
+    $('#seat_input_name_error').html('');
+
     $.ajax({
         url: getSeatAccessRoute.replace(':seat_id', id),
         type: "GET",
@@ -405,11 +503,20 @@ function updateSeatName(e) {
         error: function (xhr, status, error) {
             const errorMessage = xhr.responseJSON?.error || 'Something went wrong.';
             toastr.error(errorMessage);
+        },
+        complete: function () {
+            /* Hide loading state and re-enable input */
+            $('#seat_input_name').prop('disabled', false);
         }
     });
 }
 
 function renderSeatNameUpdate(id, name) {
+    if (!name.trim()) {
+        toastr.error('Seat name cannot be empty.');
+        return;
+    }
+
     $.ajax({
         url: updateNameRoute.replace(':seat_id', id).replace(':seat_name', name),
         type: "GET",
@@ -444,7 +551,7 @@ function getEmptyBlacklistHTML() {
         <tr>
             <td colspan="4">
                 <div style="width: 50%; margin: 0 auto;" class="empty_blacklist text-center">
-                    <img src="${emptyImage}" alt="">
+                    <img src="${emptyImage}" alt="No results">
                     <p>Sorry, no results for that query</p>
                 </div>
             </td>
@@ -453,6 +560,7 @@ function getEmptyBlacklistHTML() {
 }
 
 function deleteSeat(e) {
+    e.preventDefault();
     if (confirm('Are you sure to delete the seat?')) {
         window.location = $(this).data('to');
     }

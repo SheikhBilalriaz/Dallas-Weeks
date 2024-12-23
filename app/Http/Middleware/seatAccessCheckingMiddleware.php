@@ -35,10 +35,10 @@ class seatAccessCheckingMiddleware
             /* Retrieve the slug and seat_slug from the request */
             $slug = $request->route('slug');
             $seat_slug = $request->route('seat_slug');
-            
+
             session(['slug' => $slug]);
             session(['seat_slug' => $seat_slug]);
-            
+
             /* Find the seat and team by their slugs */
             $seat = Seat::where('slug', $seat_slug)->first();
             $team = Team::where('slug', $slug)->first();
@@ -54,7 +54,7 @@ class seatAccessCheckingMiddleware
             $role_id = 0;
 
             /* Check if the current user is the creator of the team */
-            if ($team->creator_id !== $user->id) {
+            if ($team->creator_id != $user->id) {
                 /* If the user is not the creator, check if they are a team member */
                 $team_member = Team_Member::where('team_id', $team->id)
                     ->where('user_id', $user->id)
@@ -63,7 +63,7 @@ class seatAccessCheckingMiddleware
                 /* If the user is not a member of the team, redirect with an error message */
                 if (!$team_member) {
                     return redirect()->route('dashboardPage', ['slug' => $slug])
-                        ->withErrors(['error' => "You cannot access seat `{$slug}`"]);
+                        ->withErrors(['error' => "You are not part of team `{$slug}`"]);
                 }
 
                 /* Check if the team member is assigned to the seat */
@@ -74,7 +74,7 @@ class seatAccessCheckingMiddleware
                 /* If no assigned seat is found, redirect with an error message */
                 if (!$assigned_seat) {
                     return redirect()->route('dashboardPage', ['slug' => $slug])
-                        ->withErrors(['error' => "You cannot access seat `{$slug}`"]);
+                        ->withErrors(['error' => "You cannot access seat `{$seat_slug}`"]);
                 }
 
                 /* Store the role_id for the assigned seat */
@@ -135,15 +135,22 @@ class seatAccessCheckingMiddleware
                 if (!session()->has('seat_linkedin') || $linkedin_integrations['account_id'] != session('seat_linkedin')['id']) {
                     /* Call retrieve_an_account method with the properly formatted Request object */
                     $account = $uc->retrieve_an_account($request)->getData(true);
-                    session(['seat_linkedin' => $account['account']]);
-                    Log::info(session('seat_linkedin'));
+                    if (isset($account['account'])) {
+                        session(['seat_linkedin' => $account['account']]);
+                    } else {
+                        throw new Exception($account['error']);
+                    }
                 }
 
                 if (!session()->has('linkedin_profile') || session('seat_linkedin')['connection_params']['im']['id'] != session('linkedin_profile')['provider_id']) {
                     /* Call retrieve_own_profile method with the same Request object */
                     $account_profile = $uc->retrieve_own_profile($request)->getData(true);
-                    session(['linkedin_profile' => $account_profile['profile']]);
-                    Log::info(session('linkedin_profile'));
+                    if (isset($account_profile['profile'])) {
+                        session(['linkedin_profile' => $account_profile['profile']]);
+                        Log::info(session('linkedin_profile'));
+                    } else {
+                        throw new Exception($account_profile['error']);
+                    }
                 }
             } else {
                 /* Clear specific session variables if no LinkedIn integration found */

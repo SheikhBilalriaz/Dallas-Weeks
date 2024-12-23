@@ -80,7 +80,7 @@ class CampaignElementController extends Controller
                     'img_path' => $img_path
                 ]);
                 $campaign->save();
-                if ($settings['campaign_url_hidden']) {
+                if (!empty($settings['campaign_url_hidden'])) {
                     $campaign['url'] = $settings['campaign_url_hidden'];
                     $campaign->save();
                 }

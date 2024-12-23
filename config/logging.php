@@ -57,6 +57,18 @@ return [
             'channels' => ['single'],
             'ignore_exceptions' => false,
         ],
+        
+        'campaign_action' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/campaign_action.log'),
+            'level' => 'debug',
+        ],
+        
+        'lead_action' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/lead_action.log'),
+            'level' => 'debug',
+        ],
 
         'single' => [
             'driver' => 'single',

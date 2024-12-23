@@ -15,13 +15,13 @@
                 </div>
                 <div class="col-md-6">
                     <div class="imgbanner">
-                        <img src="" alt="">
+                        <img src="{{ asset('assets/images/laptop.png') }}" alt="">
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    <section class="logoSec reveal">
+    <section class="logoSec">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
@@ -52,7 +52,7 @@
             </div>
         </div>
     </section>
-    <section class="missionSec reveal">
+    <section class="missionSec">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
@@ -68,10 +68,10 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
-                    <h2 class="reveal">What we offer</h2>
-                    <p class="reveal">- Unlimited Connections and Messages Sent via Linked in to Your Target Audience.
+                    <h2 class="">What we offer</h2>
+                    <p class="">- Unlimited Connections and Messages Sent via Linked in to Your Target Audience.
                         Unlimited Market Potential. Unlimited Introductions/ Meetings Set </p>
-                    <div class="offerCarousel owl-carousel owl-item revealright">
+                    <div class="offerCarousel owl-carousel owl-item">
                         <div class="item">
                             <div class="offerMain">
                                 <img src="{{ asset('assets/images/offer1.png') }}" alt="">
@@ -123,9 +123,9 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
-                    <h2 class="reveal">Testimonials</h2>
-                    <p class="reveal">Hear from the users of our platform!</p>
-                    <div class="testimonialInner owl-carousel owl-item revealleft">
+                    <h2 class="">Testimonials</h2>
+                    <p class="">Hear from the users of our platform!</p>
+                    <div class="testimonialInner owl-carousel owl-item">
                         <div class="item">
                             <div class="testimonialBox">
                                 <div class="titleImg">

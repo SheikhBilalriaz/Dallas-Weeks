@@ -35,7 +35,7 @@ class LinkedinIntegrationController extends Controller
 
             /* Initialize a Guzzle HTTP client with SSL verification disabled */
             $client = new \GuzzleHttp\Client([
-                'verify' => false,
+                'verify' => true,
             ]);
 
             /* Make a POST request to create a new LinkedIn account */
@@ -47,7 +47,7 @@ class LinkedinIntegrationController extends Controller
                     'expiresOn' => $expirationTime,
                     'success_redirect_url' => route('seatSettingPage', ['slug' => $slug, 'seat_slug' => $seat_slug]),
                     'failure_redirect_url' => route('seatSettingPage', ['slug' => $slug, 'seat_slug' => $seat_slug]),
-                    'notify_url' => 'https://networked.staging.designinternal.com/unipile/linkedin/webhook',
+                    'notify_url' => 'https://networked.site/unipile/linkedin/webhook',
                     'name' => $seat_slug,
                 ],
                 'headers' => [

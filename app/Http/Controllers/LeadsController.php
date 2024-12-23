@@ -158,10 +158,10 @@ class LeadsController extends Controller
                         ? $lead_actions_of_pre_month->get($formattedDate, collect())->whereIn('current_element_id', $campaignElements['follow']->pluck('id'))->where('status', 'completed')->count()
                         : 0,
                     'message_count' => isset($campaignElements['message'])
-                        ? $actions->whereIn('current_element_id', $campaignElements['message']->pluck('id'))->where('status', 'completed')->count()
+                        ? $lead_actions_of_pre_month->whereIn('current_element_id', $campaignElements['message']->pluck('id'))->where('status', 'completed')->count()
                         : 0,
                     'in_mail_count' => isset($campaignElements['inmail_message'])
-                        ? $actions->whereIn('current_element_id', $campaignElements['inmail_message']->pluck('id'))->where('status', 'completed')->count()
+                        ? $lead_actions_of_pre_month->whereIn('current_element_id', $campaignElements['inmail_message']->pluck('id'))->where('status', 'completed')->count()
                         : 0,
                 ];
             }
