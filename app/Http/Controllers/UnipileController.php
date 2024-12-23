@@ -62,7 +62,11 @@ class UnipileController extends Controller
 
         /* Create a new GuzzleHttp client with SSL verification disabled */
         $client = new \GuzzleHttp\Client([
+<<<<<<< HEAD
             'verify' => true,
+=======
+            'verify' => false,
+>>>>>>> 75b69fb1320ec886ada168744d9ccc00d7680b1e
         ]);
 
         /* Construct the API URL using the account_id and DSN from the config */
@@ -101,7 +105,11 @@ class UnipileController extends Controller
 
         /* Create a new GuzzleHttp client with SSL verification disabled */
         $client = new \GuzzleHttp\Client([
+<<<<<<< HEAD
             'verify' => true,
+=======
+            'verify' => false,
+>>>>>>> 75b69fb1320ec886ada168744d9ccc00d7680b1e
         ]);
 
         /* Construct the API URL using the account_id and DSN from the config */
@@ -140,7 +148,11 @@ class UnipileController extends Controller
 
         /* Create a new GuzzleHttp client with SSL verification disabled */
         $client = new \GuzzleHttp\Client([
+<<<<<<< HEAD
             'verify' => true,
+=======
+            'verify' => false,
+>>>>>>> 75b69fb1320ec886ada168744d9ccc00d7680b1e
         ]);
 
         /* Construct the API URL using the account_id and DSN from the config */
@@ -198,7 +210,11 @@ class UnipileController extends Controller
 
         /* Create a new GuzzleHttp client with SSL verification disabled */
         $client = new \GuzzleHttp\Client([
+<<<<<<< HEAD
             'verify' => true,
+=======
+            'verify' => false,
+>>>>>>> 75b69fb1320ec886ada168744d9ccc00d7680b1e
         ]);
 
         if ($request->input('sales_navigator')) {
@@ -237,7 +253,11 @@ class UnipileController extends Controller
         }
         $chat_id = $all['chat_id'];
         $client = new \GuzzleHttp\Client([
+<<<<<<< HEAD
             'verify' => true,
+=======
+            'verify' => false,
+>>>>>>> 75b69fb1320ec886ada168744d9ccc00d7680b1e
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/chats/' . $chat_id . '/messages?';
         if (isset($all['cursor'])) {
@@ -278,7 +298,11 @@ class UnipileController extends Controller
         }
         $account_id = $all['account_id'];
         $client = new \GuzzleHttp\Client([
+<<<<<<< HEAD
             'verify' => true,
+=======
+            'verify' => false,
+>>>>>>> 75b69fb1320ec886ada168744d9ccc00d7680b1e
         ]);
         $url = config('services.unipile.dsn') . 'api/v1/users/relations' . '?account_id=' . $account_id . '&';
         if (isset($all['cursor'])) {

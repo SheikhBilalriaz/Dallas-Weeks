@@ -466,7 +466,41 @@ $(document).ready(function () {
             }
         }
 
+<<<<<<< HEAD
         return true;
+    }
+
+    function handleElementError(key, originalKey) {
+        $("#" + key).addClass("error");
+        $("#" + key).find(".item_name").addClass("error");
+        const displayKey = capitalize(originalKey.replace(/[0-9]/g, "").replace(/_/g, " "));
+        toastr.error(`${displayKey} is not connected as campaign sequence.`);
+    }
+
+    function checkProperty(prop_key, key, prop_value) {
+        return $.ajax({
+            url: getPropertyRequiredPath.replace(":id", prop_key),
+            type: "GET"
+        }).then(function (response) {
+            if (response.success) {
+                const property = response.property;
+                if (property.optional === 1 && prop_value === "") {
+                    $("#" + key).addClass("error");
+                    $("#" + key).find(".item_name").addClass("error");
+                    toastr.error(`${property.property_name} is not filled as required.`);
+                    /* invalid property */
+                    return false;
+                }
+            }
+        }).catch(function (xhr) {
+            console.error(xhr.responseText);
+            toastr.error("An error occurred while fetching property data.");
+            /* return false on error */
+            return false;
+        });
+=======
+        return allValid;
+>>>>>>> 75b69fb1320ec886ada168744d9ccc00d7680b1e
     }
 
     function handleElementError(key, originalKey) {

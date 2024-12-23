@@ -96,7 +96,7 @@ class CampaignElementController extends Controller
                 if ($campaign !== null) {
                     $campaign->delete();
                 }
-                return response()->json(['success' => false, 'message' => 'Campaign save unsuccesfull']);
+                return response()->json(['success' => false, 'message' => $e->getMessage()]);
             }
         } catch (Exception $e) {
             /* Log the exception message for debugging */

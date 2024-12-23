@@ -581,10 +581,16 @@ $(document).ready(function () {
     });
 
     $("#save-changes").on("click", function () {
+<<<<<<< HEAD
         const $dropPadElement = $(".drop-pad-element");
         const $cancelIcon = $dropPadElement.find(".cancel-icon");
 
         /* Capture the screenshot and then proceed with the rest of the actions */
+=======
+        const isElementsValid = check_elements();
+        if (!isElementsValid) return;
+
+>>>>>>> 75b69fb1320ec886ada168744d9ccc00d7680b1e
         html2canvas(document.getElementById("capture")).then(function (canvas) {
             const img = canvas.toDataURL();
 
@@ -594,6 +600,7 @@ $(document).ready(function () {
                 "z-index": "0",
                 "border": "none"
             });
+<<<<<<< HEAD
 
             /* Submit the campaign data with the captured image */
             submitCampaign(img);
@@ -608,10 +615,19 @@ $(document).ready(function () {
 
                 /* Prepare campaign data */
                 const data = JSON.stringify({
+=======
+            $.ajax({
+                url: createCampaignPath,
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json",
+                data: JSON.stringify({
+>>>>>>> 75b69fb1320ec886ada168744d9ccc00d7680b1e
                     final_data: elements_data_array,
                     final_array: elements_array,
                     settings: campaign_details,
                     img_url: img,
+<<<<<<< HEAD
                 });
 
                 /* Submit campaign via AJAX */
@@ -649,6 +665,34 @@ $(document).ready(function () {
             toastr.error("An unexpected error occurred. Please try again.");
         }
     }
+=======
+                }),
+                headers: {
+                    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr(
+                        "content"
+                    ),
+                },
+                beforeSend: function () {
+                    $("#loader").show();
+                },
+                success: function (response) {
+                    if (response.success) {
+                        window.location = campaignsPath;
+                    } else {
+                        toastr.error(response.message);
+                        console.log(response);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                },
+                complete: function () {
+                    $("#loader").hide();
+                }
+            });
+        });
+    });
+>>>>>>> 75b69fb1320ec886ada168744d9ccc00d7680b1e
 
     function elementProperties(e) {
         $("#element-list").removeClass("active");
@@ -1144,6 +1188,7 @@ $(document).ready(function () {
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     }
 
+<<<<<<< HEAD
     async function check_elements() {
         let allValid = true;
         const deferreds = [];
@@ -1162,10 +1207,53 @@ $(document).ready(function () {
                 for (let prop_key in element_data) {
                     const deferred = checkProperty(prop_key, key, element_data[prop_key]);
                     deferreds.push(deferred);
+=======
+     function check_elements() {
+        const promises = [];
+
+        for (var key in elements_array) {
+            if (key !== "step-1") {
+                if (find_element(key) == undefined) {
+                    $("#" + key).addClass("error");
+                    $("#" + key)
+                        .find(".item_name")
+                        .addClass("error");
+                    key = key.replace(/[0-9]/g, "").replace(/_/g, " ");
+                    key = capitalize(key);
+                    toastr.error(key + " is not connected as campaign sequence.");
+                    return Promise.resolve(false);
+                } else {
+                    var element_data = elements_data_array[key];
+                    for (var prop_key in element_data) {
+                        const promise = $.ajax({
+                            url: getPropertyRequiredPath.replace(":id", prop_key),
+                            type: "GET",
+                        }).then(response => {
+                            if (response.success) {
+                                var property = response.property;
+                                if (element_data[prop_key] === "" && property["optional"] === 1) {
+                                    $("#" + key).addClass("error");
+                                    $("#" + key)
+                                        .find(".item_name")
+                                        .addClass("error");
+                                    toastr.error(property["property_name"] + " is not filled as required.");
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }).catch(xhr => {
+                            console.error(xhr.responseText);
+                            return false;
+                        });
+
+                        promises.push(promise);
+                    }
+>>>>>>> 75b69fb1320ec886ada168744d9ccc00d7680b1e
                 }
             }
         }
 
+<<<<<<< HEAD
         /* Wait for all AJAX requests to complete */
         const results = await Promise.all(deferreds);
 
@@ -1207,6 +1295,10 @@ $(document).ready(function () {
             toastr.error("An error occurred while fetching property data.");
             /* return false on error */
             return false;
+=======
+        return Promise.all(promises).then(results => {
+            return results.every(result => result === true);
+>>>>>>> 75b69fb1320ec886ada168744d9ccc00d7680b1e
         });
     }
 });
