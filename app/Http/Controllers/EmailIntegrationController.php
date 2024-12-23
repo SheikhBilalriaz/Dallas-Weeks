@@ -42,7 +42,7 @@ class EmailIntegrationController extends Controller
                     'expiresOn' => $expirationTime,
                     'success_redirect_url' => route('seatSettingPage', ['slug' => $slug, 'seat_slug' => $seat_slug]),
                     'failure_redirect_url' => route('seatSettingPage', ['slug' => $slug, 'seat_slug' => $seat_slug]),
-                    'notify_url' => 'https://networked.staging.designinternal.com/unipile/email/webhook',
+                    'notify_url' => 'https://networked.site/unipile/email/webhook',
                     'name' => $seat_slug,
                 ],
                 'headers' => [

@@ -581,58 +581,74 @@ $(document).ready(function () {
     });
 
     $("#save-changes").on("click", function () {
-        const isElementsValid = check_elements();
-        if (!isElementsValid) return;
+        const $dropPadElement = $(".drop-pad-element");
+        const $cancelIcon = $dropPadElement.find(".cancel-icon");
 
+        /* Capture the screenshot and then proceed with the rest of the actions */
         html2canvas(document.getElementById("capture")).then(function (canvas) {
-            var img = canvas.toDataURL();
-            elements_array = JSON.parse(JSON.stringify(elements_array));
-            elements_data_array = JSON.parse(
-                JSON.stringify(elements_data_array)
-            );
-            $(".drop-pad-element .cancel-icon").css({
-                display: "none",
-            });
-            $(".drop-pad-element").css({
+            const img = canvas.toDataURL();
+
+            /* Hide cancel icons and reset element styles */
+            $cancelIcon.css("display", "none");
+            $dropPadElement.css({
                 "z-index": "0",
-                border: "none",
+                "border": "none"
             });
-            $.ajax({
-                url: createCampaignPath,
-                type: "POST",
-                dataType: "json",
-                contentType: "application/json",
-                data: JSON.stringify({
+
+            /* Submit the campaign data with the captured image */
+            submitCampaign(img);
+        });
+    });
+
+    async function submitCampaign(img) {
+        try {
+            /* Check if elements are valid */
+            if (await check_elements()) {
+                const $loader = $("#loader");
+
+                /* Prepare campaign data */
+                const data = JSON.stringify({
                     final_data: elements_data_array,
                     final_array: elements_array,
                     settings: campaign_details,
                     img_url: img,
-                }),
-                headers: {
-                    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr(
-                        "content"
-                    ),
-                },
-                beforeSend: function () {
-                    $("#loader").show();
-                },
-                success: function (response) {
-                    if (response.success) {
-                        window.location = campaignsPath;
-                    } else {
-                        toastr.error(response.message);
-                        console.log(response);
+                });
+
+                /* Submit campaign via AJAX */
+                $.ajax({
+                    url: createCampaignPath,
+                    type: "POST",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: data,
+                    headers: {
+                        "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+                    },
+                    beforeSend: function () {
+                        $loader.show();
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            window.location = campaignsPath;
+                        } else {
+                            toastr.error(response.message);
+                            console.log(response);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error in submitCampaign:", xhr.responseText);
+                        toastr.error("An error occurred while submitting the campaign.");
+                    },
+                    complete: function () {
+                        $loader.hide();
                     }
-                },
-                error: function (xhr, status, error) {
-                    console.error(xhr.responseText);
-                },
-                complete: function () {
-                    $("#loader").hide();
-                }
-            });
-        });
-    });
+                });
+            }
+        } catch (error) {
+            console.error("Error in check_elements:", error);
+            toastr.error("An unexpected error occurred. Please try again.");
+        }
+    }
 
     function elementProperties(e) {
         $("#element-list").removeClass("active");
@@ -1113,14 +1129,12 @@ $(document).ready(function () {
     }
 
     function find_element(element_id) {
-        for (var key in elements_array) {
-            if (
-                elements_array[key][0] == element_id ||
-                elements_array[key][1] == element_id
-            ) {
+        for (let key in elements_array) {
+            if (elements_array[key][0] === element_id || elements_array[key][1] === element_id) {
                 return key;
             }
         }
+        return null;
     }
 
     function capitalize(str) {
@@ -1130,52 +1144,69 @@ $(document).ready(function () {
         return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     }
 
-     function check_elements() {
-        const promises = [];
+    async function check_elements() {
+        let allValid = true;
+        const deferreds = [];
 
-        for (var key in elements_array) {
+        for (let key in elements_array) {
             if (key !== "step-1") {
-                if (find_element(key) == undefined) {
-                    $("#" + key).addClass("error");
-                    $("#" + key)
-                        .find(".item_name")
-                        .addClass("error");
-                    key = key.replace(/[0-9]/g, "").replace(/_/g, " ");
-                    key = capitalize(key);
-                    toastr.error(key + " is not connected as campaign sequence.");
-                    return Promise.resolve(false);
-                } else {
-                    var element_data = elements_data_array[key];
-                    for (var prop_key in element_data) {
-                        const promise = $.ajax({
-                            url: getPropertyRequiredPath.replace(":id", prop_key),
-                            type: "GET",
-                        }).then(response => {
-                            if (response.success) {
-                                var property = response.property;
-                                if (element_data[prop_key] === "" && property["optional"] === 1) {
-                                    $("#" + key).addClass("error");
-                                    $("#" + key)
-                                        .find(".item_name")
-                                        .addClass("error");
-                                    toastr.error(property["property_name"] + " is not filled as required.");
-                                    return false;
-                                }
-                            }
-                            return true;
-                        }).catch(xhr => {
-                            console.error(xhr.responseText);
-                            return false;
-                        });
+                const element = find_element(key);
 
-                        promises.push(promise);
-                    }
+                if (!element) {
+                    handleElementError(key, key);
+                    allValid = false;
+                    break;
+                }
+
+                const element_data = elements_data_array[key];
+                for (let prop_key in element_data) {
+                    const deferred = checkProperty(prop_key, key, element_data[prop_key]);
+                    deferreds.push(deferred);
                 }
             }
         }
 
-        return Promise.all(promises).then(results => {
-            return results.every(result => result === true);
+        /* Wait for all AJAX requests to complete */
+        const results = await Promise.all(deferreds);
+
+        // Check if all results are true
+        for (let result of results) {
+            if (!result) {
+                allValid = false;
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    function handleElementError(key, originalKey) {
+        $("#" + key).addClass("error");
+        $("#" + key).find(".item_name").addClass("error");
+        const displayKey = capitalize(originalKey.replace(/[0-9]/g, "").replace(/_/g, " "));
+        toastr.error(`${displayKey} is not connected as campaign sequence.`);
+    }
+
+    function checkProperty(prop_key, key, prop_value) {
+        return $.ajax({
+            url: getPropertyRequiredPath.replace(":id", prop_key),
+            type: "GET"
+        }).then(function (response) {
+            if (response.success) {
+                const property = response.property;
+                if (property.optional === 1 && prop_value === "") {
+                    $("#" + key).addClass("error");
+                    $("#" + key).find(".item_name").addClass("error");
+                    toastr.error(`${property.property_name} is not filled as required.`);
+                    /* invalid property */
+                    return false;
+                }
+            }
+        }).catch(function (xhr) {
+            console.error(xhr.responseText);
+            toastr.error("An error occurred while fetching property data.");
+            /* return false on error */
+            return false;
         });
     }
 });

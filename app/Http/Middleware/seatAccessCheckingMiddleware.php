@@ -54,7 +54,7 @@ class seatAccessCheckingMiddleware
             $role_id = 0;
 
             /* Check if the current user is the creator of the team */
-            if ($team->creator_id !== $user->id) {
+            if ($team->creator_id != $user->id) {
                 /* If the user is not the creator, check if they are a team member */
                 $team_member = Team_Member::where('team_id', $team->id)
                     ->where('user_id', $user->id)
@@ -63,7 +63,7 @@ class seatAccessCheckingMiddleware
                 /* If the user is not a member of the team, redirect with an error message */
                 if (!$team_member) {
                     return redirect()->route('dashboardPage', ['slug' => $slug])
-                        ->withErrors(['error' => "You cannot access seat `{$slug}`"]);
+                        ->withErrors(['error' => "You are not part of team `{$slug}`"]);
                 }
 
                 /* Check if the team member is assigned to the seat */
@@ -74,7 +74,7 @@ class seatAccessCheckingMiddleware
                 /* If no assigned seat is found, redirect with an error message */
                 if (!$assigned_seat) {
                     return redirect()->route('dashboardPage', ['slug' => $slug])
-                        ->withErrors(['error' => "You cannot access seat `{$slug}`"]);
+                        ->withErrors(['error' => "You cannot access seat `{$seat_slug}`"]);
                 }
 
                 /* Store the role_id for the assigned seat */

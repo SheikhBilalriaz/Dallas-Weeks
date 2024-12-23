@@ -1,67 +1,113 @@
+// Declare variables to hold AJAX requests for managing concurrent operations
 var searchAjax = null;
 var deleteAjax = null;
 var toSeatAjax = null;
 
 $(document).ready(function () {
+    // Event handler for navigating to the previous step in a multi-step form
     $(document).on('click', '.btn-prev', btnPrev);
+
+    // Event handler for navigating to the next step in a multi-step form
     $(document).on('click', '.btn-next', btnNext);
+
+    // Event handler to clear error messages and remove error classes when input is changed
     $(document).on('input', '.error', function () {
-        const $requiredFields = $(this).parent();
-        $requiredFields.find('.text-danger').html('');
-        $requiredFields.find('.error').removeClass('error');
+        const $requiredFields = $(this).parent(); // Parent container of the input field
+        $requiredFields.find('.text-danger').html(''); // Clear error message text
+        $requiredFields.find('.error').removeClass('error'); // Remove error class from input fields
     });
+
+    // Event handler for the form submission in the payment process
     $('#payment-form').bind('submit', paymentForm);
+
+    // Event handler for filtering seats when input is entered in the search field
     $(document).on('input', '#search_seat', filterSearch);
+
+    // Event handler to toggle the settings list
     $(document).on('click', '.setting_btn', settingList);
+
+    // Event handler for selecting a seat from the table data
     $(document).on('click', '.seat_table_data', toSeat);
+
+    // Event handler for updating the name of a seat
     $(document).on('click', '.update_seat_name', updateSeatName);
+
+    // Event handler for canceling a subscription
     $(document).on('click', '.cancel_subscription', cancelSubscription);
+
+    // Event handler for deleting an entire seat
     $(document).on('click', '.delet_whole_seat', deleteSeat);
 });
 
+// Function to handle subscription cancellation
 function cancelSubscription() {
+    // Display a confirmation dialog to the user
     if (confirm('Are you sure to cancel the subscription?')) {
+        // Redirect to the URL specified in the 'data-to' attribute of the clicked element
         window.location = $(this).data('to');
     }
 }
 
+// Function to handle the "Previous" button click in a multi-step form
 function btnPrev(e) {
+    // Move to the previous step in the form
     changeStep(false);
 }
 
+// Async function to handle the "Next" button click in a multi-step form
 async function btnNext(e) {
+    // Find the sibling element with the class 'form_row' within the parent container
     const $formRow = $(this).parent().siblings('.form_row');
+
+    // Get the value of the promo code input field and remove any whitespace
     var code = $('input[name="promo_code"]').val().trim();
+
+    // Check if the current form row is for the promo code and the promo code is not empty
     if ($formRow.hasClass('promo_row') && code !== "") {
+        // Validate the promo code by calling the asynchronous function 'checkPromoCode'
         const isValidPromo = await checkPromoCode(code);
+
+        // If the promo code is invalid, exit the function and do not proceed
         if (!isValidPromo) {
-            return;
+            return false;
         }
     }
+
+    // Move to the next step in the form
     changeStep(true);
 }
 
+// Function to validate a promo code by making an AJAX request
 async function checkPromoCode(code) {
     try {
+        // Send an AJAX POST request to the promo code validation route
         const response = await $.ajax({
-            url: checkPromoCodeRoute,
-            type: 'POST',
-            data: { promo_code: code },
+            url: checkPromoCodeRoute, // The URL for the server-side route to validate the promo code
+            type: 'POST', // HTTP method for the request
+            data: { promo_code: code }, // Data payload containing the promo code to be validated
             headers: {
+                // Include CSRF token in the request headers for security
                 "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content'),
             }
         });
+
+        // Check the response for validation status
         if (response.valid) {
+            // Promo code is valid
             return true;
         } else {
-            $('#promo_code').addClass('error');
-            $('#promo_code').siblings('.text-danger').html(response.coupon_error);
-            return false;
+            // Promo code is invalid, show an error message
+            $('#promo_code').addClass('error'); // Add error class to the promo code input field
+            $('#promo_code')
+                .siblings('.text-danger') // Find the sibling element to display the error message
+                .html(response.coupon_error); // Display the error message from the server response
+            return false; // Return false since the promo code is invalid
         }
     } catch (xhr) {
-        const errorMessage = xhr.responseJSON?.coupon_error || 'Something went wrong.';
-        toastr.error(errorMessage);
-        return false;
+        // Handle errors that occur during the AJAX request
+        const errorMessage = xhr.responseJSON?.coupon_error || 'Something went wrong.'; // Default error message
+        toastr.error(errorMessage); // Display the error message using Toastr notifications
+        return false; // Return false as the promo code validation failed
     }
 }
 

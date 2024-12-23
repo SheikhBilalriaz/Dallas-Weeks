@@ -466,7 +466,7 @@ $(document).ready(function () {
             }
         }
 
-        return allValid;
+        return true;
     }
 
     function handleElementError(key, originalKey) {

@@ -5,35 +5,35 @@ $(document).ready(function () {
     });
 
     /* Form navigation */
-    const prevBtns = $(".btn-prev");
-    const nextBtns = $(".btn-next");
-    const progress = $("#progress");
-    const formSteps = $(".form-step");
-    const progressSteps = $(".progress-step");
+    // const prevBtns = $(".btn-prev");
+    // const nextBtns = $(".btn-next");
+    // const progress = $("#progress");
+    // const formSteps = $(".form-step");
+    // const progressSteps = $(".progress-step");
 
-    let formStepsNum = 0;
+    // let formStepsNum = 0;
 
-    function updateFormSteps() {
-        formSteps.removeClass("active");
-        formSteps.eq(formStepsNum).addClass("active");
-    }
+    // function updateFormSteps() {
+    //     formSteps.removeClass("active");
+    //     formSteps.eq(formStepsNum).addClass("active");
+    // }
 
-    function updateProgressBar() {
-        progressSteps.removeClass("active").slice(0, formStepsNum + 1).addClass("active");
-        progress.width(((formStepsNum) / (progressSteps.length - 1)) * 100 + "%");
-    }
+    // function updateProgressBar() {
+    //     progressSteps.removeClass("active").slice(0, formStepsNum + 1).addClass("active");
+    //     progress.width(((formStepsNum) / (progressSteps.length - 1)) * 100 + "%");
+    // }
 
-    nextBtns.on('click', function () {
-        formStepsNum++;
-        updateFormSteps();
-        updateProgressBar();
-    });
+    // nextBtns.on('click', function () {
+    //     formStepsNum++;
+    //     updateFormSteps();
+    //     updateProgressBar();
+    // });
 
-    prevBtns.on('click', function () {
-        formStepsNum--;
-        updateFormSteps();
-        updateProgressBar();
-    });
+    // prevBtns.on('click', function () {
+    //     formStepsNum--;
+    //     updateFormSteps();
+    //     updateProgressBar();
+    // });
 
     /* Set active class in navigation menu */
     const path = window.location.href;
