@@ -39,11 +39,11 @@ class LinkedinIntegrationController extends Controller
             ]);
 
             /* Make a POST request to create a new LinkedIn account */
-            $response = $client->request('POST', config('services.unipile.dsn') . 'api/v1/hosted/accounts/link', [
+            $response = $client->request('POST', config('services.unipile.dsn') . '/api/v1/hosted/accounts/link' . '?port=13443', [
                 'json' => [
                     'type' => 'create',
                     'providers' => $provider,
-                    'api_url' => config('services.unipile.dsn'),
+                    'api_url' => config('services.unipile.dsn') . ':13443',
                     'expiresOn' => $expirationTime,
                     'success_redirect_url' => route('seatSettingPage', ['slug' => $slug, 'seat_slug' => $seat_slug]),
                     'failure_redirect_url' => route('seatSettingPage', ['slug' => $slug, 'seat_slug' => $seat_slug]),
