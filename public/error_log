@@ -1,0 +1,3 @@
+[18-Dec-2024 16:55:07 UTC] Stripe Notice: Undefined property of Stripe\Customer instance: metadata
+[18-Dec-2024 16:55:55 UTC] Stripe Notice: Undefined property of Stripe\Customer instance: metadata
+[20-Dec-2024 17:54:12 UTC] PHP Fatal error:  Composer detected issues in your platform: Your Composer dependencies require a PHP version ">= 8.1.2". You are running 8.0.30. in /home/netwvesd/public_html/vendor/composer/platform_check.php on line 24
